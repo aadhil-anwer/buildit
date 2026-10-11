@@ -33,8 +33,8 @@ export interface LayoutReport {
   clearance: ClearanceReport;
 }
 
-export function layoutReport(scene: Scene, cell = 0.05): LayoutReport {
-  const clearance = analyzeClearance(scene, { cell });
+export function layoutReport(scene: Scene, cell = 0.05, { overlay = true } = {}): LayoutReport {
+  const clearance = analyzeClearance(scene, { cell, overlay });
   return { issues: [...findGeometryIssues(scene), ...clearance.issues], clearance };
 }
 

@@ -214,7 +214,7 @@ function solve(
 
 /** Cost of a layout's walkway problems, in "metres of displacement". */
 export function clearancePenalty(scene: Scene): number {
-  const report = analyzeClearance(scene, { cell: 0.1 });
+  const report = analyzeClearance(scene, { cell: 0.1, overlay: false });
   const min = scene.constraints.minWalkway;
   let p = 0;
   for (const a of report.access) {

@@ -9,7 +9,7 @@
   ],
   "scripts": {
     "typecheck": "npm run typecheck --workspaces --if-present",
-    "lint": "eslint . --max-warnings 30",
+    "lint": "eslint . --max-warnings 28",
     "dup": "jscpd packages --min-lines 8 --min-tokens 60 --threshold 0 --silent --ignore \"**/node_modules/**,**/tests/**\"",
     "dead": "knip",
     "test": "npm test --workspaces --if-present && vitest run tools",

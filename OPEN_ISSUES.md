@@ -57,9 +57,15 @@ Live list of what is unverified, deferred or temporarily weakened. Update it whe
 - **Metro's file watcher can miss edits** in this monorepo; restart the dev server with `-c` when the browser shows old code.
 - **Node warns about the module type** when running `scripts/*.ts` (harmless).
 
+## Engine (Phase 1)
+
+- **Engine speed on a phone is unmeasured.** Desktop numbers: room check 2–4 ms (10 cm grid) and 7–9 ms (5 cm grid); Hermes is several times slower, so the 10 cm check may exceed one frame. Measure on a device (iPhone 11 class) in Phase 4 and, if needed, run the engine in the worklet runtime. `perf.test.ts` guards against regressions only.
+- **Clearance distances are capped at 0.8 m** (nothing reads beyond it); results are identical on every test.
+- `improveLayout` still only makes small moves (about 50 cm). Bigger changes come from the placement tools / AI.
+
 ## Weakened checks (debt)
 
-- **Legacy size/complexity limits.** 30 warnings in `packages/core` (`importers/roomplan`, `layout/{clearance,improve,placement,validate}`, `ops`, `summary`, two test files). `npm run lint` caps warnings at 30 so the count can only fall. Refactor these in Phase 1 (they are being changed anyway), then shrink `LEGACY` in `eslint.config.js` and the cap in `package.json`.
+- **Legacy size/complexity limits.** 28 warnings in `packages/core` (`importers/roomplan`, `layout/{clearance,placement,validate}`, `ops`, `summary`, two test files). `npm run lint` caps warnings at 28 so the count can only fall. Refactor these in Phase 1 (they are being changed anyway), then shrink `LEGACY` in `eslint.config.js` and the cap in `package.json`.
 - **knip can't flag unused exports in `packages/core`** because every file is an entry point. Add `packages/core/src/index.ts` as the public API and make it the only entry.
 - **`web/` is frozen** and excluded from lint, dead-code and duplicate checks. Only its tests and typecheck run.
 

@@ -103,8 +103,9 @@ rule below has a number, so it can be checked.
 | --- | --- |
 | Frame rate while orbiting, dragging or gliding | 60 fps on the floor device; never below 50 for more than a moment |
 | JS thread blocked by one task | ≤ 16 ms during interaction, ≤ 50 ms otherwise |
-| Engine `check` (rules + score) for a 15-item room | ≤ 4 ms on the floor device |
-| AI `optimize` / "another option" | ≤ 300 ms total, split into chunks of ≤ 8 ms (yield between chunks); progress narrated |
+| Engine room check (10 cm grid, live) | ≤ 16 ms **on the phone**. Laptop reference 2–4 ms; guard test ≤ 12 ms. Not yet measured on Hermes |
+| Engine room check (5 cm grid, exact) | Laptop 7–9 ms; guard test ≤ 40 ms. Run when you stop touching, never per frame |
+| AI `optimize` / "another option" | ≤ 300 ms total, in slices of ≤ 8 ms (`improveLayoutSliced`, the app supplies a real timer pause); guard test: no stretch over 60 ms |
 | Draw calls in the room scene | ≤ 150 |
 | Triangles in the room scene | ≤ 150k |
 | Textures | ≤ 1024 px per side, shared; total GPU texture memory ≤ 32 MB |
@@ -140,8 +141,9 @@ rule below has a number, so it can be checked.
 
 ### How the engine stays off the critical path
 
-- `check` runs after a drag ends or every ~100 ms while dragging, not on every
-  touch move. Collision checks during a drag use only the moved piece.
+- The room check runs on the 10 cm grid after a drag ends (debounced ~150 ms), and on the
+  5 cm grid once things settle, not on every touch move. If Hermes measures over budget,
+  it moves to the worklet runtime (Phase 4). Collision checks during a drag use only the moved piece.
 - `optimize` is time-sliced: coarse grid first (20 cm steps), then refine
   around the best candidates (5 cm), yielding to the UI between chunks. The
   existing `improve.ts` already takes a `budgetMs`; keep that pattern.

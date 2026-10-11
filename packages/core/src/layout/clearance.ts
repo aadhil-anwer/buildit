@@ -29,6 +29,8 @@ const REACH = 0.6;
 const MIN_PASSABLE = 0.45;
 /** Access widths are reported up to this; wider means "open". */
 export const ACCESS_CAP = 2 * REACH;
+/** Distances beyond this never matter (widths cap at ACCESS_CAP; walkway preferences stay under 1.5 m), so obstacles farther away are skipped. */
+const CLEARANCE_CAP = 0.8;
 
 export interface AccessResult {
   objectId: string;
@@ -48,6 +50,7 @@ export interface ClearanceReport {
   /**
    * Per cell, for drawing: 0 not floor (outside room or under furniture),
    * 1 comfortably walkable from a door, 2 free floor too tight to walk.
+   * Empty when the overlay was not requested.
    */
   overlay: Uint8Array;
   access: AccessResult[];
@@ -193,7 +196,39 @@ function accessZones(o: SceneObject, box: OBB): ((p: Vec2) => boolean)[] {
   return [() => true];
 }
 
-export function analyzeClearance(scene: Scene, opts: { cell?: number; minWalkway?: number } = {}): ClearanceReport {
+const NEIGHBOURS = [-1, 0, 1].flatMap((dr) => [-1, 0, 1].map((dc) => [dc, dr] as const));
+
+/**
+ * Floor a person of shoulder width `minWalkway` can sweep over when coming in from a door:
+ * 2 = free floor, 1 = walkable. Only needed when the walking-space overlay is shown.
+ */
+function walkableOverlay(clearance: Float32Array, bottleneck: Float32Array, cols: number, rows: number, cell: number, minWalkway: number) {
+  const r = minWalkway / 2;
+  const rc = Math.ceil(r / cell);
+  const inGrid = (c: number, row: number) => c >= 0 && row >= 0 && c < cols && row < rows;
+  const isCenter = (c: number, row: number) => inGrid(c, row) && bottleneck[row * cols + c] >= r - cell * 0.5;
+  // Offsets of the cells a person standing on a centre cell sweeps over.
+  const disc = Array.from({ length: (2 * rc + 1) ** 2 }, (_, k) => [(k % (2 * rc + 1)) - rc, Math.floor(k / (2 * rc + 1)) - rc] as const).filter(
+    ([dc, dr]) => (dr * dr + dc * dc) * cell * cell <= r * r,
+  );
+  const overlay = Uint8Array.from(clearance, (v) => (v >= 0 ? 2 : 0));
+  for (let i = 0; i < overlay.length; i++) {
+    const [c, row] = [i % cols, Math.floor(i / cols)];
+    if (!isCenter(c, row)) continue;
+    if (NEIGHBOURS.every(([dc, dr]) => isCenter(c + dc, row + dr))) {
+      overlay[i] = 1;
+      continue;
+    }
+    for (const [dc, dr] of disc) {
+      const j = (row + dr) * cols + c + dc;
+      if (inGrid(c + dc, row + dr) && overlay[j] === 2) overlay[j] = 1;
+    }
+  }
+  return overlay;
+}
+
+/** `overlay: false` skips the walking-space overlay (returned empty), which the room check does not need. */
+export function analyzeClearance(scene: Scene, opts: { cell?: number; minWalkway?: number; overlay?: boolean } = {}): ClearanceReport {
   const cell = opts.cell ?? 0.05;
   const minWalkway = opts.minWalkway ?? scene.constraints.minWalkway;
   const poly = scene.room.corners;
@@ -212,7 +247,11 @@ export function analyzeClearance(scene: Scene, opts: { cell?: number; minWalkway
     ...wallPieces(scene),
   ];
 
-  // clearance[i]: distance to the nearest obstacle; -1 = not floor.
+  // clearance[i]: distance to the nearest obstacle, capped at CLEARANCE_CAP; -1 = not floor.
+  const reach = obstacles.map((ob) => {
+    const v = bounds(obstacleVertices(ob));
+    return { x0: v.minX - CLEARANCE_CAP, x1: v.maxX + CLEARANCE_CAP, z0: v.minZ - CLEARANCE_CAP, z1: v.maxZ + CLEARANCE_CAP };
+  });
   const clearance = new Float32Array(n).fill(-1);
   let insideCount = 0;
   let freeCount = 0;
@@ -221,14 +260,16 @@ export function analyzeClearance(scene: Scene, opts: { cell?: number; minWalkway
     if (!pointInPolygon(p, poly)) continue;
     insideCount++;
     let blocked = false;
-    let best = Infinity;
-    for (const ob of obstacles) {
+    let best = CLEARANCE_CAP;
+    for (let k = 0; k < obstacles.length; k++) {
+      const r = reach[k];
+      if (p.x < r.x0 || p.x > r.x1 || p.z < r.z0 || p.z > r.z1) continue;
+      const ob = obstacles[k];
       if (ob.kind === "object" && pointInObb(p, ob.box)) {
         blocked = true;
         break;
       }
-      const d = obstacleDistance(p, ob);
-      if (d < best) best = d;
+      best = Math.min(best, obstacleDistance(p, ob));
     }
     if (blocked) continue;
     clearance[i] = best;
@@ -340,13 +381,19 @@ export function analyzeClearance(scene: Scene, opts: { cell?: number; minWalkway
     // Candidate standing spots: close enough to use the object, on a usable
     // side, with nothing in between.
     const near: number[] = [];
-    for (let i = 0; i < n; i++) {
-      if (bottleneck[i] < 0) continue;
-      const p = center(i);
-      if (pointObbDistance(p, box) > REACH) continue;
-      const q = closestOnObb(p, box);
-      if (others.some((s) => segmentHitsObb(p, q, s.box))) continue;
-      near.push(i);
+    const nb = bounds(obbCorners(box));
+    const [c0, c1] = [Math.max(0, Math.floor((nb.minX - REACH - b.minX) / cell)), Math.min(cols - 1, Math.floor((nb.maxX + REACH - b.minX) / cell))];
+    const [r0, r1] = [Math.max(0, Math.floor((nb.minZ - REACH - b.minZ) / cell)), Math.min(rows - 1, Math.floor((nb.maxZ + REACH - b.minZ) / cell))];
+    for (let r = r0; r <= r1; r++) {
+      for (let c = c0; c <= c1; c++) {
+        const i = r * cols + c;
+        if (bottleneck[i] < 0) continue;
+        const p = center(i);
+        if (pointObbDistance(p, box) > REACH) continue;
+        const q = closestOnObb(p, box);
+        if (others.some((s) => segmentHitsObb(p, q, s.box))) continue;
+        near.push(i);
+      }
     }
     // Each zone must be reachable; the object's access is its worst zone.
     let worst: { val: number; cell: number } | null = null;
@@ -430,45 +477,9 @@ export function analyzeClearance(scene: Scene, opts: { cell?: number; minWalkway
     }
   }
 
-  // Overlay: floor a person of shoulder width `minWalkway` can sweep over
-  // when coming in from a door.
-  const r = minWalkway / 2;
-  const isCenter = (i: number) => bottleneck[i] >= r - cell * 0.5;
-  const overlay = new Uint8Array(n);
-  for (let i = 0; i < n; i++) if (clearance[i] >= 0) overlay[i] = 2;
-  const rc = Math.ceil(r / cell);
-  for (let i = 0; i < n; i++) {
-    if (!isCenter(i)) continue;
-    const c = i % cols;
-    const rr = Math.floor(i / cols);
-    let boundary = false;
-    for (let dr = -1; dr <= 1 && !boundary; dr++) {
-      for (let dc = -1; dc <= 1; dc++) {
-        const cc = c + dc;
-        const r2 = rr + dr;
-        if (cc < 0 || r2 < 0 || cc >= cols || r2 >= rows || !isCenter(r2 * cols + cc)) {
-          boundary = true;
-          break;
-        }
-      }
-    }
-    if (!boundary) {
-      overlay[i] = 1;
-      continue;
-    }
-    for (let dr = -rc; dr <= rc; dr++) {
-      for (let dc = -rc; dc <= rc; dc++) {
-        if ((dr * dr + dc * dc) * cell * cell > r * r) continue;
-        const cc = c + dc;
-        const r2 = rr + dr;
-        if (cc < 0 || r2 < 0 || cc >= cols || r2 >= rows) continue;
-        const j = r2 * cols + cc;
-        if (overlay[j] === 2) overlay[j] = 1;
-      }
-    }
-  }
+  const overlay = opts.overlay === false ? new Uint8Array(0) : walkableOverlay(clearance, bottleneck, cols, rows, cell, minWalkway);
   let walkable = 0;
-  for (let i = 0; i < n; i++) if (overlay[i] === 1) walkable++;
+  for (let i = 0; i < overlay.length; i++) if (overlay[i] === 1) walkable++;
 
   return {
     cell,

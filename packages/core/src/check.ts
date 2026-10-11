@@ -30,7 +30,7 @@ export function scoreOf(rules: Rule[], narrowestCm: number) {
   return Math.max(0, Math.round(100 - 1.4 * penalty - (narrowestCm < 100 ? 3 : 0)));
 }
 
-export function roomCheck(scene: Scene, report: LayoutReport = layoutReport(scene)) {
+export function roomCheck(scene: Scene, report: LayoutReport = layoutReport(scene, 0.05, { overlay: false })) {
   const { access } = report.clearance;
   const narrowest = tightestAccess(report.clearance);
   const tightestOf = (pick: (o: SceneObject) => boolean) => {

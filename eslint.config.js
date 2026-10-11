@@ -1,7 +1,7 @@
 import tseslint from "typescript-eslint";
 
 const LEGACY = [
-  "importers/roomplan", "layout/clearance", "layout/improve", "layout/placement",
+  "importers/roomplan", "layout/clearance", "layout/placement",
   "layout/validate", "ops", "summary",
 ].map((f) => `packages/core/src/${f}.ts`).concat(["packages/core/tests/layout.test.ts", "packages/core/tests/roomplan.test.ts"]);
 

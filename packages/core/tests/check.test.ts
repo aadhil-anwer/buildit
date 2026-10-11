@@ -76,3 +76,12 @@ describe("room check", () => {
     expect(after.score).toBeGreaterThan(roomCheck(before).score);
   });
 });
+
+test("skipping the walking-space overlay changes nothing but speed", async () => {
+  const { analyzeClearance } = await import("../src/layout/clearance");
+  const [full, lean] = [analyzeClearance(sampleBedroom()), analyzeClearance(sampleBedroom(), { overlay: false })];
+  expect(lean.access).toEqual(full.access);
+  expect(lean.issues).toEqual(full.issues);
+  expect(lean.overlay).toHaveLength(0);
+  expect(full.overlay.length).toBeGreaterThan(0);
+});
