@@ -1,1 +1,1 @@
-{ "compilerOptions": { "strict": true, "noEmit": true, "lib": ["esnext"], "module": "esnext", "moduleResolution": "bundler", "types": [] }, "include": ["**/*.ts"] }
+{ "compilerOptions": { "strict": true, "noEmit": true, "lib": ["esnext"], "module": "esnext", "moduleResolution": "bundler", "types": [], "jsx": "react-jsx" }, "include": ["**/*.ts", "**/*.tsx"] }

@@ -1,4 +1,7 @@
-import { Check, ChevronLeft, ScanLine, SlidersHorizontal } from "lucide-react-native";
+import Check from "lucide-react-native/icons/check";
+import ChevronLeft from "lucide-react-native/icons/chevron-left";
+import ScanLine from "lucide-react-native/icons/scan-line";
+import SlidersHorizontal from "lucide-react-native/icons/sliders-horizontal";
 import { I18nManager } from "react-native";
 import { color } from "@/theme";
 

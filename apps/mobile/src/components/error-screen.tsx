@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { StyleSheet, View } from "react-native";
+import { t } from "@/i18n";
 import { report } from "@/lib/report";
 import { color, space } from "@/theme";
 import { Button } from "./button";
@@ -9,9 +10,9 @@ export function ErrorScreen({ error, retry }: { error: Error; retry: () => unkno
   useEffect(() => report(error, { screen: "error-boundary" }), [error]);
   return (
     <View style={styles.root}>
-      <Text variant="title">Something went wrong</Text>
-      <Text tone="secondary">If it keeps happening, close and reopen the app.</Text>
-      <Button title="Try again" onPress={retry} />
+      <Text variant="title">{t("errTitle")}</Text>
+      <Text tone="secondary">{t("errBody")}</Text>
+      <Button title={t("retry")} onPress={retry} />
     </View>
   );
 }

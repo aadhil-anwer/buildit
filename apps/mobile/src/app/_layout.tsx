@@ -2,6 +2,7 @@ import { Stack, type ErrorBoundaryProps } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
 import { ErrorScreen } from "@/components/error-screen";
+import { useI18nReady } from "@/i18n/use-i18n-ready";
 import { env } from "@/lib/env";
 import { initMonitoring } from "@/lib/monitoring";
 import { report } from "@/lib/report";
@@ -15,8 +16,10 @@ export const ErrorBoundary = ({ error, retry }: ErrorBoundaryProps) => <ErrorScr
 
 export default function RootLayout() {
   const fontsReady = useAppFonts();
+  const i18nReady = useI18nReady();
+  const ready = fontsReady && i18nReady;
   useEffect(() => {
-    if (fontsReady) SplashScreen.hideAsync().catch(report);
-  }, [fontsReady]);
-  return fontsReady ? <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: color.bg } }} /> : null;
+    if (ready) SplashScreen.hideAsync().catch(report);
+  }, [ready]);
+  return ready ? <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: color.bg } }} /> : null;
 }

@@ -6,7 +6,7 @@ const LEGACY = [
 ].map((f) => `packages/core/src/${f}.ts`).concat(["packages/core/tests/layout.test.ts", "packages/core/tests/roomplan.test.ts"]);
 
 export default tseslint.config(
-  { ignores: ["**/node_modules", "**/.next", "design-docnew", "web", ".claude", "tools/fixtures", "**/*.config.*"] },
+  { ignores: ["**/node_modules", "**/.next", "design-docnew", "web", ".claude", "tools/fixtures", "**/*.config.*", "**/*.generated.ts"] },
   ...tseslint.configs.recommendedTypeChecked,
   {
     languageOptions: { parserOptions: { projectService: true, tsconfigRootDir: import.meta.dirname } },
@@ -19,7 +19,31 @@ export default tseslint.config(
       complexity: ["error", 12],
       "no-restricted-imports": [
         "error",
-        { paths: [{ name: "react-native", importNames: ["ActivityIndicator"], message: "No spinners (design system): use <Skeleton>." }] },
+        {
+          paths: [
+            { name: "react-native", importNames: ["ActivityIndicator"], message: "No spinners (design system): use <Skeleton>." },
+            { name: "lucide-react-native", message: "Import one icon at a time from lucide-react-native/icons/<name>; the barrel loads 3,700 files (cold test run 13 min)." },
+          ],
+        },
+      ],
+    },
+  },
+  // Structural i18n/RTL rules for app code (tests are exempt).
+  {
+    files: ["apps/mobile/src/**/*.{ts,tsx}", "tools/fixtures/**/*.{ts,tsx}"],
+    ignores: ["**/*.test.*"],
+    rules: {
+      "no-restricted-syntax": [
+        "error",
+        { selector: "JSXText[value=/\\S/]", message: "User-facing text goes through t()." },
+        {
+          selector: "JSXAttribute[name.name=/^(title|label|placeholder|alt|accessibilityLabel|accessibilityHint)$/] > Literal",
+          message: "User-facing text goes through t().",
+        },
+        {
+          selector: "Property[key.name=/^(left|right|(margin|padding)(Left|Right)|border(Left|Right).*|border(Top|Bottom)(Left|Right)Radius)$/]",
+          message: "Use logical properties (start/end) so layouts mirror under RTL.",
+        },
       ],
     },
   },

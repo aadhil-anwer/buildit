@@ -41,6 +41,15 @@ Live list of what is unverified, deferred or temporarily weakened. Update it whe
 - **Skeleton ignores the "reduce motion" setting.** Honour it before launch.
 - `npm run tokens` regenerates `tokens.generated.ts`; a test fails if it drifts from `design-docnew`. Node prints a harmless module-type warning when it runs.
 
+## i18n (Phase 0 step 5)
+
+- **Arabic for our own strings is unreviewed.** `errTitle` and `errBody` (src/i18n/strings.ts) are not in the design doc, so I wrote the Arabic myself. Have a native speaker check them; every new string outside the design doc needs the same.
+- **No in-app language switch UI yet.** `setLanguage()` is built and tested (saves, flips RTL, reloads); the Settings screen that calls it arrives in Phase 3.
+- **RTL has only been unit-tested** (direction flip + reload logic). It needs a real device or simulator pass; the design compare in step 6 covers layout.
+- **Numbers are mapped by our own function** (Arabic-Indic digits, `٫`), not `Intl`, because Hermes' `Intl` support is uneven. Only numbers are converted; strings pass through unchanged.
+- `npm run strings` regenerates `strings.generated.ts` from the prototype; a test fails if they drift or if English and Arabic disagree on keys or placeholders.
+- **Icons must be imported one by one** (`lucide-react-native/icons/<name>`); lint enforces it. The barrel import made a cold test run take 13 minutes.
+
 ## Weakened checks (debt)
 
 - **Legacy size/complexity limits.** 30 warnings in `packages/core` (`importers/roomplan`, `layout/{clearance,improve,placement,validate}`, `ops`, `summary`, two test files). `npm run lint` caps warnings at 30 so the count can only fall. Refactor these in Phase 1 (they are being changed anyway), then shrink `LEGACY` in `eslint.config.js` and the cap in `package.json`.
