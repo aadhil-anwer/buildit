@@ -1,7 +1,37 @@
 {
-  "ignore": [".claude/**", "design-docnew/**", "web/**", "tools/fixtures/**"],
+  "ignore": [
+    ".claude/**",
+    "design-docnew/**",
+    "web/**",
+    "tools/fixtures/**"
+  ],
   "workspaces": {
-    ".": { "entry": ["tools/*.test.ts"] },
-    "packages/core": { "entry": ["src/**/*.ts", "tests/**/*.test.ts"], "project": ["src/**/*.ts"] }
+    ".": {
+      "entry": [
+        "tools/*.test.ts"
+      ],
+      "ignoreDependencies": [
+        "react",
+        "react-dom"
+      ]
+    },
+    "packages/core": {
+      "entry": [
+        "src/**/*.ts",
+        "tests/**/*.test.ts"
+      ],
+      "project": [
+        "src/**/*.ts"
+      ]
+    },
+    "apps/mobile": {
+      "entry": [
+        "src/app/**/*.tsx",
+        "src/**/*.test.{ts,tsx}"
+      ],
+      "project": [
+        "src/**/*.{ts,tsx}"
+      ]
+    }
   }
 }

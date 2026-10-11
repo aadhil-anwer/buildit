@@ -1,0 +1,40 @@
+{
+  "name": "@buildit/mobile",
+  "version": "0.1.0",
+  "main": "expo-router/entry",
+  "dependencies": {
+    "@sentry/react-native": "~7.11.0",
+    "@types/jest": "29.5.14",
+    "expo": "~57.0.27",
+    "expo-constants": "~57.0.21",
+    "expo-linking": "~57.0.12",
+    "expo-router": "~57.0.25",
+    "expo-system-ui": "~57.0.4",
+    "expo-updates": "~57.0.25",
+    "jest": "~29.7.0",
+    "jest-expo": "~57.0.5",
+    "react": "19.2.3",
+    "react-native": "0.86.3",
+    "react-native-safe-area-context": "~5.7.0",
+    "react-native-screens": "~4.26.0",
+    "zod": "^4.6.6"
+  },
+  "devDependencies": {
+    "@testing-library/react-native": "^14.1.0",
+    "@types/react": "~19.2.2"
+  },
+  "scripts": {
+    "start": "expo start",
+    "ios": "expo start --ios",
+    "android": "expo start --android",
+    "typecheck": "tsc --noEmit",
+    "test": "jest"
+  },
+  "private": true,
+  "jest": {
+    "preset": "jest-expo",
+    "testMatch": [
+      "<rootDir>/src/**/*.test.{ts,tsx}"
+    ]
+  }
+}

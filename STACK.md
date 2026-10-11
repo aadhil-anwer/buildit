@@ -12,6 +12,7 @@ not the feature list. Each line says what was picked and why. If you change one,
 | Repo | npm workspaces monorepo: `apps/mobile`, `packages/core`, `supabase/` | One engine shared by app and Edge Function |
 | Engine | `packages/core`, moved from `app/src/core` | Already handles polygon / L-shaped rooms, openings on walls, 23 furniture types, clearance, placement, RoomPlan import, with tests. `room3d.js` is the weaker prototype engine |
 | 3D | React Three Fiber native (`@react-three/fiber/native`) on `expo-gl`, three.js | Scene is small (under ~30 bevelled boxes); same scene model as the engine |
+| Tests (mobile) | `jest-expo` + `@testing-library/react-native` 14 (`render`, `fireEvent` are async: `await` them); tests sit next to the code | Per the Expo structure guide |
 | Gestures | `react-native-gesture-handler` + Reanimated | Orbit, pinch, drag and rotate share one canvas and need explicit priority |
 | Haptics | `expo-haptics` | Snap, lock, undo (handoff) |
 | Navigation model | **2a Sheet**: room full-bleed, bottom sheet at 196 / 404 / 640 px | The room is the hero; Ask / Add / Item / Finishes fit as sheet tabs |

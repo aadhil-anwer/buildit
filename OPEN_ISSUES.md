@@ -18,6 +18,17 @@ Tick them off here. "Needed by" is the phase that gets blocked without it.
 
 Live list of what is unverified, deferred or temporarily weakened. Update it when you leave something undone.
 
+## Expo shell (Phase 0 step 3)
+
+- **EAS Observe not wired yet.** Needs the Expo account and `eas init`; then add `expo-observe` per the eas-observe skill.
+- **Sentry needs your DSN** (`EXPO_PUBLIC_SENTRY_DSN`). In development a missing DSN is allowed; a production build throws at startup without one, so no release build can silently drop errors. The Sentry Expo plugin also wants `SENTRY_ORG`, `SENTRY_PROJECT` and `SENTRY_AUTH_TOKEN` at EAS build time (source maps).
+- **`expo-updates` is installed but unconfigured.** Run `eas update:configure` after `eas init`, then set `runtimeVersion: { policy: "appVersion" }` as CLAUDE.md requires.
+- **No bundle identifier / package name yet** in `app.json` (waits for the final app name, Phase 8).
+- **Error screen is unstyled English text.** Restyle with the design tokens (step 4) and move strings into `t()` (step 5), then design-compare it.
+- **React is pinned to 19.2.3 in the root `package.json`** (devDependencies and overrides). React Native 0.86 needs exactly that version; without the pin npm hoists 19.3 and tests break with "Invalid hook call". Keep web and mobile on the same version.
+- `npm ls` shows an invalid peer for `react-native-worklets` (from `expo-modules-core`); harmless until we use Reanimated in Phase 4, then align it with `npx expo install`.
+- Jest prints `console.error` noise from the report tests; silence it with a shared setup file if it hides real failures.
+
 ## Weakened checks (debt)
 
 - **Legacy size/complexity limits.** 30 warnings in `packages/core` (`importers/roomplan`, `layout/{clearance,improve,placement,validate}`, `ops`, `summary`, two test files). `npm run lint` caps warnings at 30 so the count can only fall. Refactor these in Phase 1 (they are being changed anyway), then shrink `LEGACY` in `eslint.config.js` and the cap in `package.json`.
