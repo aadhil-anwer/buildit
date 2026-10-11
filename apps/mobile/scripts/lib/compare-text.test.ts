@@ -1,7 +1,8 @@
 import { compareText, type Run } from "./compare-text";
 
 const run = (over: Partial<Run> = {}): Run => ({
-  text: "My rooms", family: '"Cormorant Garamond", serif', size: 46, weight: "400", lh: "46px", ls: "-0.69px", color: "rgb(32, 31, 29)", ...over,
+  text: "My rooms", family: '"Cormorant Garamond", serif', size: 46, weight: "400", lh: "46px", ls: "-0.69px", color: "rgb(32, 31, 29)",
+  box: { x: 24, y: 84, w: 130, h: 46 }, ...over,
 });
 const app = (over: Partial<Run> = {}): Run => run({ family: "CormorantGaramond_400Regular", ...over });
 
@@ -32,3 +33,12 @@ test("reports copy missing from the app and text the design does not have; ignor
     'missing in app: "Rooms"',
     'not in design: "Extra"',
   ]));
+
+test("Amiri has no 600 cut, so the design's 600 is our 700", () =>
+  expect(compareText([run({ weight: "600", family: "Amiri, serif" })], [app({ family: "Amiri_700Bold" })])).toEqual([]));
+
+test("reports a position or size that differs by more than 2px", () => {
+  expect(compareText([run()], [app({ box: { x: 24, y: 91, w: 130, h: 46 } })])).toEqual(['position "My rooms": 24,84 → 24,91']);
+  expect(compareText([run()], [app({ box: { x: 24, y: 84, w: 150, h: 70 } })])).toEqual(['box "My rooms": 130×46 → 150×70']);
+  expect(compareText([run()], [app({ box: { x: 25, y: 85, w: 131, h: 47 } })])).toEqual([]);
+});

@@ -5,7 +5,8 @@ import { I18nManager, Platform } from "react-native";
 import { strings } from "./strings";
 
 export type Lang = "en" | "ar";
-type Key = keyof typeof strings.en;
+export type StringKey = keyof typeof strings.en;
+type Key = StringKey;
 /** One entry per `{n}` in the English string, so a wrong number of values is a type error. */
 type Slots<S extends string, I extends unknown[] = []> = S extends `${string}{${I["length"]}}${string}` ? Slots<S, [...I, 0]> : I;
 type Fill<T extends unknown[]> = { [P in keyof T]: string | number };

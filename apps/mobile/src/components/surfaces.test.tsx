@@ -11,9 +11,9 @@ test("hairline is 1px in the divider colour", async () => {
   expect(flat("h")).toMatchObject({ height: 1, backgroundColor: color.divider });
 });
 
-test("plate is a 6px surface mat inside a 1px divider outline, with the archival grade", async () => {
+test("plate is a 6px surface mat inside a 1px divider outline, and the whole plate gets the archival grade", async () => {
   await render(<Plate testID="p"><Hairline testID="img" /></Plate>);
-  expect(flat("p")).toMatchObject({ borderWidth: 1, borderColor: color.divider });
+  expect(flat("p")).toMatchObject({ borderWidth: 1, borderColor: color.divider, filter: "sepia(0.22) saturate(0.82) contrast(1.05)" });
   const mat = screen.getByTestId("p").children[0] as unknown as { props: { style: object } };
   expect(StyleSheet.flatten(mat.props.style)).toMatchObject({ borderWidth: 6, borderColor: color.surface });
 });

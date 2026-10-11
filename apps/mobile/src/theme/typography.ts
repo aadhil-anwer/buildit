@@ -16,8 +16,14 @@ export const RAMP = {
   hero: ["heading", 400, 38, 1.02], // README: Welcome headline 38/1.02
   title: ["heading", 400, 26, 1.1], // README: room name 26
   heading: ["heading", 600, 18, 1.1],
-  button: ["heading", 600, 14, 1.2], // styles.css .btn
+  brand: ["heading", 400, 26, 1], // prototype: Welcome logotype
+  button14: ["heading", 600, 14, 1.2], // styles.css .btn
+  button15: ["heading", 600, 15, 1.2], // prototype: text buttons ("Try without an account")
+  button16: ["heading", 600, 16, 1.2], // prototype: Welcome buttons
+  button17: ["heading", 600, 17, 1.2], // prototype: Scan a room
   body: ["body", 400, 15, 1.55], // styles.css body
+  bodySm: ["body", 400, 14, 1.55], // styles.css .input, prototype subtitles
+  control: ["body", 600, 14, 1.3], // prototype: language toggle
   label: ["body", 600, 13, 1.3],
   caption: ["body", 400, 12, 1.55],
 } as const;
@@ -26,6 +32,7 @@ export type Variant = keyof typeof RAMP;
 export function textStyle(variant: Variant, arabic: boolean) {
   const [role, weight, fontSize, lh] = RAMP[variant];
   const lineHeight = fontSize * (arabic && role === "body" ? 1.85 : lh); // prototype --lh
-  const letterSpacing = arabic || role === "body" ? 0 : -0.015 * fontSize; // prototype --ls0
+  const tracked = role === "heading" && !variant.startsWith("button"); // buttons use the heading face but no tracking
+  const letterSpacing = arabic || !tracked ? 0 : -0.015 * fontSize; // prototype --ls0
   return { fontFamily: FAMILY[arabic ? "ar" : "en"][role][weight], fontSize, lineHeight, letterSpacing };
 }

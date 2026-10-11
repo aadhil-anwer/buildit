@@ -18,6 +18,50 @@ Tick them off here. "Needed by" is the phase that gets blocked without it.
 
 Live list of what is unverified, deferred or temporarily weakened. Update it when you leave something undone.
 
+## Pending work
+
+What is planned but not done, in build order. Done phases are in `git log`; detail for each phase is in the plan (`~/.claude/plans/stateful-napping-aurora.md`).
+
+**Phase 3, entry screens (in progress)**
+- [x] Navigation wired (signed-out → Welcome, signed-in → My rooms) and Welcome compared in EN and AR. Email sign-in has no prototype screen (built in the same scheme, not compared).
+- [ ] My rooms (list, empty state, "Scan a room"), Capture chooser, Type dimensions, Scan review (plan view, ±5 cm wall steppers, furniture list), Settings (language, walkway 90/75, AI usage, sign out, delete account).
+- [ ] Local-first rooms with sync to Supabase, and clear offline / failed-sync states.
+- [ ] Sign in with Apple (waits for the Apple Developer account).
+
+**Phase 4, room editor:** R3F scene to the design's look, gestures (orbit, pinch, drag with 5 cm grid, wall snap, rotate), bottom sheet (Ask / Add / Item / Finishes / Check), room check chip, walking-space overlay, undo/redo, versions, autosave, thumbnails from snapshots, and the real-device performance gate.
+
+**Phase 5, AI designer:** Edge Function (agent loop on the shared engine, streamed), usage cap wiring, the Ask tab states (running, done, limit, nothing fits, offline), suggestion card, Restyle, Suggested next UI.
+
+**Phase 6, capture:** LiDAR (`expo-roomplan`, verify the importer on a real export), guided ARKit scan (Swift module), failed-scan state, scan upload and `register_scan`. Needs the Apple Developer account and a LiDAR iPhone.
+
+**Phase 7, Android:** Material components per the handoff, Galaxy A-class performance.
+
+**Phase 8, launch:** share image, privacy policy and terms, in-app account deletion with storage cleanup, store listings, EAS Update channels, monitoring alerts, EAS Observe.
+
+**Engine follow-ups (Phase 1b):** room-type rules from PRODUCT.md (sofa to coffee table, TV distance, dining chair pull-out, rug size, focal point). They need decisions: thresholds and weights the design doc does not give, and a screen size on TV units.
+
+**Cross-cutting**
+- [ ] Shrink the 28 legacy lint warnings to zero (clearance, placement, ops, validate, roomplan, summary).
+- [ ] Measure the engine and 3D on a real phone (iPhone 11 class) and fix what misses the budget.
+- [ ] Native-speaker review of every Arabic string we wrote ourselves.
+- [ ] Decisions waiting for you: the dark gold button label (AA contrast) vs the prototype's plain gold, anonymous-account AI abuse, ghost button size (44 vs 40).
+
+## Welcome and sign-in (Phase 3.1)
+
+Compared with the prototype on the web build at 390×844, English and Arabic (`npm run design:compare -- welcome en /welcome`). Everything else the tool checks matches (fonts, sizes, weights, line heights, letter-spacing, colours, header and plate geometry). What still differs:
+
+| Spec | Built | Why |
+| --- | --- | --- |
+| "Continue with Apple" button | not shown | Sign in with Apple is not configured (needs the Apple Developer account); the title and text sit ~50px lower because the plate is taller without it |
+| "Try without an account" colour `#b68235` | `#7d5411` | plain gold fails WCAG AA as text (see Theme) |
+| text buttons 40px tall | 44px | tap-target rule; the email button text sits 4px higher, the ghost 2px |
+| title wraps "Scan a room. Arrange / it with confidence." (balanced) | greedy wrap, one line wider | CSS `text-wrap: balance` does not exist in React Native on iOS |
+| Arabic buttons in Cormorant with browser-fallback Arabic glyphs | Amiri 700 | the design system says Arabic headings are Amiri; the prototype's button rule bypasses its own Arabic font variable |
+| language pill 47px tall | 44px | each label is set in its own script (Naskh for العربية, Lora for English), which reproduces the design's tall pill; Naskh's metrics differ slightly |
+| hero is a live 3D render | static PNG (`npm run hero`) | our own renderer arrives in Phase 4 |
+
+Verified end to end on web against the local Supabase: "Try without an account" creates an anonymous user and its profile and lands on Rooms; signing out returns to Welcome. **Not verified:** the email code flow end to end (local mail is at http://127.0.0.1:54424), real-device safe areas, native RTL layout.
+
 ## Expo shell (Phase 0 step 3)
 
 - **EAS Observe not wired yet.** Needs the Expo account and `eas init`; then add `expo-observe` per the eas-observe skill.

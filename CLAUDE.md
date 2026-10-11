@@ -180,6 +180,7 @@ npm run test:db   # SQL suites — needs `npx supabase start` (arrives with Phas
 ## Practical
 
 - Package manager: **npm**. Monorepo with npm workspaces — see `STACK.md`.
+- Running the app locally: `npx supabase start`, copy `apps/mobile/.env.example` to `.env.local` and fill in the values from `npx supabase status`, then `npm run web` (or `npx expo start`).
 - Expo: stay on the managed workflow. Native sign-in and native modules need a
   **development build**, not Expo Go. Env changes need `npx expo start -c`.
 - **EAS Update with `runtimeVersion: { policy: "appVersion" }`**: any native change

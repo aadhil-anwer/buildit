@@ -2,6 +2,7 @@ import { Stack, type ErrorBoundaryProps } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
 import { View } from "react-native";
+import { SessionProvider, useSession } from "@/auth/session";
 import { ErrorScreen } from "@/components/error-screen";
 import { isArabic } from "@/i18n";
 import { useI18nReady } from "@/i18n/use-i18n-ready";
@@ -16,17 +17,35 @@ SplashScreen.preventAutoHideAsync().catch(report);
 
 export const ErrorBoundary = ({ error, retry }: ErrorBoundaryProps) => <ErrorScreen error={error} retry={retry} />;
 
-export default function RootLayout() {
+/** Waits for fonts, language and login, then shows the screens this person may see. */
+function Routes() {
+  const session = useSession();
   const fontsReady = useAppFonts();
   const i18nReady = useI18nReady();
-  const ready = fontsReady && i18nReady;
+  const ready = fontsReady && i18nReady && session !== undefined;
   useEffect(() => {
     if (ready) SplashScreen.hideAsync().catch(report);
   }, [ready]);
   if (!ready) return null;
   return (
     <View style={{ flex: 1, direction: isArabic() ? "rtl" : "ltr" }}>
-      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: color.bg } }} />
+      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: color.bg } }}>
+        <Stack.Protected guard={!session}>
+          <Stack.Screen name="welcome" />
+          <Stack.Screen name="sign-in" />
+        </Stack.Protected>
+        <Stack.Protected guard={!!session}>
+          <Stack.Screen name="rooms" />
+        </Stack.Protected>
+      </Stack>
     </View>
+  );
+}
+
+export default function RootLayout() {
+  return (
+    <SessionProvider>
+      <Routes />
+    </SessionProvider>
   );
 }

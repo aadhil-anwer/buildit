@@ -1,11 +1,6 @@
-import { View } from "react-native";
-import { Text } from "@/components/text";
-import { t } from "@/i18n";
+import { Redirect } from "expo-router";
+import { useSession } from "@/auth/session";
 
-export default function Home() {
-  return (
-    <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-      <Text variant="display">{t("brand")}</Text>
-    </View>
-  );
+export default function Entry() {
+  return <Redirect href={useSession() ? "/rooms" : "/welcome"} />;
 }

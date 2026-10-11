@@ -1,20 +1,18 @@
 // Usage: npm run design:compare -- <prototype screen> [en|ar] [app route]
 // Needs the app running on the web (npm run web). Writes screenshots and a diff to ./design-compare.
-import { createReadStream, existsSync, mkdirSync, writeFileSync } from "node:fs";
-import { createServer } from "node:http";
-import type { AddressInfo } from "node:net";
-import { extname, join, normalize, resolve } from "node:path";
+import { mkdirSync, writeFileSync } from "node:fs";
+import { resolve } from "node:path";
 import pixelmatch from "pixelmatch";
 import { chromium, type Page } from "playwright";
 import { PNG } from "pngjs";
 import { compareText, type Run } from "./lib/compare-text.ts";
+import { serve } from "./lib/serve.ts";
 
 const [screen, lang = "en", route = "/"] = process.argv.slice(2);
 if (!screen) throw new Error("usage: npm run design:compare -- <prototype screen> [en|ar] [app route]");
 const APP = (process.env.APP_URL as string | undefined) ?? "http://localhost:8081";
 const DESIGN = resolve("../../design-docnew");
 const OUT = "design-compare";
-const MIME: Record<string, string> = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css", ".json": "application/json", ".png": "image/png", ".svg": "image/svg+xml" };
 
 const COLLECT = `(() => {
   const out = [];
@@ -24,25 +22,16 @@ const COLLECT = `(() => {
       const text = n.nodeType === 3 ? n.textContent.trim().replace(/\\s+/g, " ") : "";
       if (text) {
         const s = getComputedStyle(el);
-        out.push({ text, family: s.fontFamily, size: parseFloat(s.fontSize), weight: s.fontWeight, lh: s.lineHeight, ls: s.letterSpacing, color: s.color });
+        const range = document.createRange();
+        range.selectNodeContents(n);
+        const r = range.getBoundingClientRect();
+        out.push({ text, family: s.fontFamily, size: parseFloat(s.fontSize), weight: s.fontWeight, lh: s.lineHeight, ls: s.letterSpacing, color: s.color, box: { x: r.x, y: r.y, w: r.width, h: r.height } });
       } else if (n.nodeType === 1) walk(n);
     }
   };
   walk(document.body);
   return out;
 })()`;
-
-function serve(dir: string) {
-  const server = createServer((req, res) => {
-    const file = join(dir, normalize(decodeURIComponent(new URL(req.url ?? "/", "http://x").pathname)));
-    if (!file.startsWith(dir) || !existsSync(file)) return void res.writeHead(404).end();
-    res.writeHead(200, { "content-type": MIME[extname(file)] ?? "application/octet-stream" });
-    createReadStream(file).pipe(res);
-  });
-  return new Promise<{ url: string; stop: () => void }>((done) =>
-    server.listen(0, "127.0.0.1", () => done({ url: `http://127.0.0.1:${(server.address() as AddressInfo).port}`, stop: () => server.close() })),
-  );
-}
 
 async function capture(page: Page, url: string, name: string) {
   await page.goto(url, { waitUntil: "networkidle" });

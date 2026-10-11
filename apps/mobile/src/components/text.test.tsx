@@ -21,3 +21,9 @@ test("uses the Arabic faces and no letter-spacing when the language is Arabic", 
   await render(<Text variant="display">Hi</Text>);
   expect(styleOf()).toMatchObject({ fontFamily: "Amiri_400Regular", letterSpacing: 0 });
 });
+
+test("a label can be forced into one script regardless of the app language", async () => {
+  jest.spyOn(i18n, "isArabic").mockReturnValue(false);
+  await render(<Text arabic>Hi</Text>);
+  expect(styleOf().fontFamily).toBe("NotoNaskhArabic_400Regular");
+});

@@ -19,3 +19,9 @@ test.each([["disabled"], ["busy"]])("%s does not fire and is announced as such",
   expect(onPress).not.toHaveBeenCalled();
   expect((button().props as { accessibilityState: object }).accessibilityState).toMatchObject({ [flag]: true });
 });
+
+test.each([[14, 44], [15, 44], [16, 46], [17, 50]] as const)("a %ipx button is %i tall (never under the 44pt tap target)", async (size, height) => {
+  await render(<Button title="Scan a room" size={size} />);
+  expect(StyleSheet.flatten(button().props.style as object)).toMatchObject({ minHeight: height });
+  expect(StyleSheet.flatten(screen.getByText("Scan a room").props.style as object)).toMatchObject({ fontSize: size, letterSpacing: 0 });
+});

@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "main": "expo-router/entry",
   "dependencies": {
+    "@buildit/core": "*",
     "@expo-google-fonts/amiri": "^0.4.1",
     "@expo-google-fonts/cormorant-garamond": "^0.4.1",
     "@expo-google-fonts/lora": "^0.4.2",
@@ -10,10 +11,12 @@
     "@expo/metro-runtime": "~57.0.16",
     "@react-native-async-storage/async-storage": "2.2.0",
     "@sentry/react-native": "~7.11.0",
+    "@supabase/supabase-js": "^2.117.3",
     "@types/jest": "29.5.14",
     "expo": "~57.0.27",
     "expo-constants": "~57.0.21",
     "expo-font": "~57.0.4",
+    "expo-image": "~57.0.5",
     "expo-linking": "~57.0.12",
     "expo-localization": "~57.0.2",
     "expo-router": "~57.0.25",
@@ -29,6 +32,7 @@
     "react-native-safe-area-context": "~5.7.0",
     "react-native-screens": "~4.26.0",
     "react-native-svg": "15.15.4",
+    "react-native-url-polyfill": "^4.0.0",
     "react-native-web": "^0.21.4",
     "zod": "^4.6.6"
   },
@@ -49,7 +53,8 @@
     "tokens": "node scripts/gen-tokens.ts",
     "strings": "node scripts/gen-strings.ts",
     "web": "expo start --web --port 8081",
-    "design:compare": "node scripts/design-compare.ts"
+    "design:compare": "node scripts/design-compare.ts",
+    "hero": "node scripts/gen-hero.ts"
   },
   "private": true,
   "jest": {
@@ -64,6 +69,7 @@
     "setupFilesAfterEnv": [
       "<rootDir>/jest.setup.ts"
     ],
-    "testTimeout": 20000
+    "testTimeout": 20000,
+    "clearMocks": true
   }
 }
