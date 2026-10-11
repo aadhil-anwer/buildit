@@ -31,6 +31,9 @@ export const RAMP = {
   rowTitle: ["heading", 600, 22, 1], // prototype: the other capture methods
   tag: ["body", 400, 11, 1.55], // styles.css .tag
   stepper: ["heading", 400, 56, 1], // prototype: the wall length stepper
+  dialogTitle: ["heading", 400, 28, 1.05], // prototype: dialog headings
+  setting: ["heading", 600, 18, 1.2], // prototype: Settings row titles
+  page: ["heading", 400, 42, 1], // prototype: Settings and Share headings
   kicker: ["heading", 600, 11, 1.12], // prototype: section labels (h6: heading face, uppercase, 0.08em)
   dim: ["body", 600, 11, 1], // prototype: wall lengths on the plan
   row: ["body", 400, 14, 1.55], // prototype: list rows
@@ -41,12 +44,13 @@ export const RAMP = {
 } as const;
 export type Variant = keyof typeof RAMP;
 
-const TRACKED = new Set<Variant>(["brand", "display", "hero", "title", "section", "heading"]);
+const TRACKED = new Set<Variant>(["brand", "display", "hero", "title", "section", "heading", "page"]);
 const PARAGRAPH = new Set<Variant>(["body", "bodySm", "small"]);
 
 export function textStyle(variant: Variant, arabic: boolean) {
   const [role, weight, fontSize, lh] = RAMP[variant];
-  const lineHeight = fontSize * (arabic && PARAGRAPH.has(variant) ? 1.85 : lh); // prototype --lh, set on paragraphs only
+  // Prototype --lh (1.85 in Arabic) is set on paragraphs only; Arabic control labels set no line height at all, so the face decides.
+  const lineHeight = arabic && variant === "control" ? undefined : fontSize * (arabic && PARAGRAPH.has(variant) ? 1.85 : lh);
   const letterSpacing = arabic || !TRACKED.has(variant) ? 0 : -0.015 * fontSize; // prototype --ls0, set on these headings only
   const style = { fontFamily: FAMILY[arabic ? "ar" : "en"][role][weight], fontSize, lineHeight, letterSpacing };
   // Section labels are uppercase and widely spaced in English; Arabic has no capitals and must not be spaced.

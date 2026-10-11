@@ -48,7 +48,7 @@ test("only the headings the prototype marks are tightened; way titles, numerals 
 
 test("Arabic gets the roomy 1.85 line-height on paragraphs only; counts, captions and labels keep 1.55", () => {
   for (const v of ["body", "bodySm", "small"] as const) expect(textStyle(v, true).lineHeight).toBeCloseTo(textStyle(v, true).fontSize * 1.85);
-  for (const v of ["count", "caption", "label"] as const) expect(textStyle(v, true).lineHeight).toBeCloseTo(textStyle(v, false).lineHeight);
+  for (const v of ["count", "caption", "label"] as const) expect(textStyle(v, true).lineHeight).toBeCloseTo(textStyle(v, false).lineHeight as number);
 });
 
 test("capture sizes: card title 24/1 and row title 22/1 semibold, tag 11", () => {
@@ -63,6 +63,11 @@ test("the kicker is a small uppercase, widely spaced label in English and plain 
   expect(textStyle("kicker", true)).toMatchObject({ letterSpacing: 0 });
   expect(textStyle("kicker", true)).not.toHaveProperty("textTransform", "uppercase");
   expect(textStyle("kicker", false)).toMatchObject({ fontFamily: "CormorantGaramond_600SemiBold", lineHeight: 11 * 1.12 }); // h6 uses the heading face
+});
+
+test("Arabic control labels use the face's natural line height, which is what makes the design's language pill 47px tall", () => {
+  expect(textStyle("control", true).lineHeight).toBeUndefined();
+  expect(textStyle("control", false).lineHeight).toBeCloseTo(14 * 1.3);
 });
 
 test("plan labels are 11px semibold with line-height 1, and list rows keep 1.55 even in Arabic", () => {

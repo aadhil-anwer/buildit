@@ -1,5 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react-native";
 import { StyleSheet } from "react-native";
+import { color, rust } from "@/theme";
 import { Button } from "./button";
 
 const button = () => screen.getByRole("button", { name: "Scan a room" });
@@ -24,4 +25,11 @@ test.each([[14, 44], [15, 44], [16, 46], [17, 50]] as const)("a %ipx button is %
   await render(<Button title="Scan a room" size={size} />);
   expect(StyleSheet.flatten(button().props.style as object)).toMatchObject({ minHeight: height });
   expect(StyleSheet.flatten(screen.getByText("Scan a room").props.style as object)).toMatchObject({ fontSize: size, letterSpacing: 0 });
+});
+
+test("the danger variant is outlined and labelled in rust", async () => {
+  await render(<Button title="Delete" variant="danger" />);
+  expect(StyleSheet.flatten(screen.getByRole("button", { name: "Delete" }).props.style as object)).toMatchObject({ borderColor: rust.base });
+  expect(StyleSheet.flatten(screen.getByText("Delete").props.style as object)).toMatchObject({ color: rust.dark });
+  expect(color.bg).toBeTruthy();
 });

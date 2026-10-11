@@ -2,11 +2,15 @@ import { fireEvent, render, screen } from "@testing-library/react-native";
 import { RECT_WALL } from "@buildit/core";
 import { t } from "@/i18n";
 import { useRooms } from "@/rooms/store";
+import { useSettings } from "@/settings/store";
 import { Dimensions } from "./dimensions";
 
 const [mockReplace, mockBack] = [jest.fn(), jest.fn()];
 jest.mock("expo-router", () => ({ useRouter: () => ({ replace: mockReplace, back: mockBack }) }));
-beforeEach(() => useRooms.setState({ rooms: [] }));
+beforeEach(() => {
+  useRooms.setState({ rooms: [] });
+  useSettings.setState({ walkwayCm: 90 });
+});
 
 const field = (key: Parameters<typeof t>[0]) => screen.getByLabelText(t(key));
 const fill = async (key: Parameters<typeof t>[0], text: string) => fireEvent.changeText(field(key), text);
@@ -71,4 +75,13 @@ test("back leaves the screen", async () => {
   await render(<Dimensions />);
   await fireEvent.press(screen.getByRole("button", { name: t("back") }));
   expect(mockBack).toHaveBeenCalled();
+});
+
+test("a new room starts with the walkway preference from Settings", async () => {
+  useSettings.setState({ walkwayCm: 75 });
+  await render(<Dimensions />);
+  await fill("dimWidth", "4");
+  await fill("dimLength", "3");
+  await create();
+  expect(useRooms.getState().rooms[0].scene.constraints.minWalkway).toBe(0.75);
 });

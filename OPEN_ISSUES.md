@@ -26,7 +26,7 @@ What is planned but not done, in build order. Done phases are in `git log`; deta
 - [x] Navigation wired (signed-out → Welcome, signed-in → My rooms) and Welcome compared in EN and AR. Email sign-in has no prototype screen (built in the same scheme, not compared).
 - [x] My rooms (list, empty state, "Scan a room") built and compared.
 - [x] Capture chooser, Type dimensions, Scan review (plan view, ±5 cm wall steppers, furniture list) built.
-- [ ] Settings (language, walkway 90/75, AI usage, sign out, delete account).
+- [x] Settings (language, walkway 90/75, AI usage, sign out, delete account) built and compared.
 - [ ] Local-first rooms with sync to Supabase, and clear offline / failed-sync states.
 - [ ] Sign in with Apple (waits for the Apple Developer account).
 
@@ -47,6 +47,25 @@ What is planned but not done, in build order. Done phases are in `git log`; deta
 - [ ] Measure the engine and 3D on a real phone (iPhone 11 class) and fix what misses the budget.
 - [ ] Native-speaker review of every Arabic string we wrote ourselves.
 - [ ] Decisions waiting for you: the dark gold button label (AA contrast) vs the prototype's plain gold, anonymous-account AI abuse, ghost button size (44 vs 40).
+
+## Settings (Phase 3.6)
+
+Compared on the web build (English and Arabic, guest account). Type, colours, spacing and structure match. Differences:
+
+| Spec | Built | Why |
+| --- | --- | --- |
+| "noor@example.com", "3 of 20 used" | "Guest account (no email)", "0 of 20 used" | real data from the guest account and the server |
+| Arabic buttons in Cormorant with fallback glyphs | Amiri 700 | same prototype quirk as Welcome |
+| language pill 47px, Arabic label bold | pill built from the face's natural height; label semibold | the design's height comes from the browser's fallback Arabic font; ours from Noto Naskh |
+| small vertical offsets (about 6px) in the sections | | the pill's height difference carries down the page |
+
+**Behaviour and caveats**
+- **Walkway preference is saved on the device only** (not yet in the `profiles` table) and is applied to **new** rooms. Existing rooms keep theirs; the editor will apply the preference when it runs the room check (Phase 4). Server sync comes with sync (Phase 3.7).
+- **AI usage** is read with the new read-only `ai_usage_today()` function (migration `20261013000000`), so looking at it never uses a request. If it cannot load, the screen says so and the failure is reported.
+- **Signing out keeps this device's rooms** (they have not been synced anywhere yet). Decide with sync: sign out on a shared phone should not leave someone's rooms behind, but clearing them now would lose unsynced work.
+- **Guest sign-out asks first** because a guest account cannot be signed back into. There is no way to attach an email to a guest yet (the plan's "upgrade path"); add it before launch.
+- **Delete account** removes the account and all server data and wipes this device; it does **not** remove files in storage (see Backend).
+- **Arabic to review:** guest warning, usage and delete messages.
 
 ## Capture, dimensions and review (Phase 3.3 to 3.5)
 
@@ -82,7 +101,6 @@ Compared on the web build, English and Arabic, list and empty state (`COMPARE_GU
 - **Unreadable stored rooms are dropped and reported** to Sentry (the server copy comes back after sync exists).
 - **The room screen is a placeholder** (name and plan) until the editor (Phase 4).
 - "Edited …" labels count calendar days; beyond five weeks they read "Edited a while ago".
-- `/settings` (the settings icon) is built in the next step; until then it is a dead end.
 - Arabic plural forms are covered for days 2–6 and weeks 2–4 only; check wording with a native speaker.
 
 ## Welcome and sign-in (Phase 3.1)

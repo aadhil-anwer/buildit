@@ -2,14 +2,14 @@ import { supabase } from "@/lib/supabase";
 import type { StringKey } from "@/i18n";
 
 /** Throws Supabase's own error so no failure is hidden. */
-const ok = (result: { error: Error | null }) => {
+export const throwIfError = (result: { error: Error | null }) => {
   if (result.error) throw result.error;
 };
 
-export const signInAnonymously = async () => ok(await supabase.auth.signInAnonymously());
-export const sendEmailCode = async (email: string) => ok(await supabase.auth.signInWithOtp({ email }));
-export const verifyEmailCode = async (email: string, token: string) => ok(await supabase.auth.verifyOtp({ email, token, type: "email" }));
-export const signOut = async () => ok(await supabase.auth.signOut());
+export const signInAnonymously = async () => throwIfError(await supabase.auth.signInAnonymously());
+export const sendEmailCode = async (email: string) => throwIfError(await supabase.auth.signInWithOtp({ email }));
+export const verifyEmailCode = async (email: string, token: string) => throwIfError(await supabase.auth.verifyOtp({ email, token, type: "email" }));
+export const signOut = async () => throwIfError(await supabase.auth.signOut());
 
 const KNOWN: Record<string, StringKey> = {
   otp_expired: "authBadCode",

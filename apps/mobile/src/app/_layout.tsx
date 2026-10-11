@@ -40,6 +40,7 @@ function Routes() {
           <Stack.Screen name="capture/index" />
           <Stack.Screen name="capture/dimensions" />
           <Stack.Screen name="review/[id]" />
+          <Stack.Screen name="settings" />
         </Stack.Protected>
       </Stack>
     </View>

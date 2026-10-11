@@ -1,5 +1,5 @@
 import { Pressable, StyleSheet, type StyleProp, type ViewStyle } from "react-native";
-import { color, radius, space, withAlpha } from "@/theme";
+import { color, radius, rust, space, withAlpha } from "@/theme";
 import { Icon, type IconName } from "./icon";
 import { Text } from "./text";
 
@@ -8,6 +8,7 @@ const VARIANT = {
   primary: { border: color.accent, tone: "accent", press: withAlpha(color.accent, 0.22) },
   secondary: { border: color.divider, tone: "default", press: withAlpha(color.text, 0.14) },
   ghost: { border: "transparent", tone: "accent", press: withAlpha(color.accent, 0.18) },
+  danger: { border: rust.base, tone: "danger", press: withAlpha(rust.base, 0.14) },
 } as const;
 
 // Heights are the design's, never below the 44pt tap target.
