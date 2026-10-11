@@ -20,7 +20,7 @@ export function randomId(): string {
 }
 
 export function cloneScene(scene: Scene): Scene {
-  return structuredClone(scene);
+  return JSON.parse(JSON.stringify(scene)) as Scene; // scenes are plain JSON (see types.ts)
 }
 
 export function getObject(scene: Scene, id: string): SceneObject | undefined {

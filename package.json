@@ -1,41 +1,28 @@
 {
   "name": "buildit",
-  "version": "0.1.0",
   "private": true,
-  "description": "Talk to your room: an editable 3D room planner where an AI agent rearranges furniture through a geometry-checked layout engine.",
   "type": "module",
+  "workspaces": [
+    "packages/*",
+    "web"
+  ],
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "typecheck": "tsc --noEmit",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "import-products": "node --experimental-strip-types scripts/import-products.ts"
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "lint": "eslint . --max-warnings 30",
+    "dup": "jscpd packages --min-lines 8 --min-tokens 60 --threshold 0 --silent --ignore \"**/node_modules/**,**/tests/**\"",
+    "dead": "knip",
+    "test": "npm test --workspaces --if-present && vitest run tools",
+    "verify": "npm run typecheck && npm run lint && npm run dup && npm run dead && npm test"
+  },
+  "devDependencies": {
+    "eslint": "^9.39.5",
+    "jscpd": "^5.4.1",
+    "knip": "^6.41.0",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.71.1",
+    "vitest": "^5.0.3"
   },
   "engines": {
     "node": ">=22.6"
-  },
-  "dependencies": {
-    "@anthropic-ai/sdk": "^0.133.0",
-    "@react-three/drei": "^10.7.9",
-    "@react-three/fiber": "^9.8.1",
-    "lz-string": "^1.5.0",
-    "next": "^16.4.0",
-    "react": "^19.3.0",
-    "react-dom": "^19.3.0",
-    "three": "^0.186.1",
-    "zod": "^4.6.5",
-    "zustand": "^5.0.15"
-  },
-  "devDependencies": {
-    "@tailwindcss/postcss": "^4.3.3",
-    "@types/node": "^22.20.5",
-    "@types/react": "^19.3.0",
-    "@types/react-dom": "^19.3.0",
-    "@types/three": "^0.186.0",
-    "tailwindcss": "^4.3.3",
-    "typescript": "^5.9.3",
-    "vitest": "^5.0.3"
   }
 }

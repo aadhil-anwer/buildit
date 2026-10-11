@@ -1,5 +1,5 @@
 /**
- * Turn a shop's product spreadsheet (CSV) into data/products.json, which
+ * Turn a shop's product spreadsheet (CSV) into packages/core/data/products.json, which
  * the catalog loads. Each row becomes a real, priced item in the editor,
  * drawn with the generic 3D model of its type at its real size.
  *
@@ -167,7 +167,7 @@ function main() {
     console.error(`Not imported. Fix these ${errors.length} problem(s) first:\n- ${errors.join("\n- ")}`);
     process.exit(1);
   }
-  const out = fileURLToPath(new URL("../data/products.json", import.meta.url));
+  const out = fileURLToPath(new URL("../../packages/core/data/products.json", import.meta.url));
   writeFileSync(out, `${JSON.stringify(products, null, 2)}\n`);
   const shops = [...new Set(products.map((p) => p.shop))];
   console.log(`Imported ${products.length} products from ${shops.length} shop(s): ${shops.join(", ")}.`);

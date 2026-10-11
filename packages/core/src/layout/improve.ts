@@ -1,6 +1,6 @@
 import { typeInfo } from "../catalog";
 import { COMPASS_DIR, add, dist, normDeg, scale } from "../geometry";
-import { getObject } from "../scene";
+import { cloneScene, getObject } from "../scene";
 import type { Pose, Scene } from "../types";
 import { analyzeClearance } from "./clearance";
 import { checkPose, findGeometryIssues } from "./validate";
@@ -86,7 +86,7 @@ export function improveLayout(input: Scene, opts: ImproveOptions = {}): ImproveR
   const target = opts.targetWalkway ?? input.constraints.minWalkway;
   const deadline = Date.now() + (opts.budgetMs ?? 2500);
   const original = new Map<string, Pose>(input.objects.map((o) => [o.id, { x: o.x, z: o.z, rotation: o.rotation }]));
-  let scene: Scene = structuredClone(input);
+  let scene = cloneScene(input);
   const before = score(scene, original, target);
   let current = before.cost;
 

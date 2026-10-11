@@ -1,13 +1,13 @@
 import { describe, expect, test } from "vitest";
-import { frontDir, obbInsidePolygon, obbOf, obbOverlap } from "@/core/geometry";
-import { analyzeClearance } from "@/core/layout/clearance";
-import { resolvePlacement } from "@/core/layout/placement";
-import { checkPose, findGeometryIssues } from "@/core/layout/validate";
-import { addObject, applyLayout, arrangeObjectsAround, improve, moveObject, removeObject, replaceObject, rotateObject, setLocked } from "@/core/ops";
-import { RECT_WALL, getWalls, makeOpening } from "@/core/room";
-import { createScene, getObject, objectFromCatalogId } from "@/core/scene";
-import { emptyRoom, rectangularRoom, sampleLivingRoom } from "@/core/templates";
-import type { Scene } from "@/core/types";
+import { frontDir, obbInsidePolygon, obbOf, obbOverlap } from "../src/geometry";
+import { analyzeClearance } from "../src/layout/clearance";
+import { resolvePlacement } from "../src/layout/placement";
+import { checkPose, findGeometryIssues } from "../src/layout/validate";
+import { addObject, applyLayout, arrangeObjectsAround, improve, moveObject, removeObject, replaceObject, rotateObject, setLocked } from "../src/ops";
+import { RECT_WALL, getWalls, makeOpening } from "../src/room";
+import { createScene, getObject, objectFromCatalogId } from "../src/scene";
+import { emptyRoom, rectangularRoom, sampleLivingRoom } from "../src/templates";
+import type { Scene } from "../src/types";
 
 function room(width: number, length: number, openings = [makeOpening("door", RECT_WALL.south, 0.3, 0.9)]): Scene {
   return emptyRoom({ name: "Test", width, length, height: 2.8, openings });

@@ -35,7 +35,7 @@ export function looksLikeRoomPlan(data: unknown): boolean {
 function categoryName(c: unknown): string {
   if (typeof c === "string") return c;
   if (c && typeof c === "object") {
-    const k = Object.keys(c as object)[0];
+    const k = Object.keys(c)[0];
     if (k) return k;
   }
   return "unknown";
@@ -292,7 +292,8 @@ export function importRoomPlan(data: unknown, name = "Scanned room"): RoomPlanIm
   raws.forEach((r, i) => {
     if (skip.has(i)) return;
     const cls = tvOnStorage.has(i) ? { type: "tv_unit" as const, name: "TV unit (scanned)" } : classify(r.cat, r.w, r.h, r.d);
-    let { w, d, h } = r;
+    const { w } = r;
+    let { d, h } = r;
     if (cls.type === "tv_unit" && r.cat === "television") {
       // Wall-mounted or standalone TV: show as a slim TV unit on the floor.
       d = Math.max(d, 0.3);

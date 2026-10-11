@@ -1,0 +1,7 @@
+{
+  "ignore": [".claude/**", "design-docnew/**", "web/**", "tools/fixtures/**"],
+  "workspaces": {
+    ".": { "entry": ["tools/*.test.ts"] },
+    "packages/core": { "entry": ["src/**/*.ts", "tests/**/*.test.ts"], "project": ["src/**/*.ts"] }
+  }
+}

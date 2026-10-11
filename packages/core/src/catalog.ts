@@ -1,5 +1,5 @@
 import type { FurnitureType } from "./types";
-import productRows from "../../data/products.json";
+import productRows from "../data/products.json";
 
 /**
  * Where a person needs to stand to use an object.

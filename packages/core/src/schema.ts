@@ -57,5 +57,5 @@ export const sceneSchema = z.object({
 
 export function parseScene(data: unknown): Scene | null {
   const r = sceneSchema.safeParse(data);
-  return r.success ? (r.data as Scene) : null;
+  return r.success ? (r.data) : null;
 }
