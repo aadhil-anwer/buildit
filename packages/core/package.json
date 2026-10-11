@@ -2,6 +2,12 @@
   "name": "@buildit/core",
   "private": true,
   "type": "module",
-  "scripts": { "typecheck": "tsc --noEmit", "test": "vitest run" },
-  "dependencies": { "zod": "^4.6.5" }
+  "scripts": {
+    "typecheck": "tsc --noEmit && tsc --noEmit -p tests && tsc --noEmit -p scripts",
+    "test": "vitest run",
+    "design": "node scripts/gen-design.ts"
+  },
+  "dependencies": {
+    "zod": "^4.6.5"
+  }
 }
