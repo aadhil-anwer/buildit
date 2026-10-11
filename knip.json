@@ -34,5 +34,8 @@
         "src/**/*.{ts,tsx}"
       ]
     }
-  }
+  },
+  "ignoreBinaries": [
+    "supabase"
+  ]
 }
