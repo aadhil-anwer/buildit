@@ -1,0 +1,3 @@
+sku,name,shop,type,width_cm,depth_cm,height_cm,price,currency,color,seats,in_stock,url
+EXAMPLE-SOFA-001,Example 3-seat linen sofa,Example Furniture,sofa,220,92,86,325,OMR,#c9bba5,3,yes,
+EXAMPLE-TBL-001,Example oak coffee table,Example Furniture,coffee_table,110,60,40,72,OMR,#8a6a4c,,yes,

@@ -1,0 +1,27 @@
+@import "tailwindcss";
+
+@theme {
+  --color-accent: #1f5e4f;
+  --color-accent-strong: #174a3e;
+  --color-accent-soft: #e2eee8;
+  --color-canvas: #efebe4;
+  --color-paper: #fbfaf7;
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background: #f6f3ee;
+  color: #1c1917;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Thin scrollbars inside panels */
+.scroll-thin {
+  scrollbar-width: thin;
+  scrollbar-color: #d6d0c4 transparent;
+}

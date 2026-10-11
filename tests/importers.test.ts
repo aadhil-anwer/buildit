@@ -1,0 +1,135 @@
+import { readFileSync } from "node:fs";
+import { describe, expect, test } from "vitest";
+import { PRODUCT_TYPES, parseCsv, parseProductsCsv } from "../scripts/import-products";
+import { TYPE_INFO, productToCatalogItem, type ProductRow } from "@/core/catalog";
+import { importRoomPlan } from "@/core/importers/roomplan";
+import { findGeometryIssues } from "@/core/layout/validate";
+import { getWalls, roomArea } from "@/core/room";
+import { parseScene } from "@/core/schema";
+import { encodeSceneForTest, sceneFromHash } from "@/editor/persist";
+import { sampleLivingRoom } from "@/core/templates";
+
+describe("product CSV import", () => {
+  test("type list matches the catalog's furniture types", () => {
+    const catalogTypes = Object.keys(TYPE_INFO).filter((t) => t !== "fixture").sort();
+    expect([...PRODUCT_TYPES].sort()).toEqual(catalogTypes);
+  });
+
+  test("parses quoted fields", () => {
+    expect(parseCsv('a,b\n"x, ""y""",2\r\n')).toEqual([
+      ["a", "b"],
+      ['x, "y"', "2"],
+    ]);
+  });
+
+  test("example file imports cleanly and becomes priced catalog items", () => {
+    const { products, errors } = parseProductsCsv(readFileSync("data/products.example.csv", "utf8"));
+    expect(errors).toEqual([]);
+    expect(products).toHaveLength(2);
+    const item = productToCatalogItem(products[0] as ProductRow);
+    expect(item.product?.price).toBeGreaterThan(0);
+    expect(item.w).toBeCloseTo(products[0].width_cm / 100);
+  });
+
+  test("reports bad rows and refuses to import", () => {
+    const csv = [
+      "sku,name,shop,type,width_cm,depth_cm,height_cm,price",
+      "A1,Sofa,Shop,sofa,220,90,85,300",
+      "A1,Dup,Shop,sofa,220,90,85,300",
+      "B2,Thing,Shop,spaceship,1,1,1,1",
+      "C3,Table,Shop,coffee_table,abc,60,40,70",
+    ].join("\n");
+    const { errors } = parseProductsCsv(csv);
+    expect(errors).toHaveLength(3);
+    expect(errors.join(" ")).toMatch(/duplicate sku/);
+    expect(errors.join(" ")).toMatch(/spaceship/);
+    expect(errors.join(" ")).toMatch(/width_cm/);
+  });
+});
+
+/**
+ * Synthetic CapturedRoom in the shape RoomPlan's JSONEncoder output is
+ * expected to have (flat column-major transforms, {"name": {}} categories).
+ * Built by hand, not captured on a device.
+ */
+function syntheticScan() {
+  const yaw = (30 * Math.PI) / 180;
+  const c = Math.cos(yaw);
+  const s = Math.sin(yaw);
+  // Rotation about Y applied to local X gives (c, 0, -s) in ARKit terms;
+  // we only need the floor-plane axis, so build the matrix from it.
+  const place = (x: number, y: number, z: number, angle = 0) => {
+    const a = yaw + angle;
+    const ca = Math.cos(a);
+    const sa = Math.sin(a);
+    // world = R(yaw) * local; translation also rotated by yaw
+    const wx = x * c - z * s;
+    const wz = x * s + z * c;
+    return [ca, 0, sa, 0, 0, 1, 0, 0, -sa, 0, ca, 0, wx + 3, y - 1.4, wz - 2, 1];
+  };
+  const W = 5;
+  const L = 4;
+  const H = 2.7;
+  const wall = (x: number, z: number, angle: number, len: number) => ({
+    category: { wall: {} },
+    dimensions: [len, H, 0],
+    transform: place(x, H / 2, z, angle),
+    confidence: { high: {} },
+  });
+  return {
+    version: 2,
+    walls: [
+      wall(W / 2, 0, 0, W),
+      wall(W, L / 2, Math.PI / 2, L),
+      wall(W / 2, L, 0, W),
+      wall(0, L / 2, Math.PI / 2, L),
+    ],
+    doors: [{ category: { door: { isOpen: false } }, dimensions: [0.9, 2.05, 0], transform: place(4, 1.025, L, 0) }],
+    windows: [{ category: { window: {} }, dimensions: [1.6, 1.2, 0], transform: place(2.5, 1.5, 0, 0) }],
+    openings: [],
+    objects: [
+      { category: { sofa: {} }, dimensions: [2.1, 0.85, 0.9], transform: place(2.5, 0.425, L - 0.5, Math.PI) },
+      { category: { table: {} }, dimensions: [1.1, 0.42, 0.6], transform: place(2.5, 0.21, 2.4, 0) },
+      { category: { storage: {} }, dimensions: [1.8, 0.5, 0.45], transform: place(2.5, 0.25, 0.25, 0) },
+      { category: { television: {} }, dimensions: [1.25, 0.75, 0.08], transform: place(2.5, 0.9, 0.25, 0) },
+      { category: { refrigerator: {} }, dimensions: [0.7, 1.8, 0.7], transform: place(0.4, 0.9, 0.4, 0) },
+    ],
+  };
+}
+
+describe("RoomPlan import", () => {
+  test("rebuilds the room outline, openings and furniture", () => {
+    const { scene, notes } = importRoomPlan(syntheticScan(), "Scan");
+    expect(parseScene(scene)).not.toBeNull();
+    expect(getWalls(scene.room)).toHaveLength(4);
+    expect(roomArea(scene.room)).toBeCloseTo(20, 0);
+    expect(scene.room.height).toBeCloseTo(2.7, 1);
+    expect(scene.room.openings.map((o) => o.type).sort()).toEqual(["door", "window"]);
+    const window = scene.room.openings.find((o) => o.type === "window")!;
+    expect(window.sill).toBeCloseTo(0.9, 1);
+
+    const types = scene.objects.map((o) => o.type).sort();
+    expect(types).toEqual(["coffee_table", "fixture", "sofa", "tv_unit"]);
+    expect(scene.objects.find((o) => o.type === "fixture")?.locked).toBe(true);
+    // Furniture lands inside the room without overlaps.
+    expect(findGeometryIssues(scene).filter((i) => i.kind === "outside_room" || i.kind === "collision")).toEqual([]);
+    // Sofa and TV face each other (backs to opposite walls).
+    const sofa = scene.objects.find((o) => o.type === "sofa")!;
+    const tv = scene.objects.find((o) => o.type === "tv_unit")!;
+    expect((sofa.rotation - tv.rotation + 360) % 360).toBeCloseTo(180, 0);
+    expect(notes[0]).toMatch(/Imported 4 walls/);
+  });
+
+  test("rejects files that are not scans", () => {
+    expect(() => importRoomPlan({ hello: 1 })).toThrow(/not a RoomPlan scan/);
+  });
+});
+
+describe("share links", () => {
+  test("round-trip a room through the URL fragment", () => {
+    const scene = sampleLivingRoom();
+    const back = sceneFromHash(encodeSceneForTest(scene));
+    expect(back).toEqual(scene);
+    expect(sceneFromHash("#room=garbage")).toBeNull();
+  });
+});
