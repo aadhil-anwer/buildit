@@ -13,7 +13,8 @@
     "dup": "jscpd packages --min-lines 8 --min-tokens 60 --threshold 0 --silent --ignore \"**/node_modules/**,**/tests/**\"",
     "dead": "knip",
     "test": "npm test --workspaces --if-present && vitest run tools",
-    "verify": "npm run typecheck && npm run lint && npm run dup && npm run dead && npm test"
+    "verify": "npm run typecheck && npm run lint && npm run dup && npm run dead && npm test",
+    "test:db": "supabase test db"
   },
   "devDependencies": {
     "eslint": "^9.39.5",

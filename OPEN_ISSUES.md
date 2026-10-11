@@ -63,6 +63,17 @@ Live list of what is unverified, deferred or temporarily weakened. Update it whe
 - **Clearance distances are capped at 0.8 m** (nothing reads beyond it); results are identical on every test.
 - `improveLayout` still only makes small moves (about 50 cm). Bigger changes come from the placement tools / AI.
 
+## Backend (Phase 2)
+
+- **Hosted Supabase project not created yet** (owner to-do). Everything runs against the local stack; local ports are shifted +100 (API 54421, DB 54422) because another project's Supabase uses the defaults. `supabase start` first, then `npm run test:db`.
+- **Account deletion leaves files in storage.** `delete_account()` removes rows only. Removing scan files needs the Storage API with the service role, a new service-role call site, which `CLAUDE.md` says to ask about first. Decide in Phase 6, when scans exist.
+- **Anonymous accounts can be farmed for AI requests** (each gets its own 20 a day). Options: limit AI to signed-in users, or rate-limit per device/IP in the Edge Function. Decide in Phase 5.
+- **Apple sign-in is not configured** (needs the Apple Developer account); email one-time codes and anonymous sign-in are on locally. Email templates need Arabic text.
+- **Scene validation in the database is shape and size only** (version, room corners 3–64, at most 300 objects, 256 KB). The engine and zod check the content in the app.
+- **Autosaves are pruned to 50 per room**; saved, AI and restored versions are kept forever. Revisit if storage grows.
+- **The AI cap resets at midnight Asia/Muscat** (`app_settings.ai_reset_tz`); change the setting for other markets.
+- `register_scan` (insert a scan row after upload) arrives with the capture work in Phase 6.
+
 ## Weakened checks (debt)
 
 - **Legacy size/complexity limits.** 28 warnings in `packages/core` (`importers/roomplan`, `layout/{clearance,placement,validate}`, `ops`, `summary`, two test files). `npm run lint` caps warnings at 28 so the count can only fall. Refactor these in Phase 1 (they are being changed anyway), then shrink `LEGACY` in `eslint.config.js` and the cap in `package.json`.
