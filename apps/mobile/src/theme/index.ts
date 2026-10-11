@@ -1,6 +1,6 @@
 import { tokens } from "./tokens.generated";
 
-export const { color, space, radius, rust } = tokens;
+export const { color, space, radius, shadow, rust } = tokens;
 
 /** A hex colour at the given opacity, for pressed tints. */
 export const withAlpha = (hex: string, alpha: number) => {

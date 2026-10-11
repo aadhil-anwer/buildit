@@ -13,5 +13,17 @@ export function planGeometry(scene: Scene, width: number, height: number, pad = 
     rotation: -o.rotation, // the scene turns counter-clockwise seen from above; SVG turns clockwise
     flat: !!typeInfo(o.type).floorLevel,
   }));
-  return { wall: scene.room.corners.map((c) => `${px(c.x)},${pz(c.z)}`).join(" "), items: [...items.filter((i) => i.flat), ...items.filter((i) => !i.flat)] };
+  const corners = scene.room.corners.map((c) => ({ x: px(c.x), y: pz(c.z) }));
+  return { corners, wall: corners.map((c) => `${c.x},${c.y}`).join(" "), items: [...items.filter((i) => i.flat), ...items.filter((i) => !i.flat)] };
+}
+
+/** Where to put each wall's label: beside the middle of the wall, on the outside, `offset` away from it. */
+export function wallLabels(corners: { x: number; y: number }[], offset = 22) {
+  const centre = { x: corners.reduce((s, c) => s + c.x, 0) / corners.length, y: corners.reduce((s, c) => s + c.y, 0) / corners.length };
+  return corners.map((c, wall) => {
+    const d = corners[(wall + 1) % corners.length];
+    const [mx, my, len] = [(c.x + d.x) / 2, (c.y + d.y) / 2, Math.hypot(d.x - c.x, d.y - c.y) || 1];
+    const sign = ((d.y - c.y) / len) * (mx - centre.x) - ((d.x - c.x) / len) * (my - centre.y) < 0 ? -1 : 1;
+    return { wall, x: mx + (sign * (d.y - c.y) * offset) / len, y: my - (sign * (d.x - c.x) * offset) / len };
+  });
 }

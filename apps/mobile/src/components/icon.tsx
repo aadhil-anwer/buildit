@@ -1,4 +1,6 @@
 import Check from "lucide-react-native/icons/check";
+import Minus from "lucide-react-native/icons/minus";
+import Plus from "lucide-react-native/icons/plus";
 import ChevronLeft from "lucide-react-native/icons/chevron-left";
 import ScanLine from "lucide-react-native/icons/scan-line";
 import SlidersHorizontal from "lucide-react-native/icons/sliders-horizontal";
@@ -9,6 +11,8 @@ import { color } from "@/theme";
 const ICONS = {
   back: { Glyph: ChevronLeft, mirror: true },
   check: { Glyph: Check, mirror: false },
+  minus: { Glyph: Minus, mirror: false },
+  plus: { Glyph: Plus, mirror: false },
   scan: { Glyph: ScanLine, mirror: false },
   sliders: { Glyph: SlidersHorizontal, mirror: false },
 };

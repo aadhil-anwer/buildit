@@ -168,3 +168,21 @@ export function validateOpenings(room: Room): string[] {
   }
   return problems;
 }
+
+/** Walls shorter than this are refused: nothing sensible fits in them. */
+const MIN_WALL = 1;
+
+/**
+ * Makes one wall longer (or shorter, with a negative `delta`) by moving the wall that meets its far end,
+ * so every angle stays as it was. Returns null when the wall would get shorter than a metre,
+ * or when a door or window would no longer fit on its wall.
+ */
+export function adjustWallLength(room: Room, wall: number, delta: number): Room | null {
+  const target = getWalls(room)[wall];
+  if (!target || target.length + delta < MIN_WALL) return null;
+  const shift = scale(target.dir, delta);
+  const n = room.corners.length;
+  const corners = room.corners.map((c, i) => (i === (wall + 1) % n || i === (wall + 2) % n ? add(c, shift) : c));
+  const moved = { ...room, corners };
+  return validateOpenings(moved).length ? null : moved;
+}

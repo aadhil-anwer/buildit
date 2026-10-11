@@ -25,7 +25,8 @@ What is planned but not done, in build order. Done phases are in `git log`; deta
 **Phase 3, entry screens (in progress)**
 - [x] Navigation wired (signed-out → Welcome, signed-in → My rooms) and Welcome compared in EN and AR. Email sign-in has no prototype screen (built in the same scheme, not compared).
 - [x] My rooms (list, empty state, "Scan a room") built and compared.
-- [ ] Capture chooser, Type dimensions, Scan review (plan view, ±5 cm wall steppers, furniture list), Settings (language, walkway 90/75, AI usage, sign out, delete account).
+- [x] Capture chooser, Type dimensions, Scan review (plan view, ±5 cm wall steppers, furniture list) built.
+- [ ] Settings (language, walkway 90/75, AI usage, sign out, delete account).
 - [ ] Local-first rooms with sync to Supabase, and clear offline / failed-sync states.
 - [ ] Sign in with Apple (waits for the Apple Developer account).
 
@@ -47,6 +48,24 @@ What is planned but not done, in build order. Done phases are in `git log`; deta
 - [ ] Native-speaker review of every Arabic string we wrote ourselves.
 - [ ] Decisions waiting for you: the dark gold button label (AA contrast) vs the prototype's plain gold, anonymous-account AI abuse, ghost button size (44 vs 40).
 
+## Capture, dimensions and review (Phase 3.3 to 3.5)
+
+**Capture chooser** (compared structurally; the LiDAR-detected variant cannot be compared until Phase 6): offers only methods this build can run. Today that is typing dimensions, shown as the recommended card with the note "Scanning isn't available yet" (`capSubNoScan`). LiDAR and guided appear automatically when `captureSupport()` (src/capture/support.ts) reports them; replace that note with the design's "LiDAR detected" and a no-LiDAR variant in Phase 6.
+
+**Type dimensions** has no prototype screen; built in the same scheme (text fields, chips for walls). Name, width, length, ceiling height, door wall, optional window wall. Limits: sizes 1.5 to 12 m, height 2 to 4 m. Decimal comma and Arabic digits are accepted. Not yet: L-shaped rooms (the engine supports them; the form makes rectangles), several doors or windows, choosing where on the wall they sit (the door is 30 cm from the wall's start corner, the window centred) until the editor's item tools.
+
+**Scan review** matches the prototype's heading, hint, furniture list and "Looks right" bar. Differences:
+- the plan is a top-down drawing with the wall lengths around it; the prototype shows them on its 3D view, so positions cannot match;
+- the wall stepper uses a plain modal until the shared bottom Sheet exists (Phase 4); its Done button is 46px tall (design 48);
+- the furniture list shows each piece's type name (Bed, Wardrobe...), not the catalog name, and its size in cm;
+- "Looks right" opens the placeholder room screen until the editor.
+
+Engine: `adjustWallLength` moves the wall at the far end of the one being changed (so angles stay), refuses results under 1 m or that push a door or window off its wall. It does not move furniture; check how objects behave when a wall moves away from them (Phase 4).
+
+**Arabic to review with a native speaker:** furniture type names we added, the dimensions form, capture note, wall names, "Longer / Shorter", "room gone" messages.
+
+**Dev machines:** the design-compare dev server keeps running after a comparison; with it up, `npm run verify` can slow to a crawl and time out. Stop it first.
+
 ## My rooms (Phase 3.2)
 
 Compared on the web build, English and Arabic, list and empty state (`COMPARE_GUEST=1 COMPARE_SEED=rooms npm run design:compare -- rooms en /rooms`; empty state: `rooms-empty` without the seed). All type, colour and spacing values match; what differs:
@@ -63,7 +82,7 @@ Compared on the web build, English and Arabic, list and empty state (`COMPARE_GU
 - **Unreadable stored rooms are dropped and reported** to Sentry (the server copy comes back after sync exists).
 - **The room screen is a placeholder** (name and plan) until the editor (Phase 4).
 - "Edited …" labels count calendar days; beyond five weeks they read "Edited a while ago".
-- `/capture` and `/settings` (the scan button and settings icon) are built in the next steps; until then they are dead ends.
+- `/settings` (the settings icon) is built in the next step; until then it is a dead end.
 - Arabic plural forms are covered for days 2–6 and weeks 2–4 only; check wording with a native speaker.
 
 ## Welcome and sign-in (Phase 3.1)

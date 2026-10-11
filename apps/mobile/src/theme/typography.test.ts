@@ -50,3 +50,22 @@ test("Arabic gets the roomy 1.85 line-height on paragraphs only; counts, caption
   for (const v of ["body", "bodySm", "small"] as const) expect(textStyle(v, true).lineHeight).toBeCloseTo(textStyle(v, true).fontSize * 1.85);
   for (const v of ["count", "caption", "label"] as const) expect(textStyle(v, true).lineHeight).toBeCloseTo(textStyle(v, false).lineHeight);
 });
+
+test("capture sizes: card title 24/1 and row title 22/1 semibold, tag 11", () => {
+  expect(textStyle("cardTitle", false)).toMatchObject({ fontFamily: "CormorantGaramond_600SemiBold", fontSize: 24, lineHeight: 24 });
+  expect(textStyle("rowTitle", false)).toMatchObject({ fontSize: 22, lineHeight: 22 });
+  expect(textStyle("tag", false)).toMatchObject({ fontFamily: "Lora_400Regular", fontSize: 11 });
+});
+
+test("the kicker is a small uppercase, widely spaced label in English and plain in Arabic", () => {
+  expect(textStyle("kicker", false)).toMatchObject({ fontSize: 11, textTransform: "uppercase" });
+  expect(textStyle("kicker", false).letterSpacing).toBeCloseTo(0.88);
+  expect(textStyle("kicker", true)).toMatchObject({ letterSpacing: 0 });
+  expect(textStyle("kicker", true)).not.toHaveProperty("textTransform", "uppercase");
+  expect(textStyle("kicker", false)).toMatchObject({ fontFamily: "CormorantGaramond_600SemiBold", lineHeight: 11 * 1.12 }); // h6 uses the heading face
+});
+
+test("plan labels are 11px semibold with line-height 1, and list rows keep 1.55 even in Arabic", () => {
+  expect(textStyle("dim", false)).toMatchObject({ fontFamily: "Lora_600SemiBold", fontSize: 11, lineHeight: 11 });
+  expect(textStyle("row", true).lineHeight).toBeCloseTo(14 * 1.55);
+});

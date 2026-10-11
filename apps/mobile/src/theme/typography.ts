@@ -27,6 +27,13 @@ export const RAMP = {
   count: ["body", 400, 13, 1.55], // prototype: the room count
   section: ["heading", 400, 34, 1.05], // prototype: empty-state heading
   wayTitle: ["heading", 600, 19, 1.15], // prototype: the three ways in
+  cardTitle: ["heading", 600, 24, 1], // prototype: the recommended capture method
+  rowTitle: ["heading", 600, 22, 1], // prototype: the other capture methods
+  tag: ["body", 400, 11, 1.55], // styles.css .tag
+  stepper: ["heading", 400, 56, 1], // prototype: the wall length stepper
+  kicker: ["heading", 600, 11, 1.12], // prototype: section labels (h6: heading face, uppercase, 0.08em)
+  dim: ["body", 600, 11, 1], // prototype: wall lengths on the plan
+  row: ["body", 400, 14, 1.55], // prototype: list rows
   numeral: ["heading", 400, 30, 1], // prototype: way numbers
   control: ["body", 600, 14, 1.3], // prototype: language toggle
   label: ["body", 600, 13, 1.3],
@@ -41,5 +48,7 @@ export function textStyle(variant: Variant, arabic: boolean) {
   const [role, weight, fontSize, lh] = RAMP[variant];
   const lineHeight = fontSize * (arabic && PARAGRAPH.has(variant) ? 1.85 : lh); // prototype --lh, set on paragraphs only
   const letterSpacing = arabic || !TRACKED.has(variant) ? 0 : -0.015 * fontSize; // prototype --ls0, set on these headings only
-  return { fontFamily: FAMILY[arabic ? "ar" : "en"][role][weight], fontSize, lineHeight, letterSpacing };
+  const style = { fontFamily: FAMILY[arabic ? "ar" : "en"][role][weight], fontSize, lineHeight, letterSpacing };
+  // Section labels are uppercase and widely spaced in English; Arabic has no capitals and must not be spaced.
+  return variant === "kicker" && !arabic ? { ...style, letterSpacing: 0.08 * fontSize, textTransform: "uppercase" as const } : style;
 }

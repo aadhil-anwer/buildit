@@ -7,6 +7,7 @@ import { Text } from "@/components/text";
 import { t } from "@/i18n";
 import { useScreenInsets } from "@/lib/use-screen-insets";
 import { useRooms } from "@/rooms/store";
+import { RoomGone } from "./room-gone";
 
 // A stand-in for the room editor (Phase 4): it shows the room, and says so when the room is gone.
 export function Editor() {
@@ -14,17 +15,12 @@ export function Editor() {
   const insets = useScreenInsets();
   const { id } = useLocalSearchParams<{ id: string }>();
   const room = useRooms((s) => s.rooms.find((r) => r.id === id));
+  if (!room) return <RoomGone />;
   return (
     <View style={[styles.root, { paddingTop: insets.top - 4 }]}>
       <IconButton icon="back" label={t("back")} quiet onPress={() => router.back()} />
-      {room ? (
-        <>
-          <Text variant="title">{room.name}</Text>
-          <Plate mat={5} grade={false} style={styles.plan}><PlanView scene={room.scene} /></Plate>
-        </>
-      ) : (
-        <Text tone="secondary">{t("roomGone")}</Text>
-      )}
+      <Text variant="title">{room.name}</Text>
+      <Plate mat={5} grade={false} style={styles.plan}><PlanView scene={room.scene} /></Plate>
     </View>
   );
 }

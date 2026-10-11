@@ -37,6 +37,9 @@ function Routes() {
         <Stack.Protected guard={!!session}>
           <Stack.Screen name="rooms" />
           <Stack.Screen name="editor/[id]" />
+          <Stack.Screen name="capture/index" />
+          <Stack.Screen name="capture/dimensions" />
+          <Stack.Screen name="review/[id]" />
         </Stack.Protected>
       </Stack>
     </View>
