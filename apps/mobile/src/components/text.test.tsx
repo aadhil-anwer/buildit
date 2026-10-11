@@ -1,5 +1,6 @@
 import { render, screen } from "@testing-library/react-native";
 import { StyleSheet } from "react-native";
+import * as i18n from "@/i18n";
 import { color } from "@/theme";
 import { Text } from "./text";
 
@@ -13,4 +14,10 @@ test("defaults to the body variant in the text colour", async () => {
 test("accent text uses the dark accent step, never the plain accent (contrast)", async () => {
   await render(<Text tone="accent">Hi</Text>);
   expect(styleOf().color).toBe(color.accent700);
+});
+
+test("uses the Arabic faces and no letter-spacing when the language is Arabic", async () => {
+  jest.spyOn(i18n, "isArabic").mockReturnValue(true);
+  await render(<Text variant="display">Hi</Text>);
+  expect(styleOf()).toMatchObject({ fontFamily: "Amiri_400Regular", letterSpacing: 0 });
 });

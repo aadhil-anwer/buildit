@@ -2,7 +2,7 @@ import Check from "lucide-react-native/icons/check";
 import ChevronLeft from "lucide-react-native/icons/chevron-left";
 import ScanLine from "lucide-react-native/icons/scan-line";
 import SlidersHorizontal from "lucide-react-native/icons/sliders-horizontal";
-import { I18nManager } from "react-native";
+import { isArabic } from "@/i18n";
 import { color } from "@/theme";
 
 /** Icons are named for what they mean; `mirror` flips directional ones under RTL. */
@@ -15,6 +15,6 @@ const ICONS = {
 
 export function Icon({ name, size = 20, tint = color.text }: { name: keyof typeof ICONS; size?: number; tint?: string }) {
   const { Glyph, mirror } = ICONS[name];
-  const style = mirror && I18nManager.isRTL ? { transform: [{ scaleX: -1 }] } : undefined;
+  const style = mirror && isArabic() ? { transform: [{ scaleX: -1 }] } : undefined;
   return <Glyph size={size} color={tint} strokeWidth={1.5} style={style} />;
 }

@@ -1,7 +1,9 @@
 import { Stack, type ErrorBoundaryProps } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
+import { View } from "react-native";
 import { ErrorScreen } from "@/components/error-screen";
+import { isArabic } from "@/i18n";
 import { useI18nReady } from "@/i18n/use-i18n-ready";
 import { env } from "@/lib/env";
 import { initMonitoring } from "@/lib/monitoring";
@@ -21,5 +23,10 @@ export default function RootLayout() {
   useEffect(() => {
     if (ready) SplashScreen.hideAsync().catch(report);
   }, [ready]);
-  return ready ? <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: color.bg } }} /> : null;
+  if (!ready) return null;
+  return (
+    <View style={{ flex: 1, direction: isArabic() ? "rtl" : "ltr" }}>
+      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: color.bg } }} />
+    </View>
+  );
 }

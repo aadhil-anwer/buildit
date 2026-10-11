@@ -1,7 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { reloadAppAsync } from "expo";
 import { getLocales } from "expo-localization";
-import { I18nManager } from "react-native";
+import { I18nManager, Platform } from "react-native";
 import { strings } from "./strings";
 
 export type Lang = "en" | "ar";
@@ -15,6 +15,8 @@ type Values<K extends Key> = Fill<Slots<(typeof strings.en)[K]>>;
 let lang: Lang = "en";
 
 /** Numbers follow the language: Arabic-Indic digits and the Arabic decimal mark. Strings pass through. */
+export const isArabic = () => lang === "ar";
+
 export const formatNumber = (value: number | string, l: Lang = lang) =>
   typeof value === "number" && l === "ar" ? String(value).replace(/\d/g, (d) => "٠١٢٣٤٥٦٧٨٩"[+d]).replace(".", "٫") : String(value);
 
@@ -32,7 +34,8 @@ export function t<K extends Key>(key: K, ...values: Values<K>): string {
 async function applyDirection(l: Lang) {
   const rtl = l === "ar";
   I18nManager.allowRTL(true);
-  if (I18nManager.isRTL === rtl) return;
+  // react-native-web has no isRTL and cannot reload into RTL; web is only used for design comparison.
+  if (Platform.OS === "web" || Boolean(I18nManager.isRTL) === rtl) return;
   I18nManager.forceRTL(rtl);
   await reloadAppAsync();
 }

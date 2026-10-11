@@ -7,6 +7,7 @@
     "@expo-google-fonts/cormorant-garamond": "^0.4.1",
     "@expo-google-fonts/lora": "^0.4.2",
     "@expo-google-fonts/noto-naskh-arabic": "^0.4.5",
+    "@expo/metro-runtime": "~57.0.16",
     "@react-native-async-storage/async-storage": "2.2.0",
     "@sentry/react-native": "~7.11.0",
     "@types/jest": "29.5.14",
@@ -23,15 +24,21 @@
     "jest-expo": "~57.0.5",
     "lucide-react-native": "^1.55.0",
     "react": "19.2.3",
+    "react-dom": "^19.2.3",
     "react-native": "0.86.3",
     "react-native-safe-area-context": "~5.7.0",
     "react-native-screens": "~4.26.0",
     "react-native-svg": "15.15.4",
+    "react-native-web": "^0.21.4",
     "zod": "^4.6.6"
   },
   "devDependencies": {
     "@testing-library/react-native": "^14.1.0",
-    "@types/react": "~19.2.2"
+    "@types/pngjs": "^6.0.5",
+    "@types/react": "~19.2.2",
+    "pixelmatch": "^8.0.0",
+    "playwright": "^1.64.0",
+    "pngjs": "^3.4.0"
   },
   "scripts": {
     "start": "expo start",
@@ -40,13 +47,16 @@
     "typecheck": "tsc --noEmit",
     "test": "jest",
     "tokens": "node scripts/gen-tokens.ts",
-    "strings": "node scripts/gen-strings.ts"
+    "strings": "node scripts/gen-strings.ts",
+    "web": "expo start --web --port 8081",
+    "design:compare": "node scripts/design-compare.ts"
   },
   "private": true,
   "jest": {
     "preset": "jest-expo",
     "testMatch": [
-      "<rootDir>/src/**/*.test.{ts,tsx}"
+      "<rootDir>/src/**/*.test.{ts,tsx}",
+      "<rootDir>/scripts/**/*.test.ts"
     ],
     "moduleNameMapper": {
       "^lucide-react-native/icons/(.*)$": "<rootDir>/../../node_modules/lucide-react-native/dist/cjs/icons/$1.js"

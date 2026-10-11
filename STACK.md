@@ -173,16 +173,23 @@ rule below has a number, so it can be checked.
 
 ## AI flow
 
+The existing agent loop (`web/src/agent/{run,tools,prompt}.ts`: tool use over semantic
+placements such as `against_wall`, `next_to`, `near`, `nudge`; the engine resolves the
+coordinates) moves into the Edge Function and runs on `packages/core`.
+
 1. App sends the request text plus a scene summary to `functions/agent`.
 2. A volatile RPC atomically checks and increments the per-account daily count
    (20/day, server setting). Over the limit → limit state with reset time.
-3. Claude returns intents through tool use (e.g. `more_walking_space`,
-   `add_rug`, `restyle:japanese`), streamed.
-4. `packages/core` on the phone turns intents into poses, animates the glide,
-   and reports measured facts (before → after).
+3. The function runs the loop: Claude calls tools, `packages/core` applies them to the
+   scene on the server, and each step streams back (SSE) as an intent summary plus the
+   resulting scene diff.
+4. The phone zod-parses every streamed scene, re-runs `check` locally, animates the
+   glide, and shows the measured facts (before → after). Keep saves a version; Undo
+   returns to the index from before the request.
 
-The pose is computed on the phone: it's the user's own room and nothing priced
-depends on it. The server only enforces the usage cap.
+Claude never returns raw coordinates, sizes or prices: the tool schemas take
+placements and ids only (audit `tools.ts` when porting). The server owns the usage
+cap; a bad or oversized scene is rejected, not repaired.
 
 ## Data (Supabase)
 

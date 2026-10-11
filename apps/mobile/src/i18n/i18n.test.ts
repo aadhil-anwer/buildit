@@ -2,7 +2,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { reloadAppAsync } from "expo";
 import { getLocales } from "expo-localization";
 import { I18nManager } from "react-native";
-import { formatNumber, initI18n, setLanguage, t } from ".";
+import { formatNumber, initI18n, isArabic, setLanguage, t } from ".";
 import { strings } from "./strings";
 
 jest.mock("expo-localization", () => ({ getLocales: jest.fn() }));
@@ -76,4 +76,12 @@ test("a storage failure reaches the caller instead of being swallowed", async ()
 test("every string has the same placeholders in English and Arabic", () => {
   const slots = (s: string) => [...new Set(s.match(/\{\d+\}/g) ?? [])].sort().join();
   for (const key of Object.keys(strings.en) as (keyof typeof strings.en)[]) expect(slots(strings.ar[key])).toBe(slots(strings.en[key]));
+});
+
+test("isArabic follows the chosen language", async () => {
+  await initI18n();
+  expect(isArabic()).toBe(false);
+  await AsyncStorage.setItem("language", "ar");
+  await initI18n();
+  expect(isArabic()).toBe(true);
 });

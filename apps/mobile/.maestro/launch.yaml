@@ -1,0 +1,5 @@
+# Smoke flow. Needs a development build installed; set appId to the bundle id once app.json has one.
+appId: com.example.buildit
+---
+- launchApp
+- assertVisible: "BuildIt"

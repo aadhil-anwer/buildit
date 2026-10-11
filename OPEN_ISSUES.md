@@ -50,6 +50,13 @@ Live list of what is unverified, deferred or temporarily weakened. Update it whe
 - `npm run strings` regenerates `strings.generated.ts` from the prototype; a test fails if they drift or if English and Arabic disagree on keys or placeholders.
 - **Icons must be imported one by one** (`lucide-react-native/icons/<name>`); lint enforces it. The barrel import made a cold test run take 13 minutes.
 
+## Design compare and tests (Phase 0 step 6)
+
+- **The compare runs on the web build** (react-native-web), so it approximates native: safe areas, native controls and real RTL layout still need a simulator or device pass. Pixel diffs are meaningless for 3D canvases; use the text-style report there.
+- **Maestro flow is unverified.** `apps/mobile/.maestro/launch.yaml` has a placeholder `appId`; it needs a development build (Apple/Google accounts) to run. No emulator is set up here.
+- **Metro's file watcher can miss edits** in this monorepo; restart the dev server with `-c` when the browser shows old code.
+- **Node warns about the module type** when running `scripts/*.ts` (harmless).
+
 ## Weakened checks (debt)
 
 - **Legacy size/complexity limits.** 30 warnings in `packages/core` (`importers/roomplan`, `layout/{clearance,improve,placement,validate}`, `ops`, `summary`, two test files). `npm run lint` caps warnings at 30 so the count can only fall. Refactor these in Phase 1 (they are being changed anyway), then shrink `LEGACY` in `eslint.config.js` and the cap in `package.json`.

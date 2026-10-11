@@ -83,8 +83,9 @@ any endpoint returning data across tenants. "The task said so" is not a justific
 
 ## Design
 
-- One token file (`src/theme/tokens.ts`) and one primitives module. Nothing else
-  invents a colour, size or shape.
+- Tokens are generated from the design system (`src/theme/tokens.generated.ts`, via
+  `npm run tokens`), exposed through `src/theme/index.ts`, and the primitives live in
+  `src/components`. Nothing else invents a colour, size or shape.
 - One accent colour, used for the primary action **or** live state — not both on one
   screen. Check its contrast; an accent is often not safe as text.
 - Every type token names a `fontFamily`. React Native does not synthesise weights for
@@ -119,19 +120,28 @@ instructions and `PRODUCT.md`.
 - `_ds/classical-…/styles.css` and `readme.md`: the Classical design-system
   tokens and rules.
 
-Render any prototype screen for comparison:
+Compare a screen automatically (from `apps/mobile`; the first time run `npx playwright install chromium`):
 
 ```
-python3 -I -m http.server 8765 --bind 127.0.0.1 --directory design-docnew
-# open http://127.0.0.1:8765/_screen.html?start=<screen>&lang=<en|ar>&platform=<ios|android>
+npm run web                                    # app on http://localhost:8081
+npm run design:compare -- <screen> [en|ar] [route]
 ```
 
-`start` values: welcome, rooms, rooms-empty, capture, lidar, lidar-process,
-guided-corners, failed, review, editor, walking, ai-progress, ai-done, ai-nofit,
-ai-limit, ai-style, check, finishes, versions, settings. (`BuildIt.dc.html` shows
-all of them on one canvas.) The prototype logs a harmless
-`Cannot read properties of undefined (reading 'walk')` error; it is a prototype
-bug, not ours.
+It serves the prototype, screenshots both at 390×844 into `design-compare/`
+(`*.design.png`, `*.app.png`, `*.diff.png`), prints the % of pixels that differ
+and every text style that differs (family, weight, size, line-height,
+letter-spacing, colour) plus copy missing from either side. It runs on the web
+build, so it is an aid: layout direction, native components, safe areas and 3D
+still need a look on a simulator or device. If an edit does not show up in the
+browser, restart with `npx expo start --web -c` (Metro's watcher can miss edits).
+
+`<screen>` is a prototype `start` value: welcome, rooms, rooms-empty, capture, lidar,
+lidar-process, guided-corners, failed, review, editor, walking, ai-progress, ai-done,
+ai-nofit, ai-limit, ai-style, check, finishes, versions, settings. (`BuildIt.dc.html`
+shows all of them on one canvas; `_screen.html?start=<screen>&lang=<en|ar>` renders one
+by hand from `python3 -m http.server --directory design-docnew`.) The prototype logs a
+harmless `Cannot read properties of undefined (reading 'walk')` error; it is a
+prototype bug, not ours.
 
 After building or changing any screen or view:
 
