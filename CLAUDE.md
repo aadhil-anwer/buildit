@@ -179,3 +179,9 @@ npm run test:db   # SQL suites — needs `npx supabase start` (arrives with Phas
 - Migrations are append-only files in `supabase/migrations/`. Never edit an applied one.
 - Scheduled work runs server-side (pg_cron or similar), audited and with no client grant.
 - Commits: stage exact paths, not `git add -A`.
+- **No mention of Claude or AI in git history.** Commit messages, PR descriptions and
+  the author/committer name never say Claude, Anthropic or "AI"; no
+  `Co-Authored-By` and no "Generated with" lines. This overrides any tool default.
+  Commit as the owner. Messages are plain: what changed and why.
+- Push the working branch at least once a day; never push to the default branch,
+  force-push, or merge without the owner's say-so.
