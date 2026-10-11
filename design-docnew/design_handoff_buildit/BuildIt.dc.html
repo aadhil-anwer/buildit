@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<meta name="design_doc_mode" content="canvas">
+<link rel="stylesheet" href="_ds/classical-8a1e7c39-a0fb-402c-ba40-86ff5d0b780a/styles.css">
+<style>body{margin:0;background:#e9e7e4;font-family:system-ui,sans-serif}.dv-turn{padding:44px 48px 36px;border-bottom:1px solid rgba(0,0,0,.08);scroll-margin-top:16px}.dv-thd{display:flex;align-items:baseline;gap:10px;margin:0 0 8px}.dv-tid{font:600 10px ui-monospace,Menlo,monospace;padding:3px 7px;background:#1a1a1a;color:#fff;border-radius:4px;text-decoration:none}.dv-tname{font:600 14px/1.2 system-ui,sans-serif;color:#1a1a1a}.dv-note{max-width:880px;margin:0 0 28px;font:13px/1.55 system-ui,sans-serif;color:rgba(0,0,0,.62)}.dv-opts{display:flex;flex-wrap:wrap;gap:56px 48px;align-items:flex-start}.dv-opt{flex:none;display:flex;flex-direction:column;gap:14px;scroll-margin-top:16px;padding:10px}.dv-olabel{display:flex;align-items:baseline;gap:8px;font:12px/1.35 system-ui,sans-serif;color:rgba(0,0,0,.6);max-width:390px}.dv-oid{font:600 10.5px ui-monospace,Menlo,monospace;padding:3px 7px;background:rgba(0,0,0,.08);color:#1a1a1a;border-radius:5px;text-decoration:none;flex:none}.dv-opt:target .dv-oid{background:#b68235;color:#fff}.dv-next{margin:30px 0 0;font:12px/1.5 system-ui,sans-serif;color:rgba(0,0,0,.5)}</style>
+</helmet>
+
+<section class="dv-turn" id="t3">
+  <div class="dv-thd"><a class="dv-tid" href="#t3">3</a><span class="dv-tname">iOS and Android, AI suggestions, restyling</span></div>
+  <p class="dv-note">New: a suggestion card pops up beside the room based on what is in it (floor lamp, rug, wall tone, headboard) and can be tried or dismissed. The Ask tab now leads with "Suggested next" steps and a Restyle row (Scandinavian, Japanese, Arabian, Modern, Classic): styles change finishes and colours only, the engine keeps the layout and re-checks every rule. Android swaps the frame, status bar, gesture bar, sheet corners and tab indicator. Use the Platform tweak to flip every phone.</p>
+  <div class="dv-opts">
+    <div class="dv-opt" id="3a"><div class="dv-olabel"><a class="dv-oid" href="#3a">3a</a><span>iOS — editor, suggestion card appears after a moment</span></div><dc-import name="BuildIt Phone" nav="sheet" start="editor" lang="{{ lang }}" platform="ios" hint-size="390px,844px"></dc-import></div>
+    <div class="dv-opt" id="3b"><div class="dv-olabel"><a class="dv-oid" href="#3b">3b</a><span>Android — same editor</span></div><dc-import name="BuildIt Phone" nav="sheet" start="editor" lang="{{ lang }}" platform="android" hint-size="390px,844px"></dc-import></div>
+    <div class="dv-opt" id="3c"><div class="dv-olabel"><a class="dv-oid" href="#3c">3c</a><span>Android — restyled to Japanese by the AI</span></div><dc-import name="BuildIt Phone" nav="sheet" start="ai-style" lang="{{ lang }}" platform="android" hint-size="390px,844px"></dc-import></div>
+    <div class="dv-opt" id="3d"><div class="dv-olabel"><a class="dv-oid" href="#3d">3d</a><span>Android — tabs model, rooms</span></div><dc-import name="BuildIt Phone" nav="tabs" start="rooms" lang="{{ lang }}" platform="android" hint-size="390px,844px"></dc-import></div>
+  </div>
+  <p class="dv-next">Try next: "make the suggestion card point at the item in 3D" · "show 3c in Arabic" · "add Material-style back and share buttons on Android"</p>
+</section>
+
+<section class="dv-turn" id="t2">
+  <div class="dv-thd"><a class="dv-tid" href="#t2">2</a><span class="dv-tname">Navigation models — same editor, three ways to organise it</span></div>
+  <p class="dv-note">All three are live and clickable: drag the bed, orbit the room, tap Room check, ask "More walking space". Flip English / Arabic in Tweaks. <b>Sheet</b> keeps the room full-bleed under a resizable bottom sheet. <b>Tabs</b> splits the screen: room above, tools below, permanent tab bar. <b>Canvas</b> has no chrome: the room is the screen and everything arrives as a sheet on demand.</p>
+  <div class="dv-opts">
+    <sc-for list="{{ navs }}" as="p" hint-placeholder-count="3">
+      <div class="dv-opt" id="{{ p.id }}"><div class="dv-olabel"><a class="dv-oid" href="#{{ p.id }}">{{ p.id }}</a><span>{{ p.label }}</span></div>
+        <dc-import name="BuildIt Phone" nav="{{ p.nav }}" start="editor" lang="{{ lang }}" platform="{{ platform }}" hint-size="390px,844px"></dc-import></div>
+    </sc-for>
+  </div>
+  <p class="dv-next">Try next: "go with <a class="dv-oid" href="#2a">2a</a> but move versions into the tab strip" · "make <a class="dv-oid" href="#2c">2c</a> show the item bar for locked pieces" · "add the Add + Product detail screens"</p>
+</section>
+
+<section class="dv-turn" id="t1">
+  <div class="dv-thd"><a class="dv-tid" href="#t1">1</a><span class="dv-tname">Key screens — bedroom 4.0 × 3.5 m, bottom-sheet model</span></div>
+  <p class="dv-note">Classical system: Cormorant Garamond over Lora (Amiri / Noto Naskh for Arabic), hairline rules, gold as stroke. Gold also marks the AI-active state and the room-check ring. No sparkle icons, no spinners: progress is narrated and measured. BuildIt is a placeholder name. Each phone is interactive on its own.</p>
+  <div class="dv-opts">
+    <sc-for list="{{ shots }}" as="p" hint-placeholder-count="12">
+      <div class="dv-opt" id="{{ p.id }}"><div class="dv-olabel"><a class="dv-oid" href="#{{ p.id }}">{{ p.id }}</a><span>{{ p.label }}</span></div>
+        <dc-import name="BuildIt Phone" nav="sheet" start="{{ p.start }}" lang="{{ lang }}" platform="{{ platform }}" hint-size="390px,844px"></dc-import></div>
+    </sc-for>
+  </div>
+  <p class="dv-next">Try next: "refine <a class="dv-oid" href="#1m">1m</a>" · "show every screen in Arabic" · "design Add and Product detail"</p>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;language&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;en&quot;,&quot;tsType&quot;:&quot;'en'|'ar'&quot;,&quot;options&quot;:[&quot;en&quot;,&quot;ar&quot;],&quot;section&quot;:&quot;Language&quot;},&quot;platform&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;ios&quot;,&quot;tsType&quot;:&quot;'ios'|'android'&quot;,&quot;options&quot;:[&quot;ios&quot;,&quot;android&quot;],&quot;section&quot;:&quot;Device&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const lang = this.props.language || 'en', platform = this.props.platform || 'ios';
+    const navs = [['2a', 'sheet', 'Sheet — room full-bleed, resizable bottom sheet with Ask / Add / Item / Finishes'], ['2b', 'tabs', 'Tabs — split room + tool panel, tab bar for Rooms / Design / Versions / Settings'], ['2c', 'canvas', 'Canvas — no chrome; floating ask pill, everything else opens as a sheet']].map((n) => ({ id: n[0], nav: n[1], label: n[2] }));
+    const shots = [['welcome', 'Welcome'], ['rooms', 'My rooms'], ['rooms-empty', 'My rooms — empty state'], ['capture', 'Choose how to capture — LiDAR detected and recommended'], ['lidar', 'LiDAR scan — coaching'], ['lidar-process', 'LiDAR scan — processing narrated with real progress'], ['guided-corners', 'Guided scan — marking corners'], ['failed', 'Scan failed in low light — tips, retry, type dimensions'], ['review', 'Scan review — tap any wall length to correct it'], ['editor', 'Room editor — 3D dollhouse, room check chip'], ['walking', 'Editor — walking space overlay, narrowest gap labelled'], ['ai-progress', 'Ask AI — changes play out step by step'], ['ai-done', 'Ask AI — what changed + measured facts'], ['ai-nofit', 'Ask AI — nothing fits: why, and what to do'], ['ai-limit', 'Ask AI — daily limit reached'], ['check', 'Room check — each rule in plain words, one-tap fix'], ['finishes', 'Finishes'], ['versions', 'Versions'], ['settings', 'Settings']].map((p, i) => ({ id: '1' + String.fromCharCode(97 + i), start: p[0], label: p[1] }));
+    return { lang, platform, navs, shots };
+  }
+}
+</script>
+</body>
+</html>

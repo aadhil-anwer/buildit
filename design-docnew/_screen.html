@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<link rel="stylesheet" href="_ds/classical-8a1e7c39-a0fb-402c-ba40-86ff5d0b780a/styles.css">
+<style>body{margin:0;background:#fff}</style>
+</helmet>
+<div style="padding:0"><dc-import name="BuildIt Phone" nav="{{ nav }}" start="{{ start }}" lang="{{ lang }}" platform="{{ platform }}" hint-size="390px,844px"></dc-import></div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  renderVals() {
+    const q = new URLSearchParams(location.search);
+    return { start: q.get('start') || 'rooms', lang: q.get('lang') || 'en', nav: q.get('nav') || 'sheet', platform: q.get('platform') || 'ios' };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="_ds/classical-8a1e7c39-a0fb-402c-ba40-86ff5d0b780a/styles.css">
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Noto+Naskh+Arabic:wght@400;600&display=swap" rel="stylesheet">
+<script src="_ds/classical-8a1e7c39-a0fb-402c-ba40-86ff5d0b780a/_ds_bundle.js"></script>
+<script src="room3d.js"></script>
+<style>@keyframes sugIn{from{opacity:0;transform:translateY(-8px) scale(.97)}to{opacity:1;transform:none}}</style>
+</helmet>
+<div id="{{ uid }}" dir="{{ dir }}" style="{{ rootStyle }}">
+
+<!-- status bar -->
+<div style="position:absolute;top:0;left:0;right:0;height:50px;z-index:60;pointer-events:none;color:{{ sbColor }}">
+  <div style="{{ sbClock }}">{{ s.clock }}</div>
+  <div style="{{ sbPunch }}"></div>
+  <div style="{{ sbBat }}"><div style="margin:1.5px;width:15px;height:7px;border-radius:2px;background:currentColor"></div></div>
+</div>
+
+<!-- ============ WELCOME ============ -->
+<sc-if value="{{ scr.welcome }}" hint-placeholder-val="{{ false }}">
+<div style="position:absolute;inset:0;padding:60px 24px 34px;display:flex;flex-direction:column;gap:18px">
+  <div style="display:flex;align-items:center;justify-content:space-between">
+    <div style="font:500 26px/1 var(--fh);letter-spacing:var(--ls0)">{{ s.brand }}</div>
+    <div style="display:flex;border:1px solid var(--color-divider);border-radius:99px;padding:2px;gap:2px">
+      <button onClick="{{ setEn }}" style="{{ langBtnEn }}">English</button>
+      <button onClick="{{ setAr }}" style="{{ langBtnAr }}">العربية</button>
+    </div>
+  </div>
+  <div class="plate" style="flex:1;min-height:0;overflow:hidden;background:var(--color-surface)"><img data-src="{{ thumbs.hero }}" alt="" style="width:100%;height:100%;object-fit:cover;object-position:50% 45%"></div>
+  <div>
+    <h1 style="margin:0 0 10px;font:400 38px/1.02 var(--fh);letter-spacing:var(--ls0);text-wrap:balance">{{ s.wTitle }}</h1>
+    <p style="margin:0;font-size:14px;line-height:var(--lh);color:var(--color-neutral-700)">{{ s.wSub }}</p>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:8px">
+    <button class="btn btn-secondary" onClick="{{ goRooms }}" style="width:100%;height:46px;border-color:var(--color-text);font-size:16px">{{ s.wApple }}</button>
+    <button class="btn btn-secondary" onClick="{{ goRooms }}" style="width:100%;height:46px;font-size:16px">{{ s.wEmail }}</button>
+    <button class="btn btn-ghost" onClick="{{ goRooms }}" style="height:40px;font-size:15px">{{ s.wTry }}</button>
+  </div>
+</div>
+</sc-if>
+
+<!-- ============ ROOMS ============ -->
+<sc-if value="{{ scr.rooms }}" hint-placeholder-val="{{ false }}">
+<div style="position:absolute;inset:0;display:flex;flex-direction:column;padding-top:56px">
+  <div style="display:flex;align-items:flex-end;justify-content:space-between;padding:10px 24px 12px">
+    <div>
+      <h1 style="margin:0;font:400 46px/1 var(--fh);letter-spacing:var(--ls0)">{{ s.rooms }}</h1>
+      <sc-if value="{{ hasRooms }}" hint-placeholder-val="{{ true }}"><div style="font-size:13px;color:var(--color-neutral-700);margin-top:6px">{{ nRooms }}</div></sc-if>
+    </div>
+    <button onClick="{{ goSettings }}" style="{{ iconBtn }}"><img data-src="{{ ic.sliders }}" width="20" height="20" alt=""></button>
+  </div>
+  <sc-if value="{{ hasRooms }}" hint-placeholder-val="{{ true }}">
+  <div style="flex:1;overflow-y:auto;padding:4px 24px 150px;display:flex;flex-direction:column;gap:26px">
+    <sc-for list="{{ rooms }}" as="r" hint-placeholder-count="3">
+      <button onClick="{{ r.open }}" style="all:unset;cursor:pointer;display:block">
+        <div style="border:5px solid var(--color-surface);outline:1px solid var(--color-divider);height:196px;background:var(--color-surface);overflow:hidden"><img data-src="{{ r.img }}" alt="" style="width:100%;height:100%;object-fit:cover"></div>
+        <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-top:10px">
+          <div style="font:500 26px/1.1 var(--fh);letter-spacing:var(--ls0)">{{ r.name }}</div>
+          <div style="font-size:12px;color:var(--color-neutral-700);white-space:nowrap;flex:none">{{ r.meta }}</div>
+        </div>
+      </button>
+    </sc-for>
+  </div>
+  </sc-if>
+  <sc-if value="{{ noRooms }}" hint-placeholder-val="{{ false }}">
+  <div style="flex:1;padding:18px 24px 150px;overflow-y:auto">
+    <h2 style="margin:0 0 8px;font:400 34px/1.05 var(--fh);letter-spacing:var(--ls0)">{{ s.emptyH }}</h2>
+    <p style="margin:0 0 22px;font-size:14px;line-height:var(--lh);color:var(--color-neutral-700)">{{ s.emptyP }}</p>
+    <sc-for list="{{ ways }}" as="w" hint-placeholder-count="3">
+      <div style="display:flex;gap:16px;padding:16px 0;border-top:1px solid var(--color-divider)">
+        <div style="font:400 30px/1 var(--fh);color:var(--color-accent-600);width:26px;font-variant-numeric:tabular-nums">{{ w.n }}</div>
+        <div><div style="font:600 19px/1.15 var(--fh);margin-bottom:4px">{{ w.t }}</div><div style="font-size:13px;line-height:var(--lh);color:var(--color-neutral-700)">{{ w.d }}</div></div>
+      </div>
+    </sc-for>
+  </div>
+  </sc-if>
+  <div style="{{ scanBarStyle }}"><button class="btn btn-primary" onClick="{{ goCapture }}" style="width:100%;height:50px;font-size:17px;background:var(--color-bg)"><img data-src="{{ icg.scan }}" width="20" height="20" alt="">{{ s.scan }}</button></div>
+</div>
+</sc-if>
+
+<!-- ============ CAPTURE ============ -->
+<sc-if value="{{ scr.capture }}" hint-placeholder-val="{{ false }}">
+<div style="position:absolute;inset:0;padding:56px 24px 34px;display:flex;flex-direction:column">
+  <div style="height:48px;display:flex;align-items:center"><button onClick="{{ goBack }}" style="{{ iconBtn }}"><img data-src="{{ ic.back }}" width="20" height="20" alt=""></button></div>
+  <h1 style="margin:14px 0 8px;font:400 38px/1.04 var(--fh);letter-spacing:var(--ls0);text-wrap:balance">{{ s.capH }}</h1>
+  <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--color-neutral-700);margin-bottom:26px"><img data-src="{{ icg.check }}" width="16" height="16" alt="">{{ s.capSub }}</div>
+  <button onClick="{{ goLidar }}" style="all:unset;cursor:pointer;display:block;border:1px solid var(--color-accent);border-radius:4px;padding:18px 18px 20px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px"><div style="font:600 24px/1 var(--fh)">{{ s.way1t }}</div><span class="tag tag-accent" style="font-size:11px">{{ s.rec }}</span></div>
+    <div style="font-size:13px;line-height:var(--lh);color:var(--color-neutral-700)">{{ s.way1d }}</div>
+  </button>
+  <button onClick="{{ goGuided }}" style="all:unset;cursor:pointer;display:block;padding:20px 4px 18px;border-bottom:1px solid var(--color-divider)">
+    <div style="font:600 22px/1 var(--fh);margin-bottom:6px">{{ s.way2t }}</div><div style="font-size:13px;line-height:var(--lh);color:var(--color-neutral-700)">{{ s.way2d }}</div>
+  </button>
+  <button onClick="{{ goReview }}" style="all:unset;cursor:pointer;display:block;padding:20px 4px 18px;border-bottom:1px solid var(--color-divider)">
+    <div style="font:600 22px/1 var(--fh);margin-bottom:6px">{{ s.way3t }}</div><div style="font-size:13px;line-height:var(--lh);color:var(--color-neutral-700)">{{ s.way3d }}</div>
+  </button>
+</div>
+</sc-if>
+
+<!-- ============ LIDAR ============ -->
+<sc-if value="{{ scr.lidar }}" hint-placeholder-val="{{ false }}">
+<div style="position:absolute;inset:0;background:#1b1917;color:#f3f2f2;overflow:hidden">
+  <div style="position:absolute;inset:0;background:repeating-linear-gradient(90deg,rgba(225,173,102,.14) 0 1px,transparent 1px 38px),repeating-linear-gradient(0deg,rgba(225,173,102,.14) 0 1px,transparent 1px 38px),radial-gradient(120% 80% at 50% 40%,#3a3530,#151311)"></div>
+  <div style="position:absolute;left:50%;top:46%;width:150px;height:150px;margin:-75px 0 0 -75px;border:1px solid rgba(243,242,242,.5);border-radius:2px"></div>
+  <div style="position:absolute;top:58%;left:0;right:0;text-align:center;font-size:11px;letter-spacing:var(--ls);text-transform:uppercase;color:rgba(243,242,242,.4)">{{ s.camera }}</div>
+  <div style="position:absolute;top:60px;left:24px;right:24px;display:flex;align-items:center;justify-content:space-between">
+    <button onClick="{{ goBack }}" style="width:40px;height:40px;border-radius:50%;border:1px solid rgba(243,242,242,.35);background:transparent;display:grid;place-items:center;cursor:pointer;padding:0"><img data-src="{{ icw.back }}" width="20" height="20" alt=""></button>
+    <div style="font:500 20px var(--fh)">{{ s.way1t }}</div><div style="width:40px"></div>
+  </div>
+  <sc-if value="{{ scanning }}" hint-placeholder-val="{{ true }}">
+  <div style="position:absolute;top:128px;left:0;right:0;display:flex;justify-content:center"><div style="padding:10px 20px;border:1px solid rgba(225,173,102,.7);border-radius:99px;font:500 19px var(--fh);color:#facb8d;background:rgba(27,25,23,.6)">{{ coachTxt }}</div></div>
+  <div style="position:absolute;left:24px;right:24px;bottom:44px;display:flex;flex-direction:column;gap:14px">
+    <div style="display:flex;justify-content:space-between;font-size:12px;color:rgba(243,242,242,.7)"><span>{{ scanLbl }}</span><span style="font-variant-numeric:tabular-nums">{{ pctTxt }}</span></div>
+    <div style="height:2px;background:rgba(243,242,242,.2)"><div style="{{ pctStyle }}"></div></div>
+    <button class="btn btn-primary" onClick="{{ stopScan }}" style="height:48px;font-size:17px;color:#facb8d;border-color:#e1ad66">{{ s.stopScan }}</button>
+    <button onClick="{{ goFailed }}" style="all:unset;cursor:pointer;text-align:center;font-size:11px;color:rgba(243,242,242,.4)">{{ s.lowLight }}</button>
+  </div>
+  </sc-if>
+  <sc-if value="{{ processing }}" hint-placeholder-val="{{ false }}">
+  <div style="position:absolute;left:0;right:0;bottom:0;padding:26px 24px 44px;background:var(--color-bg);color:var(--color-text);border-radius:18px 18px 0 0">
+    <h3 style="margin:0 0 14px;font:500 26px var(--fh)">{{ s.procH }}</h3>
+    <sc-for list="{{ procLines }}" as="l" hint-placeholder-count="4">
+      <div style="display:flex;align-items:center;gap:12px;padding:9px 0;border-top:1px solid var(--color-divider);font-size:14px;opacity:{{ l.op }}"><img data-src="{{ l.icon }}" width="16" height="16" alt="">{{ l.text }}</div>
+    </sc-for>
+    <div style="height:2px;background:var(--color-divider);margin-top:14px"><div style="{{ pctStyle }}"></div></div>
+    <div style="margin-top:8px;font-size:12px;color:var(--color-neutral-700);font-variant-numeric:tabular-nums">{{ pctTxt }}</div>
+  </div>
+  </sc-if>
+</div>
+</sc-if>
+
+<!-- ============ GUIDED ============ -->
+<sc-if value="{{ scr.guided }}" hint-placeholder-val="{{ false }}">
+<div style="position:absolute;inset:0;background:var(--color-bg)">
+  <div style="position:absolute;left:0;right:0;top:0;height:470px;background:#1b1917;overflow:hidden;color:#f3f2f2">
+    <div style="position:absolute;inset:0;background:repeating-linear-gradient(90deg,rgba(225,173,102,.12) 0 1px,transparent 1px 38px),repeating-linear-gradient(0deg,rgba(225,173,102,.12) 0 1px,transparent 1px 38px),radial-gradient(120% 80% at 50% 50%,#3a3530,#151311)"></div>
+    <div style="position:absolute;left:50%;top:56%;width:46px;height:46px;margin:-23px 0 0 -23px;border:1px solid #facb8d;border-radius:50%"></div>
+    <div style="position:absolute;left:50%;top:56%;width:6px;height:6px;margin:-3px 0 0 -3px;background:#facb8d;border-radius:50%"></div>
+    <sc-for list="{{ corners }}" as="c" hint-placeholder-count="2"><div style="{{ c.style }}"></div></sc-for>
+    <div style="position:absolute;top:60px;left:24px;right:24px;display:flex;align-items:center;justify-content:space-between">
+      <button onClick="{{ goBack }}" style="width:40px;height:40px;border-radius:50%;border:1px solid rgba(243,242,242,.35);background:transparent;display:grid;place-items:center;cursor:pointer;padding:0"><img data-src="{{ icw.back }}" width="20" height="20" alt=""></button>
+      <div style="font:500 20px var(--fh)">{{ s.way2t }}</div><div style="width:40px"></div>
+    </div>
+    <div style="position:absolute;left:0;right:0;bottom:16px;text-align:center;font-size:11px;letter-spacing:var(--ls);text-transform:uppercase;color:rgba(243,242,242,.4)">{{ s.camera }}</div>
+  </div>
+  <div style="position:absolute;left:0;right:0;top:470px;bottom:0;padding:22px 24px 34px;display:flex;flex-direction:column">
+    <div style="display:flex;gap:6px;margin-bottom:16px"><sc-for list="{{ gBars }}" as="b" hint-placeholder-count="5"><div style="{{ b.style }}"></div></sc-for></div>
+    <div style="font-size:12px;letter-spacing:var(--ls);text-transform:uppercase;color:var(--color-accent-700);margin-bottom:6px">{{ gStepTxt }}</div>
+    <h2 style="margin:0 0 8px;font:500 30px/1.05 var(--fh);letter-spacing:var(--ls0)">{{ gTitle }}</h2>
+    <p style="margin:0;font-size:14px;line-height:var(--lh);color:var(--color-neutral-700)">{{ gHint }}</p>
+    <div style="flex:1"></div>
+    <button class="btn btn-primary" onClick="{{ gNext }}" style="height:50px;font-size:17px">{{ gBtn }}</button>
+  </div>
+</div>
+</sc-if>
+
+<!-- ============ SCAN FAILED ============ -->
+<sc-if value="{{ scr.failed }}" hint-placeholder-val="{{ false }}">
+<div style="position:absolute;inset:0;padding:56px 24px 34px;display:flex;flex-direction:column">
+  <div style="height:48px;display:flex;align-items:center"><button onClick="{{ goBack }}" style="{{ iconBtn }}"><img data-src="{{ ic.back }}" width="20" height="20" alt=""></button></div>
+  <div style="margin-top:34px;width:56px;height:56px;border:1px solid var(--color-divider);border-radius:50%;display:grid;place-items:center"><img data-src="{{ icr.bulb }}" width="26" height="26" alt=""></div>
+  <h1 style="margin:22px 0 10px;font:400 38px/1.04 var(--fh);letter-spacing:var(--ls0);text-wrap:balance">{{ s.failH }}</h1>
+  <p style="margin:0 0 22px;font-size:14px;line-height:var(--lh);color:var(--color-neutral-700)">{{ s.failP }}</p>
+  <sc-for list="{{ tips }}" as="t" hint-placeholder-count="3"><div style="display:flex;gap:12px;padding:13px 0;border-top:1px solid var(--color-divider);font-size:14px;line-height:var(--lh)"><div style="font:400 20px/1 var(--fh);color:var(--color-accent-600);width:16px">{{ t.n }}</div>{{ t.t }}</div></sc-for>
+  <div style="flex:1"></div>
+  <button class="btn btn-primary" onClick="{{ goLidar }}" style="height:50px;font-size:17px">{{ s.retry }}</button>
+  <button class="btn btn-secondary" onClick="{{ goReview }}" style="height:50px;font-size:17px;margin-top:10px">{{ s.typeInstead }}</button>
+</div>
+</sc-if>
+
+<!-- ============ SCAN REVIEW ============ -->
+<sc-if value="{{ scr.review }}" hint-placeholder-val="{{ false }}">
+<div style="position:absolute;inset:0;padding-top:56px;display:flex;flex-direction:column">
+  <div style="display:flex;align-items:center;gap:8px;padding:0 24px;height:48px"><button onClick="{{ goBack }}" style="{{ iconBtn }}"><img data-src="{{ ic.back }}" width="20" height="20" alt=""></button></div>
+  <div style="padding:6px 24px 0"><h1 style="margin:0 0 4px;font:400 38px/1.04 var(--fh);letter-spacing:var(--ls0)">{{ s.revH }}</h1><div style="font-size:13px;color:var(--color-neutral-700)">{{ s.revSub }}</div></div>
+  <div style="position:relative;height:296px;margin-top:6px"><div data-room="1" style="position:absolute;inset:0"></div></div>
+  <div style="flex:1;overflow-y:auto;padding:0 24px 120px">
+    <h6 style="margin:6px 0 4px;font-size:11px;color:var(--color-neutral-700)">{{ s.furn }}</h6>
+    <sc-for list="{{ furn }}" as="f" hint-placeholder-count="5"><div style="display:flex;justify-content:space-between;align-items:baseline;padding:10px 0;border-top:1px solid var(--color-divider);font-size:14px"><span>{{ f.name }}</span><span style="color:var(--color-neutral-700);font-variant-numeric:tabular-nums">{{ f.size }}</span></div></sc-for>
+  </div>
+  <div style="position:absolute;left:0;right:0;bottom:0;padding:16px 24px 34px;background:linear-gradient(transparent,var(--color-bg) 30%)"><button class="btn btn-primary" onClick="{{ goEditor }}" style="width:100%;height:50px;font-size:17px;background:var(--color-bg)">{{ s.looksRight }}</button></div>
+  <sc-if value="{{ dimEdit }}" hint-placeholder-val="{{ false }}">
+  <div style="position:absolute;inset:0;background:rgba(32,31,29,.28);display:flex;align-items:flex-end;z-index:30" onClick="{{ closeDim }}">
+    <div onClick="{{ stop }}" style="width:100%;background:var(--color-bg);padding:22px 24px 40px;border-radius:18px 18px 0 0;box-shadow:var(--shadow-lg)">
+      <h6 style="margin:0 0 14px;font-size:11px;color:var(--color-neutral-700)">{{ s.wallLen }}</h6>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:22px">
+        <button onClick="{{ dimMinus }}" style="{{ iconBtn }}"><img data-src="{{ ic.minus }}" width="20" height="20" alt=""></button>
+        <div style="font:400 56px/1 var(--fh);font-variant-numeric:tabular-nums">{{ dimVal }}</div>
+        <button onClick="{{ dimPlus }}" style="{{ iconBtn }}"><img data-src="{{ ic.plus }}" width="20" height="20" alt=""></button>
+      </div>
+      <button class="btn btn-primary" onClick="{{ closeDim }}" style="width:100%;height:48px;font-size:16px">{{ s.done }}</button>
+    </div>
+  </div>
+  </sc-if>
+</div>
+</sc-if>
+
+<!-- ============ EDITOR ============ -->
+<sc-if value="{{ scr.editor }}" hint-placeholder-val="{{ false }}">
+<div style="position:absolute;inset:0;background:var(--color-bg);overflow:hidden">
+  <div data-room="1" style="{{ roomStyle }}"></div>
+
+  <!-- top bar -->
+  <div style="position:absolute;top:56px;left:12px;right:12px;height:44px;display:flex;align-items:center;gap:4px;z-index:20">
+    <button onClick="{{ goBack }}" style="{{ iconBtnS }}"><img data-src="{{ ic.back }}" width="20" height="20" alt=""></button>
+    <div style="flex:1;font:500 22px/1 var(--fh);letter-spacing:var(--ls0);padding:0 6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ roomName }}</div>
+    <button onClick="{{ undo }}" style="{{ undoStyle }}"><img data-src="{{ ic.undo }}" width="20" height="20" alt=""></button>
+    <button onClick="{{ redo }}" style="{{ redoStyle }}"><img data-src="{{ ic.redo }}" width="20" height="20" alt=""></button>
+    <sc-if value="{{ nav.showVersionsTop }}" hint-placeholder-val="{{ true }}"><button onClick="{{ goVersions }}" style="{{ iconBtnS }}"><img data-src="{{ ic.history }}" width="20" height="20" alt=""></button></sc-if>
+    <button onClick="{{ openShare }}" style="{{ iconBtnS }}"><img data-src="{{ ic.share }}" width="20" height="20" alt=""></button>
+  </div>
+
+  <!-- room chips -->
+  <div style="{{ chipRowStyle }}">
+    <button onClick="{{ openCheck }}" style="display:flex;align-items:center;gap:9px;padding:5px 14px 5px 5px;border-radius:99px;border:1px solid var(--color-divider);background:rgba(243,242,242,.92);cursor:pointer;text-align:start;color:var(--color-text)">
+      <svg width="34" height="34" viewBox="0 0 36 36"><circle cx="18" cy="18" r="15" fill="none" stroke="rgba(32,31,29,.14)" stroke-width="2.5"></circle><circle cx="18" cy="18" r="15" fill="none" stroke="#b68235" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="{{ ringDash }}" transform="rotate(-90 18 18)"></circle><text x="18" y="22.5" text-anchor="middle" style="font:600 12px var(--fb)" fill="#201f1d">{{ scoreTxt }}</text></svg>
+      <div style="line-height:1.15;white-space:nowrap"><div style="font:600 15px var(--fh);white-space:nowrap">{{ s.check }}</div><div style="font-size:11px;white-space:nowrap;color:{{ issueColor }}">{{ issueTxt }}</div></div>
+    </button>
+    <div style="display:flex;gap:8px;align-items:center">
+      <button onClick="{{ toggleWalk }}" style="{{ walkBtn }}"><img data-src="{{ walkIcon }}" width="20" height="20" alt=""></button>
+      <div style="display:flex;border:1px solid var(--color-divider);border-radius:99px;padding:2px;background:rgba(243,242,242,.92)"><button onClick="{{ set3d }}" style="{{ v3dStyle }}">{{ s.v3d }}</button><button onClick="{{ setPlan }}" style="{{ vplanStyle }}">{{ s.vplan }}</button></div>
+    </div>
+  </div>
+
+  <sc-if value="{{ sug.show }}" hint-placeholder-val="{{ false }}">
+  <div style="position:absolute;top:{{ sugTop }}px;inset-inline-end:14px;width:216px;z-index:22;background:rgba(243,242,242,.97);border:1px solid var(--color-divider);border-radius:4px;box-shadow:var(--shadow-md);padding:12px 14px 12px;animation:sugIn .4s cubic-bezier(.2,.8,.2,1) both">
+    <div style="display:flex;align-items:center;gap:7px;margin-bottom:6px"><span style="width:6px;height:6px;border-radius:50%;background:var(--color-accent)"></span><span style="font-size:10.5px;letter-spacing:var(--ls);text-transform:uppercase;color:var(--color-accent-700);flex:1">{{ s.sugH }}</span><button onClick="{{ sugDismiss }}" style="all:unset;cursor:pointer;width:22px;height:22px;display:grid;place-items:center;margin:-4px -6px -4px 0"><img data-src="{{ ic.x }}" width="14" height="14" alt=""></button></div>
+    <div style="font:600 18px/1.12 var(--fh);margin-bottom:4px">{{ sug.t }}</div>
+    <div style="font-size:12px;line-height:1.45;color:var(--color-neutral-700);margin-bottom:10px">{{ sug.w }}</div>
+    <button class="btn btn-primary" onClick="{{ sugTry }}" style="height:34px;width:100%;font-size:14px">{{ s.tryIt }}</button>
+  </div>
+  </sc-if>
+  <sc-if value="{{ toast }}" hint-placeholder-val="{{ false }}"><div style="position:absolute;top:{{ toastTop }}px;left:0;right:0;display:flex;justify-content:center;z-index:40;pointer-events:none"><div style="padding:9px 16px;border-radius:99px;background:var(--color-text);color:var(--color-bg);font-size:13px">{{ toast }}</div></div></sc-if>
+
+  <!-- panel (sheet / split panel / canvas sheet) -->
+  <sc-if value="{{ nav.panelVisible }}" hint-placeholder-val="{{ true }}">
+  <div style="{{ panelStyle }}">
+    <sc-if value="{{ nav.grabber }}" hint-placeholder-val="{{ true }}"><button onClick="{{ cycleSheet }}" style="all:unset;cursor:pointer;display:grid;place-items:center;height:22px;flex:none"><div style="width:38px;height:4px;border-radius:2px;background:var(--color-neutral-300)"></div></button></sc-if>
+    <sc-if value="{{ nav.closeBtn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ closeC }}" style="all:unset;cursor:pointer;position:absolute;top:10px;inset-inline-end:14px;width:32px;height:32px;display:grid;place-items:center;z-index:2"><img data-src="{{ ic.x }}" width="20" height="20" alt=""></button></sc-if>
+    <div style="display:flex;gap:2px;padding:0 18px;flex:none;border-bottom:1px solid var(--color-divider)">
+      <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="4"><button onClick="{{ t.go }}" style="{{ t.style }}">{{ t.label }}</button></sc-for>
+    </div>
+    <div style="flex:1;min-height:0;overflow-y:auto;padding:16px 20px 30px">
+
+      <!-- ASK -->
+      <sc-if value="{{ pane.ask }}" hint-placeholder-val="{{ true }}">
+        <sc-if value="{{ ai.idle }}" hint-placeholder-val="{{ true }}">
+          <div style="display:flex;gap:8px;align-items:center;border:1px solid var(--color-divider);border-radius:99px;padding:5px 5px 5px 18px">
+            <input value="{{ input }}" onInput="{{ onInput }}" onKeyDown="{{ onKey }}" placeholder="{{ s.askPh }}" style="flex:1;min-width:0;border:0;outline:0;background:transparent;font:15px var(--fb);color:var(--color-text);height:36px" />
+            <button onClick="{{ sendAsk }}" style="width:38px;height:38px;border-radius:50%;border:1px solid var(--color-accent);background:transparent;display:grid;place-items:center;cursor:pointer;padding:0"><img data-src="{{ icg.send }}" width="18" height="18" alt=""></button>
+          </div>
+          <div style="margin-top:8px;font-size:12px;color:var(--color-neutral-700);font-variant-numeric:tabular-nums">{{ leftTxt }}</div>
+          <sc-if value="{{ hasNexts }}" hint-placeholder-val="{{ true }}">
+          <h6 style="margin:18px 0 2px;font-size:11px;color:var(--color-neutral-700)">{{ s.nextH }}</h6>
+          <sc-for list="{{ nexts }}" as="n" hint-placeholder-count="3"><button onClick="{{ n.run }}" style-hover="background:rgba(182,130,53,.07)" style="all:unset;box-sizing:border-box;width:100%;cursor:pointer;display:flex;align-items:center;gap:12px;padding:12px 2px;border-bottom:1px solid var(--color-divider);font-size:14px;line-height:1.35"><span style="flex:1">{{ n.label }}</span><img data-src="{{ n.icon }}" width="16" height="16" alt=""></button></sc-for>
+          </sc-if>
+          <h6 style="margin:18px 0 8px;font-size:11px;color:var(--color-neutral-700)">{{ s.stylesH }}</h6>
+          <div style="display:flex;flex-wrap:wrap;gap:8px"><sc-for list="{{ styleChips }}" as="c" hint-placeholder-count="5"><button onClick="{{ c.run }}" style-hover="background:rgba(182,130,53,.08)" style="{{ c.style }}"><span style="display:flex"><sc-for list="{{ c.dots }}" as="d" hint-placeholder-count="3"><span style="{{ d.style }}"></span></sc-for></span>{{ c.label }}</button></sc-for></div>
+          <h6 style="margin:18px 0 8px;font-size:11px;color:var(--color-neutral-700)">{{ s.askH }}</h6>
+          <div style="display:flex;flex-wrap:wrap;gap:8px"><sc-for list="{{ chips }}" as="c" hint-placeholder-count="4"><button onClick="{{ c.run }}" style-hover="background:rgba(182,130,53,.08)" style="{{ chipStyle }}">{{ c.label }}</button></sc-for></div>
+        </sc-if>
+        <sc-if value="{{ ai.running }}" hint-placeholder-val="{{ false }}">
+          <div style="font:500 22px var(--fh);margin-bottom:6px">{{ s.working }}</div>
+          <div style="font-size:13px;font-style:italic;color:var(--color-neutral-700);margin-bottom:8px">“{{ ai.q }}”</div>
+          <sc-for list="{{ ai.lines }}" as="l" hint-placeholder-count="3"><div style="display:flex;align-items:center;gap:12px;padding:9px 0;border-top:1px solid var(--color-divider);font-size:14px;line-height:1.35"><img data-src="{{ l.icon }}" width="16" height="16" alt="">{{ l.text }}</div></sc-for>
+          <div style="height:2px;background:var(--color-divider);margin-top:6px"><div style="{{ aiPctStyle }}"></div></div>
+        </sc-if>
+        <sc-if value="{{ ai.done }}" hint-placeholder-val="{{ false }}">
+          <div style="font:500 24px var(--fh);margin-bottom:10px">{{ ai.title }}</div>
+          <h6 style="margin:0 0 4px;font-size:11px;color:var(--color-neutral-700)">{{ s.changed }}</h6>
+          <sc-for list="{{ ai.changes }}" as="c" hint-placeholder-count="2"><div style="padding:7px 0;border-top:1px solid var(--color-divider);font-size:14px;line-height:1.4">{{ c }}</div></sc-for>
+          <h6 style="margin:14px 0 4px;font-size:11px;color:var(--color-neutral-700)">{{ s.measured }}</h6>
+          <sc-for list="{{ ai.facts }}" as="f" hint-placeholder-count="3"><div style="display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-top:1px solid var(--color-divider);font-size:14px"><span>{{ f.k }}</span><span style="font-variant-numeric:tabular-nums;color:var(--color-accent-700);font-weight:600">{{ f.v }}</span></div></sc-for>
+          <div style="display:flex;gap:8px;margin-top:16px"><button class="btn btn-primary" onClick="{{ aiKeep }}" style="flex:1;height:44px;font-size:16px">{{ s.keep }}</button><button class="btn btn-secondary" onClick="{{ aiUndo }}" style="flex:1;height:44px;font-size:16px">{{ s.undoB }}</button></div>
+          <sc-if value="{{ nextTop }}" hint-placeholder-val="{{ false }}"><button onClick="{{ nextTop.run }}" style="all:unset;box-sizing:border-box;width:100%;cursor:pointer;display:flex;align-items:center;gap:10px;margin-top:12px;padding:12px 2px;border-top:1px solid var(--color-divider);border-bottom:1px solid var(--color-divider);font-size:14px;line-height:1.35"><span style="flex:1"><span style="color:var(--color-accent-700);font-weight:600">{{ s.nextPre }}</span>{{ nextTop.label }}</span><img data-src="{{ nextTop.icon }}" width="16" height="16" alt=""></button></sc-if>
+          <sc-if value="{{ ai.canAlt }}" hint-placeholder-val="{{ true }}"><button class="btn btn-ghost" onClick="{{ aiAnother }}" style="width:100%;height:42px;font-size:15px;margin-top:6px">{{ s.another }}</button></sc-if>
+        </sc-if>
+        <sc-if value="{{ ai.limit }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;gap:14px;align-items:flex-start"><img data-src="{{ icr.clock }}" width="26" height="26" alt="" style="margin-top:3px"><div><div style="font:500 24px/1.1 var(--fh);margin-bottom:8px">{{ s.limitH }}</div><div style="font-size:14px;line-height:var(--lh);color:var(--color-neutral-700)">{{ s.limitP }}</div></div></div>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:16px;opacity:.45"><sc-for list="{{ chips }}" as="c" hint-placeholder-count="4"><div style="{{ chipStyle }}">{{ c.label }}</div></sc-for></div>
+        </sc-if>
+        <sc-if value="{{ ai.nofit }}" hint-placeholder-val="{{ false }}">
+          <div style="font:500 24px/1.1 var(--fh);margin-bottom:8px">{{ s.nofitH }}</div>
+          <div style="font-size:14px;line-height:var(--lh);color:var(--color-neutral-700);margin-bottom:12px">{{ ai.nofitP }}</div>
+          <div style="font-size:14px;padding:11px 0;border-top:1px solid var(--color-divider);border-bottom:1px solid var(--color-divider)">{{ s.nofitTry }}</div>
+          <div style="display:flex;gap:8px;margin-top:14px"><button class="btn btn-primary" onClick="{{ addTable2 }}" style="flex:1;height:44px;font-size:15px">{{ s.addT2 }}</button><button class="btn btn-secondary" onClick="{{ aiDismiss }}" style="flex:1;height:44px;font-size:15px">{{ s.dismiss }}</button></div>
+        </sc-if>
+      </sc-if>
+
+      <!-- ADD -->
+      <sc-if value="{{ pane.add }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:2px"><div style="font:500 22px var(--fh)">{{ s.addH }}</div>
+          <button onClick="{{ toggleFits }}" style="all:unset;cursor:pointer;display:flex;align-items:center;gap:8px;font-size:12px"><span style="{{ fitsBox }}"></span>{{ s.fits }}</button></div>
+        <div style="font-size:12px;color:var(--color-neutral-700);margin-bottom:8px">{{ s.addSub }}</div>
+        <sc-for list="{{ addRows }}" as="a" hint-placeholder-count="5"><div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-top:1px solid var(--color-divider);opacity:{{ a.op }}"><div style="flex:1"><div style="font:600 18px/1.1 var(--fh)">{{ a.name }}</div><div style="font-size:12px;color:var(--color-neutral-700);font-variant-numeric:tabular-nums">{{ a.size }}</div></div><button onClick="{{ a.add }}" style="{{ iconBtnS }}"><img data-src="{{ ic.plus }}" width="20" height="20" alt=""></button></div></sc-for>
+      </sc-if>
+
+      <!-- ITEM -->
+      <sc-if value="{{ pane.item }}" hint-placeholder-val="{{ false }}">
+        <sc-if value="{{ noSel }}" hint-placeholder-val="{{ false }}"><div style="padding:20px 0;font-size:14px;line-height:var(--lh);color:var(--color-neutral-700)">{{ s.itemEmpty }}</div></sc-if>
+        <sc-if value="{{ hasSel }}" hint-placeholder-val="{{ true }}">
+          <div style="display:flex;align-items:baseline;justify-content:space-between"><div style="font:500 28px/1 var(--fh);letter-spacing:var(--ls0)">{{ selName }}</div><div style="font-size:13px;color:var(--color-neutral-700);font-variant-numeric:tabular-nums">{{ selSize }}</div></div>
+          <h6 style="margin:18px 0 8px;font-size:11px;color:var(--color-neutral-700)">{{ s.colour }}</h6>
+          <div style="display:flex;gap:10px;flex-wrap:wrap"><sc-for list="{{ selColors }}" as="c" hint-placeholder-count="5"><button onClick="{{ c.pick }}" style="{{ c.style }}"></button></sc-for></div>
+          <div style="display:flex;gap:8px;margin-top:20px">
+            <button class="btn btn-secondary" onClick="{{ rotSel }}" style="flex:1;height:44px;font-size:14px;opacity:{{ selOp }}"><img data-src="{{ ic.rotate }}" width="18" height="18" alt="">{{ s.rotate }}</button>
+            <button class="btn btn-secondary" onClick="{{ lockSel }}" style="flex:1;height:44px;font-size:14px"><img data-src="{{ ic.lock }}" width="18" height="18" alt="">{{ lockLbl }}</button>
+            <button class="btn btn-secondary" onClick="{{ delSel }}" style="height:44px;width:48px;padding:0"><img data-src="{{ ic.trash }}" width="18" height="18" alt=""></button>
+          </div>
+          <sc-if value="{{ selLocked }}" hint-placeholder-val="{{ false }}"><div style="margin-top:12px;font-size:12px;color:var(--color-neutral-700)">{{ s.lockedNote }}</div></sc-if>
+        </sc-if>
+      </sc-if>
+
+      <!-- FINISHES -->
+      <sc-if value="{{ pane.fin }}" hint-placeholder-val="{{ false }}">
+        <div style="font:500 22px var(--fh);margin-bottom:10px">{{ s.wallsH }}</div>
+        <div style="display:flex;gap:12px;flex-wrap:wrap"><sc-for list="{{ wallSw }}" as="w" hint-placeholder-count="6"><button onClick="{{ w.pick }}" style="all:unset;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;width:52px"><span style="{{ w.style }}"></span><span style="font-size:11px;color:var(--color-neutral-700)">{{ w.name }}</span></button></sc-for></div>
+        <div style="font:500 22px var(--fh);margin:20px 0 10px">{{ s.floorH }}</div>
+        <div style="display:flex;gap:12px;flex-wrap:wrap"><sc-for list="{{ floorSw }}" as="w" hint-placeholder-count="5"><button onClick="{{ w.pick }}" style="all:unset;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;width:60px"><span style="{{ w.style }}"></span><span style="font-size:11px;color:var(--color-neutral-700);text-align:center">{{ w.name }}</span></button></sc-for></div>
+      </sc-if>
+
+      <!-- CHECK -->
+      <sc-if value="{{ pane.check }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;align-items:center;gap:16px;margin-bottom:8px">
+          <svg width="64" height="64" viewBox="0 0 36 36"><circle cx="18" cy="18" r="15" fill="none" stroke="rgba(32,31,29,.12)" stroke-width="1.6"></circle><circle cx="18" cy="18" r="15" fill="none" stroke="#b68235" stroke-width="1.6" stroke-linecap="round" stroke-dasharray="{{ ringDash }}" transform="rotate(-90 18 18)"></circle></svg>
+          <div><div style="font:400 46px/1 var(--fh);font-variant-numeric:tabular-nums">{{ scoreTxt }}</div><div style="font-size:13px;color:var(--color-neutral-700)">{{ s.check }}</div></div>
+        </div>
+        <sc-for list="{{ rules }}" as="r" hint-placeholder-count="5"><div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-top:1px solid var(--color-divider)"><img data-src="{{ r.icon }}" width="18" height="18" alt=""><div style="flex:1;font-size:14px;line-height:1.35">{{ r.text }}</div><sc-if value="{{ r.fixable }}" hint-placeholder-val="{{ false }}"><button class="btn btn-primary" onClick="{{ r.fix }}" style="height:34px;font-size:14px;padding:0 14px">{{ s.fix }}</button></sc-if></div></sc-for>
+      </sc-if>
+    </div>
+  </div>
+  </sc-if>
+
+  <!-- canvas model: dock -->
+  <sc-if value="{{ nav.dock }}" hint-placeholder-val="{{ false }}">
+  <div style="position:absolute;left:16px;right:16px;bottom:34px;display:flex;gap:8px;align-items:center;z-index:25">
+    <button onClick="{{ dockAsk }}" style="flex:1;display:flex;align-items:center;gap:10px;height:54px;padding:0 18px;border-radius:99px;border:1px solid var(--color-divider);background:rgba(243,242,242,.94);box-shadow:var(--shadow-md);cursor:pointer;font:15px var(--fb);color:var(--color-neutral-700);text-align:start"><img data-src="{{ icg.pen }}" width="20" height="20" alt="">{{ s.dockPh }}</button>
+    <button onClick="{{ dockAdd }}" style="{{ dockBtn }}"><img data-src="{{ ic.plus }}" width="22" height="22" alt=""></button>
+    <button onClick="{{ dockFin }}" style="{{ dockBtn }}"><img data-src="{{ ic.layers }}" width="22" height="22" alt=""></button>
+  </div>
+  </sc-if>
+  <sc-if value="{{ nav.itemBar }}" hint-placeholder-val="{{ false }}">
+  <div style="position:absolute;left:16px;right:16px;bottom:34px;display:flex;gap:6px;align-items:center;z-index:26;height:54px;padding:0 8px 0 20px;border-radius:99px;border:1px solid var(--color-divider);background:rgba(243,242,242,.96);box-shadow:var(--shadow-md)">
+    <div style="flex:1;font:500 19px var(--fh)">{{ selName }}</div>
+    <button onClick="{{ rotSel }}" style="{{ iconBtnS }}"><img data-src="{{ ic.rotate }}" width="20" height="20" alt=""></button>
+    <button onClick="{{ lockSel }}" style="{{ iconBtnS }}"><img data-src="{{ ic.lock }}" width="20" height="20" alt=""></button>
+    <button onClick="{{ delSel }}" style="{{ iconBtnS }}"><img data-src="{{ ic.trash }}" width="20" height="20" alt=""></button>
+    <button onClick="{{ deselect }}" style="{{ iconBtnS }}"><img data-src="{{ ic.x }}" width="20" height="20" alt=""></button>
+  </div>
+  </sc-if>
+</div>
+</sc-if>
+
+<!-- ============ VERSIONS ============ -->
+<sc-if value="{{ scr.versions }}" hint-placeholder-val="{{ false }}">
+<div style="position:absolute;inset:0;padding-top:56px;display:flex;flex-direction:column">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:0 24px;height:48px"><button onClick="{{ goBack }}" style="{{ iconBtn }}"><img data-src="{{ ic.back }}" width="20" height="20" alt=""></button><button class="btn btn-ghost" onClick="{{ saveVersion }}" style="font-size:15px">{{ s.saveVer }}</button></div>
+  <div style="padding:6px 24px 8px"><h1 style="margin:0 0 4px;font:400 42px/1 var(--fh);letter-spacing:var(--ls0)">{{ s.verH }}</h1><div style="font-size:13px;color:var(--color-neutral-700)">{{ s.verSub }}</div></div>
+  <div style="flex:1;overflow-y:auto;padding:8px 24px 120px">
+    <sc-for list="{{ vers }}" as="v" hint-placeholder-count="3">
+      <div style="display:flex;gap:16px;padding:14px 0;border-top:1px solid var(--color-divider);align-items:center">
+        <div style="width:112px;height:80px;flex:none;border:4px solid var(--color-surface);outline:1px solid var(--color-divider);background:var(--color-surface);overflow:hidden"><img data-src="{{ v.img }}" alt="" style="width:100%;height:100%;object-fit:cover"></div>
+        <div style="flex:1;min-width:0"><div style="font:600 20px/1.1 var(--fh)">{{ v.name }}</div><div style="font-size:12px;color:var(--color-neutral-700);margin-top:3px">{{ v.time }}</div>
+          <sc-if value="{{ v.cur }}" hint-placeholder-val="{{ false }}"><span class="tag tag-accent" style="margin-top:8px;font-size:11px">{{ s.current }}</span></sc-if>
+          <sc-if value="{{ v.old }}" hint-placeholder-val="{{ false }}"><button class="btn btn-ghost" onClick="{{ v.restore }}" style="margin-top:4px;padding:0;font-size:14px;height:30px">{{ s.restore }}</button></sc-if>
+        </div>
+      </div>
+    </sc-for>
+  </div>
+</div>
+</sc-if>
+
+<!-- ============ SETTINGS ============ -->
+<sc-if value="{{ scr.settings }}" hint-placeholder-val="{{ false }}">
+<div style="position:absolute;inset:0;padding-top:56px;display:flex;flex-direction:column">
+  <div style="display:flex;align-items:center;padding:0 24px;height:48px"><button onClick="{{ goBack }}" style="{{ iconBtn }}"><img data-src="{{ ic.back }}" width="20" height="20" alt=""></button></div>
+  <div style="padding:6px 24px 8px"><h1 style="margin:0;font:400 42px/1 var(--fh);letter-spacing:var(--ls0)">{{ s.setH }}</h1></div>
+  <div style="flex:1;overflow-y:auto;padding:12px 24px 120px">
+    <div style="padding:16px 0;border-top:1px solid var(--color-divider)">
+      <div style="font:600 18px var(--fh);margin-bottom:10px">{{ s.langL }}</div>
+      <div style="display:flex;border:1px solid var(--color-divider);border-radius:99px;padding:2px;gap:2px;width:fit-content"><button onClick="{{ setEn }}" style="{{ langBtnEn }}">English</button><button onClick="{{ setAr }}" style="{{ langBtnAr }}">العربية</button></div>
+    </div>
+    <div style="padding:16px 0;border-top:1px solid var(--color-divider)">
+      <div style="font:600 18px var(--fh);margin-bottom:10px">{{ s.walkPref }}</div>
+      <div style="display:flex;border:1px solid var(--color-divider);border-radius:99px;padding:2px;gap:2px;width:fit-content"><button onClick="{{ setStd }}" style="{{ stdStyle }}">{{ s.std }}</button><button onClick="{{ setCompact }}" style="{{ compStyle }}">{{ s.compact }}</button></div>
+    </div>
+    <div style="padding:16px 0;border-top:1px solid var(--color-divider)">
+      <div style="display:flex;justify-content:space-between;margin-bottom:10px"><div style="font:600 18px var(--fh)">{{ s.aiUse }}</div><div style="font-size:13px;color:var(--color-neutral-700);font-variant-numeric:tabular-nums">{{ usedTxt }}</div></div>
+      <div style="height:2px;background:var(--color-divider)"><div style="{{ usedStyle }}"></div></div>
+    </div>
+    <div style="padding:16px 0;border-top:1px solid var(--color-divider)">
+      <div style="font:600 18px var(--fh);margin-bottom:4px">{{ s.account }}</div><div style="font-size:13px;color:var(--color-neutral-700);margin-bottom:14px;direction:ltr;text-align:start">noor@example.com</div>
+      <button class="btn btn-secondary" onClick="{{ goWelcome }}" style="height:44px;font-size:15px;width:100%"><img data-src="{{ ic.logout }}" width="18" height="18" alt="">{{ s.signout }}</button>
+      <button class="btn btn-secondary" onClick="{{ askDelete }}" style="height:44px;font-size:15px;width:100%;margin-top:10px;color:#8c3a1c;border-color:#a04828">{{ s.delAcc }}</button>
+    </div>
+  </div>
+  <sc-if value="{{ confirmDel }}" hint-placeholder-val="{{ false }}">
+  <div style="position:absolute;inset:0;background:rgba(32,31,29,.42);display:grid;place-items:center;padding:28px;z-index:40" onClick="{{ cancelDelete }}">
+    <div onClick="{{ stop }}" style="background:var(--color-bg);border:1px solid var(--color-divider);border-radius:4px;padding:24px;box-shadow:var(--shadow-lg)">
+      <h3 style="margin:0 0 10px;font:500 28px/1.05 var(--fh)">{{ s.delH }}</h3><p style="margin:0 0 20px;font-size:14px;line-height:var(--lh);color:var(--color-neutral-700)">{{ s.delP }}</p>
+      <div style="display:flex;gap:8px"><button class="btn btn-secondary" onClick="{{ cancelDelete }}" style="flex:1;height:44px;font-size:15px">{{ s.cancel }}</button><button class="btn btn-secondary" onClick="{{ doDelete }}" style="flex:1;height:44px;font-size:15px;color:#8c3a1c;border-color:#a04828">{{ s.delConf }}</button></div>
+    </div>
+  </div>
+  </sc-if>
+</div>
+</sc-if>
+
+<!-- ============ SHARE (overlay) ============ -->
+<sc-if value="{{ shareOpen }}" hint-placeholder-val="{{ false }}">
+<div style="position:absolute;inset:0;background:var(--color-bg);z-index:50;padding-top:56px;display:flex;flex-direction:column">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:0 24px;height:48px"><button onClick="{{ closeShare }}" style="{{ iconBtn }}"><img data-src="{{ ic.x }}" width="20" height="20" alt=""></button>
+    <div style="display:flex;border:1px solid var(--color-divider);border-radius:99px;padding:2px"><button onClick="{{ share3d }}" style="{{ sh3dStyle }}">{{ s.v3d }}</button><button onClick="{{ sharePlan }}" style="{{ shPlanStyle }}">{{ s.vplan }}</button></div></div>
+  <div style="padding:6px 24px 14px"><h1 style="margin:0;font:400 42px/1 var(--fh);letter-spacing:var(--ls0)">{{ s.shareH }}</h1></div>
+  <div style="padding:0 24px"><div class="plate" style="height:300px;background:var(--color-surface);overflow:hidden"><img data-src="{{ shareImg }}" alt="" style="width:100%;height:100%;object-fit:cover"></div>
+    <div style="margin-top:10px;display:flex;justify-content:space-between;font-size:12px;color:var(--color-neutral-700)"><span>{{ roomName }}</span><span style="font-variant-numeric:tabular-nums">{{ dimsTxt }}</span></div></div>
+  <div style="flex:1"></div>
+  <div style="padding:0 24px 40px;display:flex;flex-direction:column;gap:10px"><button class="btn btn-primary" onClick="{{ closeShare }}" style="height:50px;font-size:17px"><img data-src="{{ icg.share }}" width="20" height="20" alt="">{{ s.shareBtn }}</button><button class="btn btn-secondary" onClick="{{ closeShare }}" style="height:50px;font-size:17px">{{ s.saveImg }}</button></div>
+</div>
+</sc-if>
+
+<!-- ============ tab bar (model B) ============ -->
+<sc-if value="{{ nav.tabBar }}" hint-placeholder-val="{{ false }}">
+<div style="position:absolute;left:0;right:0;bottom:0;height:84px;border-top:1px solid var(--color-divider);background:var(--color-bg);display:flex;padding:0 8px 22px;z-index:45">
+  <sc-for list="{{ bTabs }}" as="t" hint-placeholder-count="4"><button onClick="{{ t.go }}" style="{{ t.style }}"><span style="{{ t.indStyle }}"><img data-src="{{ t.icon }}" width="22" height="22" alt=""></span><span style="font:600 13px var(--fh)">{{ t.label }}</span></button></sc-for>
+</div>
+</sc-if>
+
+<div style="{{ homeBar }}"></div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:390,&quot;height&quot;:844},&quot;nav&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;sheet&quot;,&quot;tsType&quot;:&quot;'sheet'|'tabs'|'canvas'&quot;,&quot;options&quot;:[&quot;sheet&quot;,&quot;tabs&quot;,&quot;canvas&quot;]},&quot;start&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;rooms&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;options&quot;:[&quot;welcome&quot;,&quot;rooms&quot;,&quot;rooms-empty&quot;,&quot;capture&quot;,&quot;lidar&quot;,&quot;lidar-process&quot;,&quot;guided&quot;,&quot;guided-corners&quot;,&quot;failed&quot;,&quot;review&quot;,&quot;editor&quot;,&quot;plan&quot;,&quot;walking&quot;,&quot;ai-progress&quot;,&quot;ai-done&quot;,&quot;ai-style&quot;,&quot;ai-limit&quot;,&quot;ai-nofit&quot;,&quot;check&quot;,&quot;finishes&quot;,&quot;item&quot;,&quot;versions&quot;,&quot;settings&quot;]},&quot;lang&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;en&quot;,&quot;tsType&quot;:&quot;'en'|'ar'&quot;,&quot;options&quot;:[&quot;en&quot;,&quot;ar&quot;]},&quot;platform&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;ios&quot;,&quot;tsType&quot;:&quot;'ios'|'android'&quot;,&quot;options&quot;:[&quot;ios&quot;,&quot;android&quot;]},&quot;freeze&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;}}">
+class Component extends DCLogic {
+  state = { screen: null, langO: null, tab: 'ask', sheet: 'half', cOpen: false, view: '3d', walk: false, sel: null, chk: null, hi: 0, hlen: 1, vers: null, ai: { phase: 'idle', lines: [], q: '', pct: 0 }, ov: null, toast: '', thumbs: {}, shareView: '3d', shareImg: null, aiLeft: 17, pct: 0, step: 0, corner: 0, emptyOn: false, fits: false, dimEdit: null, confirmDel: false, walkPref: 90, input: '', preset: 'bedroom', showShare: false, roomTick: 0, sugId: null, dis: [], style: null, savedHi: 0 };
+  STYLES = { scandi: { n: 'stScandi', wall: '#efe9e0', floor: 'ash', items: { bed: '#cfd3cb', nightstand: '#d9ccb7', wardrobe: '#efebe3', desk: '#d9ccb7', rug: '#e6e1d7', sofa: '#cfd3cb' }, dots: ['#efe9e0', '#d9ccb7', '#a6ad9b'] }, japan: { n: 'stJapan', wall: '#e2d5c0', floor: 'oak', items: { bed: '#8a7f70', nightstand: '#6f5239', wardrobe: '#c9b9a0', desk: '#6f5239', rug: '#cbbfa8', sofa: '#8a7f70' }, dots: ['#e2d5c0', '#c9a97f', '#6f5239'] }, arab: { n: 'stArab', wall: '#d1b2a0', floor: 'stone', items: { bed: '#9c4f36', nightstand: '#8c6747', wardrobe: '#8c6747', desk: '#8c6747', rug: '#b0765a', sofa: '#9c4f36' }, dots: ['#d1b2a0', '#9c4f36', '#b68235'] }, modern: { n: 'stModern', wall: '#c9c6bf', floor: 'concrete', items: { bed: '#4b4a48', nightstand: '#2d2b2b', wardrobe: '#8c8f93', desk: '#2d2b2b', rug: '#8c8f93', sofa: '#4b4a48' }, dots: ['#c9c6bf', '#aaa8a3', '#4b4a48'] }, classic: { n: 'stClassic', wall: '#b9c1ac', floor: 'walnut', items: { bed: '#a6ad9b', nightstand: '#8c6747', wardrobe: '#d6cdbf', desk: '#8c6747', rug: '#d9cdb8', sofa: '#a6ad9b' }, dots: ['#b9c1ac', '#8c6747', '#d6cdbf'] } };
+  uid = 'bi' + Math.random().toString(36).slice(2, 8); ctrl = null; hostEl = null; saved = null; hist = []; hi = 0; timers = []; prev = []; optUsed = []; before = null; seeded = false; fresh = true;
+
+  IC = {
+    undo: ['p:M9 14 4 9l5-5', 'p:M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5a5.5 5.5 0 0 1-5.5 5.5H11'], redo: ['p:m15 14 5-5-5-5', 'p:M20 9H9.5A5.5 5.5 0 0 0 4 14.5A5.5 5.5 0 0 0 9.5 20H13'],
+    back: ['p:m15 18-6-6 6-6'], x: ['p:M18 6 6 18', 'p:m6 6 12 12'], check: ['p:M20 6 9 17l-5-5'], plus: ['p:M5 12h14', 'p:M12 5v14'], minus: ['p:M5 12h14'],
+    lock: ['r:3,11,18,11,2', 'p:M7 11V7a5 5 0 0 1 10 0v4'], trash: ['p:M3 6h18', 'p:M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6', 'p:M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2'],
+    rotate: ['p:M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8', 'p:M21 3v5h-5'], history: ['p:M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8', 'p:M3 3v5h5', 'p:M12 7v5l4 2'],
+    share: ['p:M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8', 'p:m16 6-4-4-4 4', 'p:M12 2v13'], sliders: ['p:M21 4h-7', 'p:M10 4H3', 'p:M21 12h-9', 'p:M8 12H3', 'p:M21 20h-5', 'p:M12 20H3', 'p:M14 2v4', 'p:M8 10v4', 'p:M16 18v4'],
+    home: ['p:M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8', 'p:M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z'],
+    box: ['p:M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z', 'p:m3.3 7 8.7 5 8.7-5', 'p:M12 22V12'],
+    walk: ['p:M8 3 4 7l4 4', 'p:M4 7h16', 'p:m16 21 4-4-4-4', 'p:M20 17H4'], scan: ['p:M3 7V5a2 2 0 0 1 2-2h2', 'p:M17 3h2a2 2 0 0 1 2 2v2', 'p:M21 17v2a2 2 0 0 1-2 2h-2', 'p:M7 21H5a2 2 0 0 1-2-2v-2', 'p:M7 12h10'],
+    send: ['p:m5 12 7-7 7 7', 'p:M12 19V5'], layers: ['p:m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z', 'p:m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65', 'p:m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65'],
+    next: ['p:m9 18 6-6-6-6'], pen: ['p:M12 20h9', 'p:M16.376 3.622a1 1 0 0 1 3.002 3.002L7.368 18.635a2 2 0 0 1-.855.506l-2.872.838a.5.5 0 0 1-.62-.62l.838-2.872a2 2 0 0 1 .506-.854z'],
+    bulb: ['p:M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5', 'p:M9 18h6', 'p:M10 22h4'], clock: ['c:12,12,10', 'p:M12 6v6l4 2'], logout: ['p:M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4', 'p:m16 17 5-5-5-5', 'p:M21 12H9'], dot: ['c:12,12,4'],
+  };
+  icon(n, col) {
+    const b = this.IC[n].map((e) => { const t = e[0], v = e.slice(2); if (t === 'p') return '<path d="' + v + '"/>'; const a = v.split(','); if (t === 'c') return '<circle cx="' + a[0] + '" cy="' + a[1] + '" r="' + a[2] + '"/>'; return '<rect x="' + a[0] + '" y="' + a[1] + '" width="' + a[2] + '" height="' + a[3] + '" rx="' + a[4] + '"/>'; }).join('');
+    return 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="' + col + '" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">' + b + '</svg>');
+  }
+  icons(col) { const o = {}; Object.keys(this.IC).forEach((k) => (o[k] = this.icon(k, col))); return o; }
+
+  D = {
+    en: { brand: 'BuildIt', clock: '9:41', camera: 'Camera view', wTitle: 'Scan a room. Arrange it with confidence.', wSub: 'Every size measured. Every move checked against interior design rules.', wApple: 'Continue with Apple', wEmail: 'Continue with email', wTry: 'Try without an account',
+      rooms: 'Rooms', nRooms: '{0} rooms', e0: 'Edited today', e1: 'Edited 3 days ago', e2: 'Edited last week', rBed: 'Bedroom', rMaj: 'Majlis', rStudy: 'Study', scan: 'Scan a room', emptyH: 'No rooms yet', emptyP: 'Scan a room to measure it exactly, then rearrange it. Three ways in:',
+      way1t: 'LiDAR scan', way1d: 'About a minute on iPhone Pro. Walls, doors, windows and furniture, measured.', way2t: 'Guided scan', way2d: 'Any recent iPhone. You tap the corners and point at each piece.', way3t: 'Type dimensions', way3d: 'Rectangle or L-shape. Add doors and windows by wall.',
+      capH: 'How would you like to capture the room?', capSub: 'LiDAR detected on this iPhone.', rec: 'Recommended', coach1: 'Move slower', coach2: 'Point at the corner', coach3: 'Sweep along the wall', scanning: 'Scanning', stopScan: 'Finish scan', procH: 'Building your room', p1: 'Finding walls', p2: 'Measuring doors and windows', p3: 'Fitting boxes to furniture', p4: 'Checking measurements', lowLight: 'Demo: low light',
+      gStep: 'Step {0} of {1}', g1: 'Find the floor', g2: 'Mark each corner', g3: 'Mark doors and windows', g4: 'Point at each piece', g5: 'Scan complete', h1: 'Slowly point at the floor until the grid settles.', h2: 'Aim at the corner, then tap. {0} of 4 marked.', h3: 'Tap both edges of each door and window.', h4: 'Point at a piece, confirm its name, then fit the box.', h5: 'The room is ready to review.', gMark: 'Mark corner', gCont: 'Continue', gDone: 'Review the room',
+      failH: 'Not enough light to scan', failP: "The camera couldn't follow the walls. Nothing was saved.", tip1: 'Turn on the lights and open the curtains.', tip2: 'Keep the phone steady, about chest height.', tip3: 'Avoid mirrors and large glass surfaces.', retry: 'Try again', typeInstead: 'Type dimensions instead',
+      revH: 'Review the scan', revSub: 'Tap a measurement to correct it.', furn: 'Furniture found', looksRight: 'Looks right', wallLen: 'Wall length', done: 'Done',
+      check: 'Room check', v3d: '3D', vplan: 'Plan', tAsk: 'Ask', tAdd: 'Add', tItem: 'Item', tFin: 'Finishes', chip1: 'More walking space', chip2: 'Make it cosier', chip3: 'Fit a dining table for 6', chip4: 'Suggest a rug', askPh: 'Tell me what to change', left: '{0} of {1} requests left today', working: 'Working through it', changed: 'What changed', measured: 'Measured', keep: 'Keep', undoB: 'Undo', another: 'Show another option',
+      limitH: "Today's AI requests are used up", limitP: 'Resets in {0} h {1} min. Moving pieces by hand, the room check and one-tap fixes still work.', nofitH: "A table for six won't fit", nofitP: 'It needs {0} × {1} m clear, including chair room. The largest clear area is {2} × {3} m, and {4} × {5} m even without the desk.', nofitTry: 'A table for two does fit. Add one?', addT2: 'Add table for two', dismiss: 'Not now', narrowest: 'Narrowest', locked: 'Locked',
+      fWalk: 'Narrowest walkway', fScore: 'Room check score', fDoor: 'Door swing', blocked: 'blocked', clear: 'clear', fRug: 'Rug size', fRugEdge: 'Past each side of the bed', aiRead: 'Reading the room: {0} × {1} m, {2} pieces', aiWalk: 'Measuring walkways: narrowest {0} cm', aiMove: 'Moving the {0} {1} cm {2}', aiRe: 'Re-checking all five rules', aiRug: 'Sizing a rug: {0} × {1} cm', aiRugPlace: "Placing it under the bed's front legs", aiWarm: 'Warming the walls to sand', aiFit: 'Looking for clear floor for a table and six chairs', aiNone: 'No other layout reaches this score', tWalk: 'More walking space', tRug: 'Rug added', tCosy: 'Cosier bedroom',
+      dE: 'east', dW: 'west', dN: 'north', dS: 'south', iBed: 'Bed', iNightstand: 'Nightstand', iWardrobe: 'Wardrobe', iDesk: 'Desk', iRug: 'Rug', iSofa: 'Sofa', iCoffee: 'Coffee table', iTv: 'TV unit', iShelf: 'Shelf', iArm: 'Armchair', iTable: 'Table', iBook: 'Bookshelf',
+      addH: 'Add to the room', addSub: 'Generic furniture at real sizes.', fits: 'Fits in this room', itemEmpty: 'Tap a piece in the room to edit it.', colour: 'Colour', rotate: 'Rotate 90°', lock: 'Lock', unlock: 'Unlock', lockedNote: "Locked pieces block space but can't be moved.", wallsH: 'Walls', floorH: 'Floor',
+      cChalk: 'Chalk', cSand: 'Sand', cSage: 'Sage', cClay: 'Clay', cStone: 'Stone', cInk: 'Ink', fOak: 'Oak', fWalnut: 'Walnut', fAsh: 'Ash', fStone: 'Stone tile', fConcrete: 'Concrete', fix: 'Fix this',
+      rWalkOk: 'Main walkway is at least 90 cm', rWalk: 'Walkway pinches to {0} cm; it needs 90', rDoorOk: 'Door swings open freely', rDoor: '{0} blocks the door swing', rSideOk: '60 cm clear beside the bed', rSide: 'Only {0} cm beside the bed; it needs 60', rStorOk: 'Wardrobe opens with room to reach', rStor: 'Only {0} cm in front of the wardrobe; it needs 60', rLightOk: 'Window light stays clear', rLight: 'Tall furniture blocks the window',
+      sWalk: 'Walkway {0} cm', sDoor: 'Door swing blocked', sBed: 'Bed sides {0} cm', sStor: 'Wardrobe {0} cm', sLight: 'Window blocked', allOk: 'All rules pass', fixed: 'Fixed',
+      verH: 'Versions', verSub: 'Every saved state. Nothing is lost.', current: 'Current', restore: 'Restore', saveVer: 'Save this version', vOrig: 'Original scan', vFix: 'Walkway fix', tm1: 'Today, 9:12', tm2: 'Today, 9:26', justNow: 'Just now', shareH: 'Share', saveImg: 'Save image', shareBtn: 'Share…',
+      setH: 'Settings', langL: 'Language', walkPref: 'Walkway preference', std: 'Standard · 90 cm', compact: 'Compact · 75 cm', aiUse: 'AI requests today', used: '{0} of {1} used', account: 'Account', signout: 'Sign out', delAcc: 'Delete account and data', delH: 'Delete everything?', delP: "Your rooms, scans and versions will be erased permanently. This can't be undone.", cancel: 'Cancel', delConf: 'Delete',
+      sugH: 'Suggestion', tryIt: 'Try it', sLamp: 'Try a floor lamp beside the desk', sLampWhy: 'The desk corner is the darkest part of the room.', sRug: 'Try a 220 × 150 cm rug under the bed', sRugWhy: 'Anchors the bed and warms the floor.', sWall: 'Try sand-coloured walls', sWallWhy: 'A warmer tone lifts the window light.', sHead: 'Try a clay headboard', sHeadWhy: 'One accent colour gives the room a focal point.', nextH: 'Suggested next', stylesH: 'Restyle the room', askH: 'Ask', nextPre: 'Next: ', stScandi: 'Scandinavian', stJapan: 'Japanese', stArab: 'Arabian', stModern: 'Modern', stClassic: 'Classic', aiStyle: 'Switching to the {0} style', aiStyleWalls: 'Walls {0}, floor {1}', aiStyleRecol: 'Recolouring {0} pieces', aiStyleRe: 'Re-checking all five rules; layout unchanged', fLayout: 'Layout', fSame: 'Unchanged', iLamp: 'Floor lamp', nx1: 'Fix what is left: {0}', nx2: 'Check the walking space', nx3: 'Save this version', nx4: 'Try the {0} style', nx5: 'Add a rug under the bed', tRooms: 'Rooms', tDesign: 'Design', tVers: 'Versions', tSet: 'Settings', cm: 'cm', m: 'm', dockPh: 'Ask or tell me…', tLocked: "Locked pieces can't be moved", tKept: 'Saved as a version', tRest: 'Version restored', dec: '.' },
+    ar: { brand: 'BuildIt', clock: '٩:٤١', camera: 'عرض الكاميرا', wTitle: 'امسح غرفتك. ورتّبها بثقة.', wSub: 'كل قياس مضبوط، وكل نقلة تُراجَع وفق قواعد التصميم الداخلي.', wApple: 'المتابعة عبر Apple', wEmail: 'المتابعة بالبريد الإلكتروني', wTry: 'جرّب بدون حساب',
+      rooms: 'الغرف', nRooms: '{0} غرف', e0: 'عُدّلت اليوم', e1: 'عُدّلت قبل ٣ أيام', e2: 'عُدّلت الأسبوع الماضي', rBed: 'غرفة النوم', rMaj: 'المجلس', rStudy: 'المكتب', scan: 'امسح غرفة', emptyH: 'لا توجد غرف بعد', emptyP: 'امسح الغرفة لقياسها بدقة ثم أعد ترتيبها. ثلاث طرق للبدء:',
+      way1t: 'مسح LiDAR', way1d: 'نحو دقيقة على iPhone Pro. جدران وأبواب ونوافذ وأثاث بقياسات دقيقة.', way2t: 'مسح موجَّه', way2d: 'أي iPhone حديث. تحدّد الزوايا وتشير إلى كل قطعة.', way3t: 'إدخال الأبعاد', way3d: 'مستطيل أو شكل L. أضف الأبواب والنوافذ حسب الجدار.',
+      capH: 'كيف تود التقاط الغرفة؟', capSub: 'تم اكتشاف LiDAR في هذا الجهاز.', rec: 'موصى به', coach1: 'تحرّك ببطء', coach2: 'وجّه نحو الزاوية', coach3: 'امسح على امتداد الجدار', scanning: 'جارٍ المسح', stopScan: 'إنهاء المسح', procH: 'جارٍ بناء غرفتك', p1: 'تحديد الجدران', p2: 'قياس الأبواب والنوافذ', p3: 'ملاءمة صناديق للأثاث', p4: 'مراجعة القياسات', lowLight: 'عرض: إضاءة ضعيفة',
+      gStep: 'الخطوة {0} من {1}', g1: 'حدّد الأرضية', g2: 'حدّد كل زاوية', g3: 'حدّد الأبواب والنوافذ', g4: 'وجّه نحو كل قطعة', g5: 'اكتمل المسح', h1: 'وجّه الكاميرا ببطء نحو الأرض حتى تثبت الشبكة.', h2: 'صوّب نحو الزاوية ثم اضغط. تم تحديد {0} من ٤.', h3: 'اضغط على حافتي كل باب ونافذة.', h4: 'وجّه نحو القطعة وأكّد اسمها ثم طابق الصندوق.', h5: 'الغرفة جاهزة للمراجعة.', gMark: 'حدّد الزاوية', gCont: 'متابعة', gDone: 'مراجعة الغرفة',
+      failH: 'الإضاءة لا تكفي للمسح', failP: 'لم تتمكن الكاميرا من تتبع الجدران. لم يُحفظ شيء.', tip1: 'شغّل الأضواء وافتح الستائر.', tip2: 'ثبّت الهاتف على ارتفاع الصدر تقريبًا.', tip3: 'تجنّب المرايا والأسطح الزجاجية الكبيرة.', retry: 'حاول مجددًا', typeInstead: 'أدخل الأبعاد بدلًا من ذلك',
+      revH: 'مراجعة المسح', revSub: 'اضغط على أي قياس لتصحيحه.', furn: 'الأثاث المكتشف', looksRight: 'يبدو صحيحًا', wallLen: 'طول الجدار', done: 'تم',
+      check: 'فحص الغرفة', v3d: '٣D', vplan: 'مخطط', tAsk: 'اسأل', tAdd: 'أضف', tItem: 'القطعة', tFin: 'التشطيبات', chip1: 'مساحة مشي أكبر', chip2: 'اجعلها أدفأ', chip3: 'طاولة طعام لستة', chip4: 'اقترح سجادة', askPh: 'أخبرني ماذا تريد أن يتغير', left: 'تبقّى {0} من {1} طلبًا اليوم', working: 'جارٍ العمل عليها', changed: 'ما الذي تغيّر', measured: 'القياسات', keep: 'إبقاء', undoB: 'تراجع', another: 'أرني خيارًا آخر',
+      limitH: 'انتهت طلبات الذكاء الاصطناعي لليوم', limitP: 'تتجدد بعد {0} س و{1} د. تحريك القطع يدويًا وفحص الغرفة والإصلاح بلمسة ما زالت متاحة.', nofitH: 'طاولة لستة أشخاص لن تتسع', nofitP: 'تحتاج {0} × {1} م خالية بما فيها مساحة الكراسي. أكبر مساحة خالية {2} × {3} م، و{4} × {5} م حتى بدون المكتب.', nofitTry: 'تتسع طاولة لشخصين. هل أضيفها؟', addT2: 'أضف طاولة لشخصين', dismiss: 'ليس الآن', narrowest: 'الأضيق', locked: 'مثبّتة',
+      fWalk: 'أضيق ممر', fScore: 'درجة فحص الغرفة', fDoor: 'فتحة الباب', blocked: 'مسدودة', clear: 'حرة', fRug: 'حجم السجادة', fRugEdge: 'خارج كل جانب من السرير', aiRead: 'قراءة الغرفة: {0} × {1} م، {2} قطع', aiWalk: 'قياس الممرات: الأضيق {0} سم', aiMove: 'تحريك {0} مسافة {1} سم {2}', aiRe: 'إعادة فحص القواعد الخمس', aiRug: 'تحديد حجم السجادة: {0} × {1} سم', aiRugPlace: 'وضعها تحت القوائم الأمامية للسرير', aiWarm: 'تدفئة لون الجدران إلى الرملي', aiFit: 'البحث عن أرضية خالية لطاولة وستة كراسٍ', aiNone: 'لا يوجد تخطيط آخر بهذه الدرجة', tWalk: 'مساحة مشي أكبر', tRug: 'أُضيفت سجادة', tCosy: 'غرفة نوم أدفأ',
+      dE: 'شرقًا', dW: 'غربًا', dN: 'شمالًا', dS: 'جنوبًا', iBed: 'السرير', iNightstand: 'الطاولة الجانبية', iWardrobe: 'الخزانة', iDesk: 'المكتب', iRug: 'السجادة', iSofa: 'الأريكة', iCoffee: 'طاولة القهوة', iTv: 'وحدة التلفاز', iShelf: 'الرف', iArm: 'الكرسي', iTable: 'الطاولة', iBook: 'مكتبة',
+      addH: 'أضف إلى الغرفة', addSub: 'أثاث عام بمقاسات حقيقية.', fits: 'يتسع في هذه الغرفة', itemEmpty: 'اضغط على قطعة في الغرفة لتعديلها.', colour: 'اللون', rotate: 'تدوير ٩٠°', lock: 'تثبيت', unlock: 'إلغاء التثبيت', lockedNote: 'القطع المثبّتة تشغل حيّزًا ولا يمكن تحريكها.', wallsH: 'الجدران', floorH: 'الأرضية',
+      cChalk: 'طباشيري', cSand: 'رملي', cSage: 'مريمية', cClay: 'طيني', cStone: 'حجري', cInk: 'حبري', fOak: 'بلوط', fWalnut: 'جوز', fAsh: 'دردار', fStone: 'بلاط حجري', fConcrete: 'خرسانة', fix: 'أصلح',
+      rWalkOk: 'الممر الرئيسي ٩٠ سم على الأقل', rWalk: 'الممر يضيق إلى {0} سم والمطلوب ٩٠', rDoorOk: 'الباب يُفتح بحرية', rDoor: '{0} يعيق فتح الباب', rSideOk: '٦٠ سم خالية بجانب السرير', rSide: '{0} سم فقط بجانب السرير والمطلوب ٦٠', rStorOk: 'الخزانة تُفتح مع مساحة كافية', rStor: '{0} سم فقط أمام الخزانة والمطلوب ٦٠', rLightOk: 'ضوء النافذة غير محجوب', rLight: 'أثاث مرتفع يحجب النافذة',
+      sWalk: 'الممر {0} سم', sDoor: 'فتحة الباب مسدودة', sBed: 'جانب السرير {0} سم', sStor: 'الخزانة {0} سم', sLight: 'النافذة محجوبة', allOk: 'كل القواعد متحققة', fixed: 'تم الإصلاح',
+      verH: 'النسخ', verSub: 'كل حالة محفوظة. لا شيء يضيع.', current: 'الحالية', restore: 'استعادة', saveVer: 'احفظ هذه النسخة', vOrig: 'المسح الأصلي', vFix: 'إصلاح الممر', tm1: 'اليوم، ٩:١٢', tm2: 'اليوم، ٩:٢٦', justNow: 'الآن', shareH: 'مشاركة', saveImg: 'حفظ الصورة', shareBtn: 'مشاركة…',
+      setH: 'الإعدادات', langL: 'اللغة', walkPref: 'تفضيل الممر', std: 'قياسي · ٩٠ سم', compact: 'مضغوط · ٧٥ سم', aiUse: 'طلبات الذكاء الاصطناعي اليوم', used: 'استُخدم {0} من {1}', account: 'الحساب', signout: 'تسجيل الخروج', delAcc: 'حذف الحساب والبيانات', delH: 'حذف كل شيء؟', delP: 'سيتم محو غرفك وعمليات المسح والنسخ نهائيًا. لا يمكن التراجع.', cancel: 'إلغاء', delConf: 'حذف',
+      sugH: 'اقتراح', tryIt: 'جرّبها', sLamp: 'جرّب مصباحًا أرضيًا بجانب المكتب', sLampWhy: 'زاوية المكتب أغمق منطقة في الغرفة.', sRug: 'جرّب سجادة ٢٢٠ × ١٥٠ سم تحت السرير', sRugWhy: 'تثبّت السرير وتدفّئ الأرضية.', sWall: 'جرّب جدرانًا بلون رملي', sWallWhy: 'لون أدفأ يُبرز ضوء النافذة.', sHead: 'جرّب ظهر سرير بلون طيني', sHeadWhy: 'لون مميّز واحد يمنح الغرفة نقطة تركيز.', nextH: 'المقترح تاليًا', stylesH: 'أعد تصميم الغرفة بطابع', askH: 'اسأل', nextPre: 'التالي: ', stScandi: 'اسكندنافي', stJapan: 'ياباني', stArab: 'عربي', stModern: 'عصري', stClassic: 'كلاسيكي', aiStyle: 'التحويل إلى الطابع {0}', aiStyleWalls: 'الجدران {0}، والأرضية {1}', aiStyleRecol: 'إعادة تلوين {0} قطع', aiStyleRe: 'إعادة فحص القواعد الخمس؛ التخطيط لم يتغيّر', fLayout: 'التخطيط', fSame: 'دون تغيير', iLamp: 'مصباح أرضي', nx1: 'أصلح المتبقي: {0}', nx2: 'افحص مساحة المشي', nx3: 'احفظ هذه النسخة', nx4: 'جرّب الطابع {0}', nx5: 'أضف سجادة تحت السرير', tRooms: 'الغرف', tDesign: 'التصميم', tVers: 'النسخ', tSet: 'الإعدادات', cm: 'سم', m: 'م', dockPh: 'اسأل أو اطلب…', tLocked: 'القطع المثبّتة لا تتحرك', tKept: 'حُفظت كنسخة', tRest: 'تمت استعادة النسخة', dec: '٫' },
+  };
+  get lang() { return this.state.langO || this.props.lang || 'en'; }
+  get s() { return this.D[this.lang] || this.D.en; }
+  n(v) { v = String(v); if (this.lang === 'ar') return v.replace(/[0-9]/g, (d) => '٠١٢٣٤٥٦٧٨٩'[d]).replace(/\./g, '٫'); return v; }
+  f(k, ...a) { let t = this.s[k] || k; a.forEach((x, i) => (t = t.split('{' + i + '}').join(this.n(x)))); return t; }
+  iname(nm) { const m = { Bed: 'iBed', Nightstand: 'iNightstand', Wardrobe: 'iWardrobe', Desk: 'iDesk', 'Floor lamp': 'iLamp', Rug: 'iRug', Sofa: 'iSofa', 'Coffee table': 'iCoffee', 'TV unit': 'iTv', Shelf: 'iShelf', Armchair: 'iArm', Table: 'iTable', Bookshelf: 'iBook' }; return this.s[m[nm]] || nm; }
+  get nav() { return this.props.nav || 'sheet'; }
+
+  /* ---------- lifecycle ---------- */
+  fillImgs() { const r = document.getElementById(this.uid); const root = r ? r.closest('x-dc') || document : document; root.querySelectorAll('img[data-src]').forEach((i) => { const v = i.getAttribute('data-src'); if (v && i.getAttribute('src') !== v) i.setAttribute('src', v); }); }
+  componentDidMount() {
+    setTimeout(() => this.fillImgs(), 0);
+    const st = this.props.start || 'rooms'; const o = {};
+    const map = { 'rooms-empty': ['rooms'], 'ai-progress': ['editor'], 'ai-done': ['editor'], 'ai-limit': ['editor'], 'ai-nofit': ['editor'], 'ai-style': ['editor'], check: ['editor'], finishes: ['editor'], item: ['editor'], 'lidar-process': ['lidar'], 'guided-corners': ['guided'], plan: ['editor'], walking: ['editor'] };
+    o.screen = (map[st] || [st])[0]; if (st === 'rooms-empty') o.emptyOn = true; if (st === 'ai-style') o.screen = 'editor'; this.noSug = ['ai-progress', 'ai-done', 'ai-limit', 'ai-nofit', 'ai-style', 'check', 'finishes', 'item', 'walking', 'plan'].includes(st);
+    if (st === 'check') o.tab = 'check'; if (st === 'finishes') o.tab = 'fin'; if (st === 'item') o.tab = 'item'; if (st === 'plan') o.view = 'plan'; if (st === 'walking') o.walk = true;
+    if (st === 'lidar') o.pct = 38; if (st === 'lidar-process') o.pct = 82; if (st === 'guided-corners') { o.step = 1; o.corner = 2; } if (st === 'review') o.preset = 'bedroom';
+    if (this.nav === 'canvas' && o.screen === 'editor' && (st === 'ai-style' || st === 'ai-progress' || st === 'ai-done' || st === 'ai-limit' || st === 'ai-nofit' || st === 'check' || st === 'finishes' || st === 'item')) o.cOpen = true;
+    if (this.nav === 'sheet' && o.screen === 'editor') o.sheet = st === 'check' || st === 'finishes' ? 'half' : 'half';
+    this.setState(o); this.mounted = true; this.pending = st; this.watchVis();
+    if (o.screen === 'lidar' && !this.props.freeze) this.startScan();
+    this.poll(0);
+  }
+  componentWillUnmount() { this.mounted = false; clearInterval(this.visIv); this.timers.forEach(clearTimeout); clearInterval(this.iv); this.killCtrl(); }
+  poll(i) { if (!this.mounted) return; if (window.BuildItRoom) { this.ready(); return; } setTimeout(() => this.poll(i + 1), 250); }
+  syncHost() { const r = document.getElementById(this.uid); const el = r && this.vis ? r.querySelector('[data-room]') : null; if (el !== this.hostEl) this.setHost(el); }
+  watchVis() { this.vis = true; this.visIv = setInterval(() => { if (!this.isReady && window.BuildItRoom && this.mounted) this.ready(); const r = document.getElementById(this.uid); if (!r) return; const q = r.getBoundingClientRect(), m = 150; const v = q.width > 0 && q.bottom > -m && q.top < innerHeight + m && q.right > -m && q.left < innerWidth + m; if (v !== this.vis) { this.vis = v; this.syncHost(); } }, 350); }
+  ready() { this.isReady = true; this.syncHost(); if (this.hostEl && !this.ctrl) this.mountRoom(this.hostEl); this.genThumbs(); }
+  genThumbs() {
+    const B = window.BuildItRoom, ts = {}; const step = [() => { ts.hero = B.thumb('bedroom', { w: 720, h: 640 }); }, () => { ts.bedroom = B.thumb('bedroom', { w: 640, h: 400 }); }, () => { ts.living = B.thumb('living', { w: 640, h: 400 }); }, () => { ts.study = B.thumb('study', { w: 640, h: 400 }); }];
+    let i = 0; const run = () => { if (!this.mounted) return; step[i++](); this.setState({ thumbs: { ...ts } }); if (i < step.length) setTimeout(run, 30); else this.seed(); }; setTimeout(run, 30);
+  }
+  initState(key) { const P = window.BuildItRoom.preset(key || 'bedroom'); return { items: P.items.filter((i) => !i.off).map((i) => ({ ...i })), wall: P.wall, floor: P.floor, w: P.room.w, d: P.room.d }; }
+  seed() {
+    if (this.seeded) return; this.seeded = true; const B = window.BuildItRoom, P = B.preset('bedroom'); const s0 = this.initState('bedroom');
+    const items = s0.items.map((i) => ({ ...i })), o = B.optimize(P.room, s0.items, []); o.moves.forEach((m) => { const it = items.find((i) => i.id === m.id); it.x = m.x; it.z = m.z; });
+    const s1 = { ...s0, items }; const img0 = B.thumb('bedroom', { w: 360, h: 260 }), img1 = B.thumb('bedroom', { w: 360, h: 260, state: s1 });
+    const vers = [{ name: 'vOrig', tm: 'tm1', img: img0, state: s0 }, { name: 'vFix', tm: 'tm2', img: img1, state: s1 }];
+    this.setState({ vers }); if (this.pending === 'ai-progress' || this.pending === 'ai-style' || this.pending === 'ai-done' || this.pending === 'ai-nofit') { this.afterReady = true; this.tryPending(); }
+  }
+  tryPending() { if (!this.ctrl || !this.afterReady) return; const p = this.pending; this.pending = null; this.afterReady = false; if (p === 'ai-progress') this.runAI('More walking space', 'walk', true); if (p === 'ai-done') this.runAI('More walking space', 'walk', false, true); if (p === 'ai-style') { this.styleKey = 'japan'; this.runAI(this.s.stJapan, 'style', false, true); } if (p === 'ai-nofit') this.runAI('Fit a dining table for 6', 'nofit', false, true); if (p === 'item') { this.ctrl.select('bed'); } }
+  killCtrl() { if (this.ctrl) { try { if (this.hist.length) this.saved = this.ctrl.getState(); this.ctrl.dispose(); } catch (e) {} window.__biLive = Math.max(0, (window.__biLive || 1) - 1); } this.ctrl = null; }
+
+  setHost = (el) => {
+    if (el === this.hostEl) return; if (this.ctrl) { this.killCtrl(); } if (el && (window.__biLive || 0) >= 5) { this.hostEl = null; return; } this.hostEl = el;
+    if (el && this.isReady) this.mountRoom(el);
+  };
+  mountRoom(el) {
+    const B = window.BuildItRoom, rev = this.state.screen === 'review';
+    const key = this.state.preset;
+    const ctrl = B.create(el, { preset: key, view: rev ? 'plan' : this.state.view, dims: rev, walk: this.state.walk,
+      onChange: (c, sel) => { this.setState({ chk: c, sel: sel ? { id: sel.id, name: sel.name, w: sel.w, d: sel.d, color: sel.color, locked: !!sel.locked, kind: sel.kind, flat: sel.flat } : null }); },
+      onSelect: (it) => { this.setState({ sel: it ? { id: it.id, name: it.name, w: it.w, d: it.d, color: it.color, locked: !!it.locked, kind: it.kind, flat: it.flat } : null }); if (it && this.state.screen === 'editor') { if (this.nav !== 'canvas') this.setState({ tab: 'item', sheet: this.state.sheet === 'peek' ? 'half' : this.state.sheet }); } },
+      onCommit: () => this.commitHist(), onLocked: () => this.toast(this.s.tLocked), onDim: (k) => this.setState({ dimEdit: k }) });
+    window.__biLive = (window.__biLive || 0) + 1; this.ctrl = ctrl; ctrl.setText({ dig: (x) => this.n(x), narrowest: this.s.narrowest, locked: this.s.locked, cm: this.s.cm, m: this.s.m, dec: this.s.dec });
+    if (this.saved && key === (this.savedKey || key)) ctrl.setState(this.saved); else { this.saved = null; this.hist = [ctrl.getState()]; this.hi = 0; this.setState({ hi: 0, hlen: 1 }); }
+    if (!this.hist.length) { this.hist = [ctrl.getState()]; this.hi = 0; }
+    this.applyLayout(); ctrl.toggleWalk(this.state.walk); if (rev) ctrl.setView('plan'); else ctrl.setView(this.state.view);
+    if (this.pending === 'item') ctrl.select('bed'); this.afterReady = true; this.tryPending(); this.setState({ roomTick: this.state.roomTick + 1 });
+  }
+  componentDidUpdate(pp, ps) {
+    this.fillImgs();
+    this.syncHost(); this.sugTick();
+    if (this.ctrl) { this.applyLayout(); if (ps.walk !== this.state.walk) this.ctrl.toggleWalk(this.state.walk); if (ps.view !== this.state.view && this.state.screen === 'editor') this.ctrl.setView(this.state.view); if (ps.langO !== this.state.langO || pp.lang !== this.props.lang) this.ctrl.setText({ dig: (x) => this.n(x), narrowest: this.s.narrowest, locked: this.s.locked, cm: this.s.cm, m: this.s.m, dec: this.s.dec }); }
+  }
+  sugList() { const c = this.ctrl; if (!c) return []; const L = [], dk = c.find('desk'), has = (k) => c.items.some((i) => i.kind === k), bed = c.find('bed'); const add = (r) => { if (r) c.select(null); };
+    if (dk && !has('lamp')) L.push({ id: 'lamp', t: 'sLamp', w: 'sLampWhy', run: () => add(c.add('lamp', { name: 'Floor lamp', w: 0.35, d: 0.35, h: 1.55, color: '#b68235', near: { x: dk.x + 0.9, z: dk.z - 0.3 } })) });
+    if (bed && !has('rug')) L.push({ id: 'rug', t: 'sRug', w: 'sRugWhy', run: () => this.addRug() });
+    if (c.wallCol() === '#efe9e0') L.push({ id: 'wall', t: 'sWall', w: 'sWallWhy', run: () => { c.setWall('#e2d5c0'); c.commit('wall'); } });
+    if (bed && bed.color === '#a6ad9b') L.push({ id: 'head', t: 'sHead', w: 'sHeadWhy', run: () => c.setColor('bed', '#b0765a') });
+    return L.filter((x) => !this.state.dis.includes(x.id)); }
+  addRug() { const c = this.ctrl, bed = c.find('bed'), r = c.add('rug', { name: 'Rug', w: 2.2, d: 1.5, h: 0.02, color: '#d9cdb8', flat: 1 }); if (r) { c.move(r.id, bed ? bed.x : c.room.w / 2, bed ? bed.z + 0.45 : c.room.d / 2); c.select(null); c.commit('rug'); } }
+  sugTick() { const st = this.state; if (this.noSug || st.screen !== 'editor' || !this.ctrl || st.sugId || this.sugT || st.ai.phase !== 'idle' || st.sel) return; if (!this.sugList().length) return; this.sugT = setTimeout(() => { this.sugT = null; if (!this.mounted) return; const c = this.state, L = this.sugList(); if (L.length && c.screen === 'editor' && c.ai.phase === 'idle' && !c.sel) this.setState({ sugId: L[0].id }); }, st.dis.length ? 6000 : 2600); }
+  sugClose(run) { const id = this.state.sugId, x = this.sugList().find((q) => q.id === id); const tab = this.state.tab; if (run && x) { x.run(); this.setState({ tab }); } this.setState({ sugId: null, dis: this.state.dis.concat(id) }); }
+  sugTry = () => this.sugClose(true); sugDismiss = () => this.sugClose(false);
+  revertTo(i) { if (!this.ctrl || i == null) return; this.hi = Math.max(0, i); const s = this.hist[this.hi]; this.saved = s; this.ctrl.setState(s, true); this.setState({ hi: this.hi }); }
+  applyLayout() { if (!this.ctrl) return; const L = this.layout(); this.ctrl.setPad(L.pad); }
+  layout() {
+    const nav = this.nav, st = this.state; const sh = { peek: 196, half: 404, full: 640 }[st.sheet];
+    if (st.screen === 'review') return { pad: 0 };
+    if (nav === 'sheet') return { pad: Math.max(0, sh - 100), sh };
+    if (nav === 'tabs') return { pad: 0 };
+    return { pad: st.cOpen ? 330 : (st.sel ? 90 : 90), sh: 450 };
+  }
+  toast(t) { this.setState({ toast: t }); clearTimeout(this.tt); this.tt = setTimeout(() => this.mounted && this.setState({ toast: '' }), 1800); }
+
+  /* ---------- history ---------- */
+  commitHist() { if (!this.ctrl) return; const s = this.ctrl.getState(); this.saved = s; this.savedKey = this.state.preset; this.hist = this.hist.slice(0, this.hi + 1); this.hist.push(s); this.hi = this.hist.length - 1; this.setState({ hi: this.hi, hlen: this.hist.length }); }
+  undo = () => { if (this.hi > 0 && this.ctrl) { this.hi--; const s = this.hist[this.hi]; this.saved = s; this.ctrl.setState(s, true); this.setState({ hi: this.hi }); } };
+  redo = () => { if (this.hi < this.hist.length - 1 && this.ctrl) { this.hi++; const s = this.hist[this.hi]; this.saved = s; this.ctrl.setState(s, true); this.setState({ hi: this.hi }); } };
+
+  /* ---------- navigation ---------- */
+  go(screen, extra) { this.setState({ screen, ...(extra || {}) }); }
+  stack = [];
+  goTo = (screen, extra) => { this.stack.push(this.state.screen); clearInterval(this.iv); this.setState({ screen, ...(extra || {}) }); }
+  goBack = () => { clearInterval(this.iv); const p = this.stack.pop(); const cur = this.state.screen; this.setState({ screen: p || (cur === 'editor' || cur === 'settings' || cur === 'versions' || cur === 'capture' ? 'rooms' : cur === 'rooms' ? 'welcome' : 'rooms') }); };
+  goRooms = () => { this.stack = []; this.setState({ screen: 'rooms' }); };
+  goWelcome = () => { this.stack = []; this.setState({ screen: 'welcome' }); };
+  goSettings = () => this.goTo('settings');
+  goCapture = () => this.goTo('capture');
+  goLidar = () => { this.setState({ screen: 'lidar', pct: 0 }); this.startScan(); };
+  goGuided = () => this.goTo('guided', { step: 0, corner: 0 });
+  goFailed = () => { clearInterval(this.iv); this.goTo('failed'); };
+  goReview = () => this.goTo('review', { preset: 'bedroom' });
+  goEditor = () => { this.stack = ['rooms']; this.setState({ screen: 'editor' }); };
+  goVersions = () => this.goTo('versions');
+  stop = (e) => e && e.stopPropagation && e.stopPropagation();
+  startScan() { clearInterval(this.iv); if (this.props.freeze) return; this.iv = setInterval(() => { const p = this.state.pct + 1.4; if (p >= 100) { clearInterval(this.iv); this.setState({ pct: 100 }); setTimeout(() => this.mounted && this.state.screen === 'lidar' && this.goTo('review', { preset: 'bedroom' }), 700); } else this.setState({ pct: p }); }, 110); }
+  stopScan = () => { if (this.state.pct < 58) this.setState({ pct: 58 }); };
+  gNext = () => { const st = this.state; if (st.step === 1 && st.corner < 3) { this.setState({ corner: st.corner + 1 }); return; } if (st.step === 1) this.setState({ corner: 4, step: 2 }); else if (st.step >= 4) this.goTo('review', { preset: 'bedroom' }); else this.setState({ step: st.step + 1 }); };
+  closeDim = () => this.setState({ dimEdit: null });
+  dimStep(d) { const k = this.state.dimEdit, c = this.ctrl; if (!c) return; const r = c.room; let w = r.w, dd = r.d; if (k === 'N' || k === 'S') w = Math.max(2, Math.round((w + d) * 100) / 100); else dd = Math.max(2, Math.round((dd + d) * 100) / 100); c.setRoomSize(w, dd); this.setState({ roomTick: this.state.roomTick + 1 }); }
+  dimMinus = () => this.dimStep(-0.05); dimPlus = () => this.dimStep(0.05);
+  openRoom(key) { this.saved = null; this.hist = []; this.stack = ['rooms']; this.setState({ preset: key, screen: 'editor', sel: null }); }
+
+  /* ---------- editor actions ---------- */
+  set3d = () => this.setState({ view: '3d' }); setPlan = () => this.setState({ view: 'plan' }); toggleWalk = () => this.setState({ walk: !this.state.walk });
+  setTab(t) { this.setState({ tab: t, sheet: this.nav === 'sheet' && this.state.sheet === 'peek' ? 'half' : this.state.sheet, cOpen: this.nav === 'canvas' ? true : this.state.cOpen }); }
+  openCheck = () => this.setTab('check');
+  cycleSheet = () => this.setState({ sheet: { peek: 'half', half: 'full', full: 'peek' }[this.state.sheet] });
+  closeC = () => this.setState({ cOpen: false });
+  dockAsk = () => this.setState({ tab: 'ask', cOpen: true }); dockAdd = () => this.setState({ tab: 'add', cOpen: true }); dockFin = () => this.setState({ tab: 'fin', cOpen: true });
+  deselect = () => { this.ctrl && this.ctrl.select(null); };
+  rotSel = () => { const s = this.state.sel; if (s && !s.locked && this.ctrl) this.ctrl.rotate(s.id, 90); };
+  lockSel = () => { const s = this.state.sel; if (s && this.ctrl) { this.ctrl.setLocked(s.id, !s.locked); } };
+  delSel = () => { const s = this.state.sel; if (s && !s.locked && this.ctrl) this.ctrl.remove(s.id); else if (s) this.toast(this.s.tLocked); };
+  toggleFits = () => this.setState({ fits: !this.state.fits });
+  onInput = (e) => this.setState({ input: e.target.value }); onKey = (e) => { if (e.key === 'Enter') this.sendAsk(); };
+  sendAsk = () => { const q = (this.state.input || '').trim(); if (!q) return; this.setState({ input: '' }); this.runAI(q, this.intent(q)); };
+  intent(q) { q = q.toLowerCase(); const sm = [['scandi|nordic|اسكندناف', 'scandi'], ['japan|zen|ياباني', 'japan'], ['arab|majlis|عربي', 'arab'], ['modern|عصري', 'modern'], ['classic|traditional|كلاسيك', 'classic']].find((m) => new RegExp(m[0]).test(q)); if (sm) { this.styleKey = sm[1]; return 'style'; } if (/dining|table|طاولة|طعام/.test(q)) return 'nofit'; if (/cosi|cozy|warm|أدفأ|دافئ/.test(q)) return 'cosy'; if (/rug|carpet|سجاد/.test(q)) return 'rug'; return 'walk'; }
+  later(fn, ms) { this.timers.push(setTimeout(() => this.mounted && fn(), ms)); }
+  runAI(q, kind, freeze, instant, avoid) {
+    const c = this.ctrl; if (!c) return; const s = this.s, st = this.state;
+    if (st.aiLeft <= 0) { this.setState({ ai: { phase: 'limit', lines: [], q: '', pct: 0 } }); return; }
+    this.before = { chk: c.check(), state: c.getState() }; this.prevHi = this.hi;
+    const room = c.room, lines = []; const items = c.items.filter((i) => !i.flat || i.kind === 'rug');
+    lines.push(this.f('aiRead', this.n(room.w.toFixed(1)), this.n(room.d.toFixed(1)), c.items.length));
+    let act = []; let res = { title: '', changes: [], facts: [], canAlt: false, kind };
+    const c0 = this.before.chk;
+    if (kind === 'walk') {
+      lines.push(this.f('aiWalk', c0.narrow ? c0.narrow.cm : 150)); const o = c.optimize(avoid || []); this.optGroups = o.groups; const moveLines = [];
+      const seen = {}; o.moves.forEach((m) => { if (seen[m.group]) return; seen[m.group] = 1; const dir = Math.abs(m.dx) >= Math.abs(m.dz) ? (m.dx > 0 ? 'dE' : 'dW') : (m.dz > 0 ? 'dS' : 'dN'); const cmv = Math.round(Math.max(Math.abs(m.dx), Math.abs(m.dz)) * 100); const main = m.group === 'bed' ? 'Bed' : m.name; const txt = this.f('aiMove', this.iname(main), cmv, s[dir]); const grp = o.moves.filter((x) => x.group === m.group); moveLines.push(txt); act.push({ at: lines.length + moveLines.length - 1, moves: grp }); res.changes.push(txt); });
+      if (!o.moves.length) { lines.push(s.aiNone); res.title = s.tWalk; } else { moveLines.forEach((t) => lines.push(t)); res.title = s.tWalk; }
+      lines.push(s.aiRe); const after = o.after; res.facts = [{ k: s.fWalk, v: this.n(c0.narrow ? c0.narrow.cm : 150) + ' → ' + this.n(after.narrow ? after.narrow.cm : 150) + ' ' + s.cm }, { k: s.fDoor, v: (c0.rules.find((r) => r.id === 'door').status === 'pass' ? s.clear : s.blocked) + ' → ' + (after.rules.find((r) => r.id === 'door').status === 'pass' ? s.clear : s.blocked) }, { k: s.fScore, v: this.n(c0.score) + ' → ' + this.n(after.score) }]; res.canAlt = true; if (!o.moves.length) { res.canAlt = false; res.changes = [s.aiNone]; }
+    } else if (kind === 'style') {
+      const sd = this.STYLES[this.styleKey], sn = s[sd.n], wn = { '#efe9e0': s.cChalk, '#e2d5c0': s.cSand, '#b9c1ac': s.cSage, '#d1b2a0': s.cClay, '#c9c6bf': s.cStone }[sd.wall], fn = { oak: s.fOak, walnut: s.fWalnut, ash: s.fAsh, stone: s.fStone, concrete: s.fConcrete }[sd.floor], cnt = c.items.filter((i) => sd.items[i.kind] && !i.locked).length;
+      lines.push(this.f('aiStyle', sn)); lines.push(this.f('aiStyleWalls', wn, fn)); lines.push(this.f('aiStyleRecol', cnt)); lines.push(s.aiStyleRe); act.push({ at: 3, style: sd });
+      res.title = sn; res.changes = [lines[2], lines[3]]; res.facts = [{ k: s.fLayout, v: s.fSame }, { k: s.fWalk, v: this.n(c0.narrow ? c0.narrow.cm : 150) + ' ' + s.cm }, { k: s.fScore, v: '' }]; this.setState({ style: this.styleKey });
+    } else if (kind === 'rug' || kind === 'cosy') {
+      lines.push(this.f('aiRug', 220, 150)); lines.push(s.aiRugPlace); if (kind === 'cosy') lines.push(s.aiWarm); lines.push(s.aiRe);
+      act.push({ at: 2, rug: true }); if (kind === 'cosy') act.push({ at: 3, warm: true });
+      res.title = kind === 'cosy' ? s.tCosy : s.tRug; res.changes = [this.f('aiRug', 220, 150)]; if (kind === 'cosy') res.changes.push(s.aiWarm);
+      res.facts = [{ k: s.fRug, v: this.n(220) + ' × ' + this.n(150) + ' ' + s.cm }, { k: s.fRugEdge, v: this.n(30) + ' ' + s.cm }, { k: s.fScore, v: this.n(c0.score) + ' → ' + this.n(c0.score) }];
+    } else {
+      const lf = c.largestFree(), lf2 = c.largestFree('desk'); lines.push(s.aiFit); lines.push(this.f('aiWalk', Math.round(lf.w * 100)).replace(/.*/, this.n((lf.w).toFixed(1)) + ' × ' + this.n((lf.d).toFixed(1)) + ' ' + s.m));
+      res = { kind, nofit: true, nofitP: this.f('nofitP', 3.3, 2.4, lf.w.toFixed(1), lf.d.toFixed(1), lf2.w.toFixed(1), lf2.d.toFixed(1)) };
+    }
+    this.aiAct = act; this.aiRes = res; this.setState({ aiLeft: st.aiLeft - 1, tab: 'ask', cOpen: this.nav === 'canvas' ? true : st.cOpen, sheet: this.nav === 'sheet' && st.sheet === 'peek' ? 'half' : st.sheet });
+    const total = lines.length, shown = [];
+    const mk = (i, doneAll) => lines.slice(0, i + 1).map((t, k) => ({ text: t, icon: !doneAll && k === i ? this.icon('dot', '#b68235') : this.icon('check', '#a06f24') }));
+    const apply = (i) => this.aiAct.filter((a) => a.at === i).forEach((a) => { if (a.moves) c.glide(a.moves.map((m) => ({ id: m.id, x: m.x, z: m.z, rot: m.rot }))); if (a.rug) { const bed = c.find('bed'); const r = c.add('rug', { name: 'Rug', w: 2.2, d: 1.5, h: 0.02, color: '#d9cdb8', flat: 1 }); if (r) { c.move(r.id, bed ? bed.x : room.w / 2, bed ? bed.z + 0.45 : room.d / 2); c.select(null); } } if (a.warm) c.setWall('#e2d5c0'); if (a.style) { c.applyStyle(a.style); } });
+    const finish = () => { this.afterAI(); };
+    if (instant) { for (let i = 0; i < total; i++) apply(i); this.later(() => { this.afterAI(); }, 120); return; }
+    const stopAt = freeze ? Math.min(total - 1, 2) : total;
+    for (let i = 0; i < Math.min(total, stopAt + (freeze ? 0 : 0)); i++) { this.later(() => { apply(i); this.setState({ ai: { phase: 'running', q, lines: mk(i, false), pct: (i + 1) / total } }); }, 150 + i * 850); }
+    if (!freeze) this.later(() => { this.afterAI(); }, 300 + total * 850);
+  }
+  afterAI() {
+    const c = this.ctrl, r = this.aiRes, s = this.s; if (!c) return; if (r.nofit) { this.setState({ ai: { phase: 'nofit', nofitP: r.nofitP, lines: [], q: '', pct: 0 } }); return; }
+    const after = c.check(); if (r.kind === 'walk' && r.facts.length) { r.facts[2].v = this.n(this.before.chk.score) + ' → ' + this.n(after.score); } if (r.kind !== 'walk') { r.facts[2].v = this.n(this.before.chk.score) + ' → ' + this.n(after.score); }
+    c.commit('ai'); this.setState({ ai: { phase: 'done', title: r.title, changes: r.changes, facts: r.facts, canAlt: r.canAlt, lines: [], q: '', pct: 1 } });
+  }
+  aiKeep = () => { this.saveVersion(null, this.state.ai.title); this.setState({ ai: { phase: 'idle', lines: [], q: '', pct: 0 } }); this.toast(this.s.tKept); };
+  aiUndo = () => { this.revertTo(this.prevHi); this.setState({ ai: { phase: 'idle', lines: [], q: '', pct: 0 } }); };
+  aiDismiss = () => this.setState({ ai: { phase: 'idle', lines: [], q: '', pct: 0 } });
+  aiAnother = () => { this.revertTo(this.prevHi); const used = (this.optUsed || []).concat(this.optGroups || []); this.optUsed = used; this.later(() => this.runAI(this.s.chip1, 'walk', false, false, used), 200); };
+  addTable2 = () => { this.ctrl && this.ctrl.add('table', { name: 'Table', w: 0.8, d: 0.8, h: 0.75, color: '#b88d62' }); this.setState({ ai: { phase: 'idle', lines: [], q: '', pct: 0 } }); };
+  saveVersion = (e, name) => {
+    this.setState({ savedHi: this.hi });
+    const c = this.ctrl; const vers = (this.state.vers || []).slice(); const st = c ? c.getState() : this.saved || this.initState(this.state.preset);
+    const img = c ? c.snapshot({ w: 360, h: 260 }) : window.BuildItRoom.thumb(this.state.preset, { w: 360, h: 260, state: st });
+    vers.push({ name: typeof name === 'string' ? name : 'Saved', raw: typeof name === 'string' ? name : this.s.saveVer, tm: 'justNow', img, state: st }); this.setState({ vers });
+  };
+  restore(i) { const v = this.state.vers[i]; this.saved = v.state; if (this.ctrl) { this.ctrl.setState(v.state, true); this.commitHist(); } this.toast(this.s.tRest); this.stack = ['rooms']; this.setState({ screen: 'editor', tab: 'ask' }); }
+  openShare = () => { const c = this.ctrl; this.setState({ showShare: true, shareView: '3d', shareImg: c ? c.snapshot({ view: '3d', w: 680, h: 520 }) : (this.state.thumbs.bedroom || '') }); };
+  closeShare = () => this.setState({ showShare: false });
+  shareV(v) { const c = this.ctrl; this.setState({ shareView: v, shareImg: c ? c.snapshot({ view: v, w: 680, h: 520 }) : '' }); }
+  share3d = () => this.shareV('3d'); sharePlan = () => this.shareV('plan');
+  setEn = () => this.setState({ langO: 'en' }); setAr = () => this.setState({ langO: 'ar' });
+  setStd = () => this.setState({ walkPref: 90 }); setCompact = () => this.setState({ walkPref: 75 });
+  askDelete = () => this.setState({ confirmDel: true }); cancelDelete = () => this.setState({ confirmDel: false }); doDelete = () => { this.setState({ confirmDel: false, emptyOn: true }); this.stack = []; this.setState({ screen: 'rooms' }); };
+  fixRule(id) {
+    const c = this.ctrl; if (!c) return; const B = window.BuildItRoom, room = c.room; const o = c.optimize([]); const base = c.getState().items.map((i) => ({ ...i })); const groups = o.groups; const sim = base.map((i) => ({ ...i })); let applied = []; const status = () => B.check(room, sim).rules.find((r) => r.id === id).status;
+    for (const g of groups) { o.moves.filter((m) => m.group === g).forEach((m) => { const it = sim.find((i) => i.id === m.id); it.x = m.x; it.z = m.z; applied.push(m); }); if (status() === 'pass') break; }
+    c.glide(applied.map((m) => ({ id: m.id, x: m.x, z: m.z, rot: m.rot }))); this.later(() => { c.commit('fix'); this.toast(this.s.fixed); }, 700);
+  }
+
+  /* ---------- render ---------- */
+  renderVals() {
+    const st = this.state, s = this.s, ar = this.lang === 'ar', nav = this.nav, screen = st.screen || (this.props.start === 'rooms-empty' ? 'rooms' : this.props.start) || 'rooms';
+    const dark = screen === 'lidar'; const andP = this.props.platform === 'android'; const sbColor = dark ? '#f3f2f2' : '#201f1d';
+    const iconBtn = 'width:40px;height:40px;border-radius:50%;border:1px solid var(--color-divider);background:transparent;display:grid;place-items:center;cursor:pointer;padding:0;flex:none';
+    const iconBtnS = 'width:40px;height:40px;border-radius:50%;border:1px solid transparent;background:transparent;display:grid;place-items:center;cursor:pointer;padding:0;flex:none';
+    const pillBtn = (on) => 'border:0;border-radius:99px;padding:7px 14px;font:600 14px var(--fh);cursor:pointer;background:' + (on ? 'rgba(182,130,53,.16)' : 'transparent') + ';color:' + (on ? 'var(--color-accent-700)' : 'var(--color-text)');
+    const ic = this.icons('#201f1d'), icg = this.icons('#a06f24'), icw = this.icons('#f3f2f2'), icr = this.icons('#a04828');
+    const scr = {}; ['welcome', 'rooms', 'capture', 'lidar', 'guided', 'failed', 'review', 'editor', 'versions', 'settings'].forEach((k) => (scr[k] = screen === k));
+    const o = {};
+    o.uid = this.uid; o.dir = ar ? 'rtl' : 'ltr'; o.s = s; o.ic = ic; o.icg = icg; o.icw = icw; o.icr = icr; o.scr = scr; o.sbColor = sbColor; o.iconBtn = iconBtn; o.iconBtnS = iconBtnS;
+    o.rootStyle = '--fh:' + (ar ? "'Amiri',serif" : "'Cormorant Garamond',serif") + ';--fb:' + (ar ? "'Noto Naskh Arabic',serif" : "'Lora',serif") + ';--ls:' + (ar ? '0' : '.08em') + ';--ls0:' + (ar ? '0' : '-.015em') + ';--lh:' + (ar ? '1.85' : '1.55') + ';position:relative;width:390px;height:844px;overflow:hidden;border-radius:' + (andP ? 34 : 50) + 'px;background:var(--color-bg);color:var(--color-text);font-family:var(--fb);box-shadow:0 0 0 ' + (andP ? 8 : 9) + 'px #201f1d,0 0 0 ' + (andP ? 9 : 10) + 'px #4a4745,0 30px 60px rgba(32,31,29,.28);';
+    o.thumbs = st.thumbs;
+    const lb = (on) => 'border:0;border-radius:99px;padding:6px 14px;font:600 14px var(--fb);cursor:pointer;background:' + (on ? 'rgba(182,130,53,.16)' : 'transparent') + ';color:' + (on ? 'var(--color-accent-700)' : 'var(--color-text)'); o.langBtnEn = lb(!ar); o.langBtnAr = lb(ar);
+    /* rooms */
+    const th = st.thumbs; const dm = (w, d) => this.n(w.toFixed(1)) + ' × ' + this.n(d.toFixed(1)) + ' ' + s.m;
+    o.rooms = [{ key: 'bedroom', name: s.rBed, meta: s.e0 + ' · ' + dm(4, 3.5), img: th.bedroom }, { key: 'living', name: s.rMaj, meta: s.e1 + ' · ' + dm(5.2, 4.1), img: th.living }, { key: 'study', name: s.rStudy, meta: s.e2 + ' · ' + dm(3.2, 3), img: th.study }].map((r) => ({ ...r, open: () => this.openRoom(r.key) }));
+    o.hasRooms = !st.emptyOn; o.noRooms = st.emptyOn; o.nRooms = this.f('nRooms', 3);
+    o.ways = [['1', s.way1t, s.way1d], ['2', s.way2t, s.way2d], ['3', s.way3t, s.way3d]].map((w) => ({ n: this.n(w[0]), t: w[1], d: w[2] }));
+    o.scanBarStyle = 'position:absolute;left:0;right:0;bottom:' + (nav === 'tabs' ? 84 : 0) + 'px;padding:16px 24px ' + (nav === 'tabs' ? 16 : 34) + 'px;background:linear-gradient(transparent,var(--color-bg) 34%)';
+    /* lidar */
+    const pct = st.pct; o.scanning = pct < 58; o.processing = pct >= 58; o.coachTxt = pct < 20 ? s.coach1 : pct < 40 ? s.coach2 : s.coach3; o.scanLbl = s.scanning; o.pctTxt = this.n(Math.round(pct)) + '%';
+    o.pctStyle = 'height:2px;background:' + (dark && pct < 58 ? '#e1ad66' : 'var(--color-accent)') + ';width:' + Math.min(100, pct) + '%;transition:width .2s linear';
+    o.procLines = [s.p1, s.p2, s.p3, s.p4].map((t, i) => { const th2 = [60, 72, 84, 96][i]; const done = pct >= th2 + 8, act = pct >= th2; return { text: t, op: act ? 1 : 0.35, icon: done ? this.icon('check', '#a06f24') : this.icon('dot', act ? '#b68235' : '#bab6b6') }; });
+    /* guided */
+    o.gBars = [0, 1, 2, 3, 4].map((i) => ({ style: 'flex:1;height:2px;background:' + (i <= st.step ? 'var(--color-accent)' : 'var(--color-divider)') }));
+    o.gStepTxt = this.f('gStep', st.step + 1, 5); o.gTitle = s['g' + (st.step + 1)]; o.gHint = st.step === 1 ? this.f('h2', st.corner) : s['h' + (st.step + 1)]; o.gBtn = st.step === 1 ? s.gMark : st.step === 4 ? s.gDone : s.gCont;
+    const cp = [[22, 62], [78, 60], [84, 82], [14, 84]]; o.corners = st.step === 1 ? cp.slice(0, st.corner).map((p) => ({ style: 'position:absolute;left:' + p[0] + '%;top:' + p[1] + '%;width:12px;height:12px;margin:-6px 0 0 -6px;border-radius:50%;background:#e1ad66;box-shadow:0 0 0 5px rgba(225,173,102,.25)' })) : [];
+    o.tips = [s.tip1, s.tip2, s.tip3].map((t, i) => ({ n: this.n(i + 1), t }));
+    /* review */
+    const ctrl = this.ctrl; const items = ctrl ? ctrl.items : (st.sel ? [] : []); const src = ctrl ? ctrl.items : window.BuildItRoom ? window.BuildItRoom.preset('bedroom').items.filter((i) => !i.off) : [];
+    o.furn = src.map((i) => ({ name: this.iname(i.name), size: this.n(Math.round(i.w * 100)) + ' × ' + this.n(Math.round(i.d * 100)) + ' ' + s.cm }));
+    o.dimEdit = !!st.dimEdit; const dk = st.dimEdit; o.dimVal = ctrl && dk ? this.n(((dk === 'N' || dk === 'S') ? ctrl.room.w : ctrl.room.d).toFixed(2)) + ' ' + s.m : '';
+    /* editor */
+    const chk = st.chk || (window.BuildItRoom ? window.BuildItRoom.check(window.BuildItRoom.preset(st.preset).room, window.BuildItRoom.preset(st.preset).items.filter((i) => !i.off)) : { score: 0, rules: [], narrow: null });
+    const L = this.layout(); const peek = st.sheet === 'peek';
+    o.roomName = st.preset === 'living' ? s.rMaj : st.preset === 'study' ? s.rStudy : s.rBed;
+    o.roomStyle = screen === 'review' ? 'position:absolute;inset:0' : nav === 'tabs' ? 'position:absolute;left:0;right:0;top:100px;height:340px' : 'position:absolute;inset:0';
+    o.score = chk.score; o.scoreTxt = this.n(chk.score); o.ringDash = (chk.score / 100 * 94.25) + ' 94.25';
+    const bad = chk.rules.filter((r) => r.status !== 'pass'); const top = bad[0];
+    const sh = (r) => ({ walk: () => this.f('sWalk', r.cm), door: () => s.sDoor, bed: () => this.f('sBed', r.cm), stor: () => this.f('sStor', r.cm), light: () => s.sLight }[r.id]());
+    o.issueTxt = top ? sh(top) : s.allOk; o.issueColor = top ? '#8c3a1c' : 'var(--color-accent-700)';
+    o.chipRowStyle = 'position:absolute;left:14px;right:14px;top:' + (nav === 'tabs' ? 108 : 106) + 'px;display:flex;justify-content:space-between;align-items:flex-start;z-index:15';
+    o.undoStyle = iconBtnS + ';opacity:' + (this.hi > 0 ? 1 : 0.3); o.redoStyle = iconBtnS + ';opacity:' + (this.hi < this.hist.length - 1 ? 1 : 0.3);
+    o.walkBtn = 'width:38px;height:38px;border-radius:50%;border:1px solid ' + (st.walk ? 'var(--color-accent)' : 'var(--color-divider)') + ';background:' + (st.walk ? 'rgba(255,243,228,.95)' : 'rgba(243,242,242,.92)') + ';display:grid;place-items:center;cursor:pointer;padding:0';
+    o.walkIcon = st.walk ? icg.walk : ic.walk; o.v3dStyle = pillBtn(st.view === '3d'); o.vplanStyle = pillBtn(st.view === 'plan');
+    const andr = this.props.platform === 'android';
+    o.sbClock = andr ? 'position:absolute;top:15px;left:26px;font:500 14px system-ui,sans-serif;font-variant-numeric:tabular-nums' : 'position:absolute;top:16px;left:34px;font:600 15px var(--fb);font-variant-numeric:tabular-nums';
+    o.sbPunch = andr ? 'position:absolute;top:13px;left:50%;width:15px;height:15px;margin-left:-7px;border-radius:50%;background:#0d0c0b' : 'position:absolute;top:11px;left:50%;width:112px;height:32px;margin-left:-56px;border-radius:20px;background:#0d0c0b';
+    o.sbBat = andr ? 'position:absolute;top:17px;right:26px;width:20px;height:10px;border:1px solid currentColor;border-radius:3px;opacity:.7' : 'position:absolute;top:19px;right:30px;width:25px;height:12px;border:1px solid currentColor;border-radius:4px;opacity:.7';
+    o.homeBar = andr ? 'position:absolute;left:50%;bottom:8px;width:108px;height:4px;margin-left:-54px;border-radius:2px;background:' + sbColor + ';opacity:.5;z-index:70;pointer-events:none' : 'position:absolute;left:50%;bottom:8px;width:134px;height:5px;margin-left:-67px;border-radius:3px;background:' + sbColor + ';opacity:.55;z-index:70;pointer-events:none';
+    const sugL = this.sugList(), sx = sugL.find((q) => q.id === st.sugId); const sugVis = !!sx && !st.sel && (st.ai.phase === 'idle') && !(nav === 'canvas' && st.cOpen) && st.tab !== 'check';
+    o.sug = { show: sugVis, t: sx ? s[sx.t] : '', w: sx ? s[sx.w] : '' }; o.sugTop = nav === 'tabs' ? 156 : 158;
+    const nexts = []; const badR = chk.rules.find((r) => r.status !== 'pass'); const arrow = icg.back;
+    if (badR) nexts.push({ label: this.f('nx1', sh(badR)), run: () => this.fixRule(badR.id) });
+    if (ctrl && !ctrl.items.some((i) => i.kind === 'rug')) nexts.push({ label: s.nx5, run: () => this.runAI(s.chip4, 'rug') });
+    if (!st.walk) nexts.push({ label: s.nx2, run: () => this.setState({ walk: true }) });
+    if (this.hi > st.savedHi) nexts.push({ label: s.nx3, run: () => { this.saveVersion(null, undefined); this.toast(s.tKept); } });
+    if (!st.style) nexts.push({ label: this.f('nx4', s.stJapan), run: () => { this.styleKey = 'japan'; this.runAI(s.stJapan, 'style'); } });
+    const nx = nexts.slice(0, 3).map((n) => ({ ...n, icon: ar ? icg.back : icg.next }));
+    o.nexts = nx; o.hasNexts = nx.length > 0; o.nextTop = nx[0] || null;
+    o.styleChips = Object.keys(this.STYLES).map((k) => { const d = this.STYLES[k]; return { label: s[d.n], dots: d.dots.map((c, i) => ({ style: 'width:13px;height:13px;border-radius:50%;background:' + c + ';border:1px solid var(--color-divider);margin-inline-end:-4px;position:relative;z-index:' + (3 - i) })), style: 'all:unset;box-sizing:border-box;cursor:pointer;display:flex;align-items:center;gap:14px;padding:7px 14px 7px 12px;border:1px solid ' + (st.style === k ? 'var(--color-accent)' : 'var(--color-divider)') + ';border-radius:99px;font:600 15px var(--fh);color:var(--color-text)', run: () => { this.styleKey = k; this.runAI(s[d.n], 'style'); } }; });
+    o.toast = st.toast; o.toastTop = nav === 'tabs' ? 150 : 160;
+    const navO = { showVersionsTop: nav !== 'canvas' && nav !== 'tabs', panelVisible: nav === 'canvas' ? st.cOpen : true, grabber: nav === 'sheet', closeBtn: nav === 'canvas', dock: nav === 'canvas' && !st.cOpen && !st.sel, itemBar: nav === 'canvas' && !st.cOpen && !!st.sel, tabBar: nav === 'tabs' && (screen === 'rooms' || screen === 'editor' || screen === 'versions' || screen === 'settings') };
+    o.nav = navO;
+    const sheetH = nav === 'canvas' ? 450 : { peek: 196, half: 404, full: 640 }[st.sheet];
+    o.panelStyle = nav === 'tabs' ? 'position:absolute;left:0;right:0;top:440px;bottom:84px;background:var(--color-bg);border-top:1px solid var(--color-divider);display:flex;flex-direction:column;z-index:10' : 'position:absolute;left:0;right:0;bottom:0;height:' + sheetH + 'px;background:var(--color-bg);border-radius:' + (andP ? '28px 28px 0 0' : '20px 20px 0 0') + ';box-shadow:0 -6px 28px rgba(32,31,29,.14);border-top:1px solid var(--color-divider);display:flex;flex-direction:column;z-index:12;transition:height .38s cubic-bezier(.2,.8,.2,1)';
+    const tb = (id) => 'all:unset;cursor:pointer;padding:11px 12px 10px;font:600 17px var(--fh);color:' + (st.tab === id ? 'var(--color-accent-700)' : 'var(--color-neutral-700)') + ';border-bottom:1.5px solid ' + (st.tab === id ? 'var(--color-accent)' : 'transparent') + ';margin-bottom:-1px';
+    o.tabs = [['ask', s.tAsk], ['add', s.tAdd], ['item', s.tItem], ['fin', s.tFin]].map((t) => ({ label: t[1], style: tb(t[0]), go: () => this.setTab(t[0]) }));
+    o.pane = { ask: st.tab === 'ask', add: st.tab === 'add', item: st.tab === 'item', fin: st.tab === 'fin', check: st.tab === 'check' };
+    /* ai */
+    const ai = st.ai || { phase: 'idle' }; const rem = 372 - 0; const mins = 12;
+    o.ai = { idle: ai.phase === 'idle', running: ai.phase === 'running', done: ai.phase === 'done', limit: ai.phase === 'limit' || ((this.props.start === 'ai-limit') && ai.phase === 'idle' && false), nofit: ai.phase === 'nofit', lines: ai.lines || [], q: ai.q, title: ai.title, changes: ai.changes || [], facts: ai.facts || [], canAlt: ai.canAlt, nofitP: ai.nofitP };
+    if (this.props.start === 'ai-limit' && !this.limitShown) { o.ai.idle = false; o.ai.limit = true; }
+    if (ai.phase !== 'idle') this.limitShown = true;
+    o.limitDummy = 0; const sl = Object.assign({}, s); o.s = Object.assign({}, s, { limitP: this.f('limitP', 6, 12), left: '' });
+    o.leftTxt = this.f('left', st.aiLeft, 20); o.aiPctStyle = 'height:2px;background:var(--color-accent);width:' + Math.round((ai.pct || 0) * 100) + '%;transition:width .5s ease';
+    o.chips = [[s.chip1, 'walk'], [s.chip2, 'cosy'], [s.chip3, 'nofit'], [s.chip4, 'rug']].map((c) => ({ label: c[0], run: () => this.runAI(c[0], c[1]) }));
+    o.chipStyle = 'all:unset;cursor:pointer;padding:8px 14px;border:1px solid var(--color-divider);border-radius:99px;font:15px var(--fh);font-weight:600;color:var(--color-text);background:transparent';
+    o.input = st.input;
+    /* add */
+    const defs = [['Rug', 2.0, 1.4, 0.02, '#d9cdb8', 'rug', 1], ['Armchair', 0.9, 0.85, 0.8, '#b0765a', 'sofa', 0], ['Coffee table', 1.1, 0.6, 0.4, '#b88d62', 'table', 0], ['Desk', 1.1, 0.6, 0.75, '#b88d62', 'desk', 0], ['Bookshelf', 1.0, 0.35, 1.9, '#b88d62', 'shelf', 0]];
+    const lf = ctrl ? ctrl.largestFree() : { w: 9, d: 9 };
+    o.addRows = defs.map((d) => { const fit = d[6] || (Math.max(d[1], d[2]) <= Math.max(lf.w, lf.d) && Math.min(d[1], d[2]) <= Math.min(lf.w, lf.d)); return { name: this.iname(d[0]), size: this.n(Math.round(d[1] * 100)) + ' × ' + this.n(Math.round(d[2] * 100)) + ' ' + s.cm, fit, op: fit ? 1 : 0.4, add: () => { if (ctrl) { const r = ctrl.add(d[5], { name: d[0], w: d[1], d: d[2], h: d[3], color: d[4], flat: d[6] }); if (!r) this.toast(s.nofitH); } } }; }).filter((r) => !st.fits || r.fit);
+    o.fitsBox = 'width:16px;height:16px;border:1px solid ' + (st.fits ? 'var(--color-accent)' : 'var(--color-neutral-500)') + ';border-radius:3px;background:' + (st.fits ? 'rgba(182,130,53,.25)' : 'transparent') + ';display:inline-block';
+    /* item */
+    const sel = st.sel; o.hasSel = !!sel; o.noSel = !sel; o.selName = sel ? this.iname(sel.name) : ''; o.selSize = sel ? this.n(Math.round(sel.w * 100)) + ' × ' + this.n(Math.round(sel.d * 100)) + ' ' + s.cm : ''; o.selLocked = !!(sel && sel.locked); o.lockLbl = sel && sel.locked ? s.unlock : s.lock; o.selOp = sel && sel.locked ? 0.4 : 1;
+    const pal = ['#a6ad9b', '#b88d62', '#d6cdbf', '#b0765a', '#8c8f93', '#4b4a48'];
+    o.selColors = sel ? pal.map((c) => ({ style: 'width:34px;height:34px;border-radius:50%;cursor:pointer;padding:0;background:' + c + ';border:1px solid var(--color-divider);outline:' + (sel.color === c ? '1.5px solid var(--color-accent)' : 'none') + ';outline-offset:3px', pick: () => ctrl && ctrl.setColor(sel.id, c) })) : [];
+    /* finishes */
+    const walls = [['#efe9e0', s.cChalk], ['#e2d5c0', s.cSand], ['#b9c1ac', s.cSage], ['#d1b2a0', s.cClay], ['#c9c6bf', s.cStone], ['#4a4947', s.cInk]], fl = [['oak', '#c9a97f', s.fOak], ['walnut', '#8c6747', s.fWalnut], ['ash', '#d9ccb7', s.fAsh], ['stone', '#c3bdb2', s.fStone], ['concrete', '#aaa8a3', s.fConcrete]];
+    const curW = ctrl ? ctrl.wallCol() : '#efe9e0', curF = ctrl ? ctrl.floorKey() : 'oak';
+    const swS = (c, on, r) => 'width:42px;height:42px;border-radius:' + r + ';background:' + c + ';border:1px solid var(--color-divider);outline:' + (on ? '1.5px solid var(--color-accent)' : 'none') + ';outline-offset:3px;display:block';
+    o.wallSw = walls.map((w) => ({ name: w[1], style: swS(w[0], curW === w[0], '50%'), pick: () => { if (ctrl) { ctrl.setWall(w[0]); ctrl.commit('wall'); this.setState({ roomTick: st.roomTick + 1 }); } } }));
+    o.floorSw = fl.map((w) => ({ name: w[2], style: swS(w[1], curF === w[0], '3px'), pick: () => { if (ctrl) { ctrl.setFloor(w[0]); ctrl.commit('floor'); this.setState({ roomTick: st.roomTick + 1 }); } } }));
+    /* check */
+    const msg = (r) => { const ok = r.status === 'pass'; return { walk: ok ? s.rWalkOk : this.f('rWalk', r.cm), door: ok ? s.rDoorOk : this.f('rDoor', r.item ? this.iname(r.item) : ''), bed: ok ? s.rSideOk : this.f('rSide', r.cm), stor: ok ? s.rStorOk : this.f('rStor', r.cm), light: ok ? s.rLightOk : s.rLight }[r.id]; };
+    o.rules = chk.rules.map((r) => ({ text: msg(r), icon: r.status === 'pass' ? this.icon('check', '#a06f24') : r.status === 'tight' ? this.icon('dot', '#c28d41') : this.icon('dot', '#a04828'), fixable: r.status !== 'pass', fix: () => this.fixRule(r.id) }));
+    /* canvas dock */
+    o.dockBtn = 'width:54px;height:54px;border-radius:50%;border:1px solid var(--color-divider);background:rgba(243,242,242,.94);box-shadow:var(--shadow-md);display:grid;place-items:center;cursor:pointer;padding:0;flex:none';
+    /* versions */
+    const vs = st.vers || []; o.vers = vs.map((v, i) => ({ name: v.raw || s[v.name] || v.name, time: s[v.tm] || v.tm, img: v.img, cur: i === vs.length - 1, old: i !== vs.length - 1, restore: () => this.restore(i) })).reverse();
+    /* share */
+    o.shareOpen = st.showShare; o.shareImg = st.shareImg; o.sh3dStyle = pillBtn(st.shareView === '3d'); o.shPlanStyle = pillBtn(st.shareView === 'plan'); o.dimsTxt = dm(ctrl ? ctrl.room.w : 4, ctrl ? ctrl.room.d : 3.5);
+    /* settings */
+    o.stdStyle = lb(st.walkPref === 90).replace('font:600 14px var(--fb)', 'font:600 13px var(--fb)'); o.compStyle = lb(st.walkPref === 75).replace('font:600 14px var(--fb)', 'font:600 13px var(--fb)');
+    const used = 20 - st.aiLeft; o.usedTxt = this.f('used', used, 20); o.usedStyle = 'height:2px;background:var(--color-accent);width:' + (used / 20 * 100) + '%';
+    o.confirmDel = st.confirmDel;
+    /* tab bar B */
+    const tabS = (on) => 'all:unset;flex:1;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;padding:10px 0 0;border-top:1.5px solid ' + (on && !andP ? 'var(--color-accent)' : 'transparent') + ';margin-top:-1px;color:' + (on ? 'var(--color-accent-700)' : 'var(--color-neutral-700)');
+    o.bTabs = [['rooms', s.tRooms, 'home', () => this.goRooms()], ['editor', s.tDesign, 'box', () => this.setState({ screen: 'editor' })], ['versions', s.tVers, 'history', () => this.setState({ screen: 'versions' })], ['settings', s.tSet, 'sliders', () => this.setState({ screen: 'settings' })]].map((t) => ({ label: t[1], style: tabS(screen === t[0]), icon: this.icon(t[2], screen === t[0] ? '#a06f24' : '#605d5d'), go: t[3], indStyle: andP ? 'display:flex;padding:4px 20px;border-radius:16px;border:1px solid ' + (screen === t[0] ? 'var(--color-accent)' : 'transparent') + ';background:' + (screen === t[0] ? 'rgba(182,130,53,.1)' : 'transparent') : 'display:flex' }));
+    return o;
+  }
+}
+</script>
+</body>
+</html>
