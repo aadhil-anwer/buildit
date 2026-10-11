@@ -29,6 +29,18 @@ Live list of what is unverified, deferred or temporarily weakened. Update it whe
 - `npm ls` shows an invalid peer for `react-native-worklets` (from `expo-modules-core`); harmless until we use Reanimated in Phase 4, then align it with `npx expo install`.
 - Jest prints `console.error` noise from the report tests; silence it with a shared setup file if it hides real failures.
 
+## Theme (Phase 0 step 4)
+
+- **Not yet visually compared with the design doc.** Values come straight from the design files (generated tokens) and are asserted by tests, but no screenshot comparison exists until `npm run design:compare` (step 6). The error screen has no prototype counterpart; compare it against the "Scan failed" screen.
+- **Deviation for you to approve: button labels use `accent700` (#7d5411), not the plain gold.** The prototype shows gold text, but plain gold is 3.2:1 on the background and fails WCAG AA for text (our rule). Strokes and icons stay gold. A test pins this (`contrast.test.ts`).
+- **Prototype uses weight 500 for some headings; the system loads only 400 and 600.** Browsers fall back to the 400 face, so the app uses 400 too.
+- **Arabic heading line-height** is taken from the design's per-variant values, not 1.85 (only body text gets 1.85). Check against the Arabic screens during design compare.
+- **Type ramp has 8 styles** (display, hero, title, heading, button, body, label, caption): only what the README and `styles.css` state. Add a style, with its source, when a screen needs one.
+- **Sheet primitive deferred to Phase 4** (it needs gestures and Reanimated). Icons: only back, check, scan, sliders so far; add as screens need them.
+- **Chip height (40pt + 4pt hit slop) is a guess**; confirm from the editor screen's markup in Phase 4.
+- **Skeleton ignores the "reduce motion" setting.** Honour it before launch.
+- `npm run tokens` regenerates `tokens.generated.ts`; a test fails if it drifts from `design-docnew`. Node prints a harmless module-type warning when it runs.
+
 ## Weakened checks (debt)
 
 - **Legacy size/complexity limits.** 30 warnings in `packages/core` (`importers/roomplan`, `layout/{clearance,improve,placement,validate}`, `ops`, `summary`, two test files). `npm run lint` caps warnings at 30 so the count can only fall. Refactor these in Phase 1 (they are being changed anyway), then shrink `LEGACY` in `eslint.config.js` and the cap in `package.json`.

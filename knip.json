@@ -27,7 +27,8 @@
     "apps/mobile": {
       "entry": [
         "src/app/**/*.tsx",
-        "src/**/*.test.{ts,tsx}"
+        "src/**/*.test.{ts,tsx}",
+        "scripts/*.ts"
       ],
       "project": [
         "src/**/*.{ts,tsx}"

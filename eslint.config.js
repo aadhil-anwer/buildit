@@ -17,6 +17,10 @@ export default tseslint.config(
       "max-lines": ["error", { max: 300, skipBlankLines: true, skipComments: true }],
       "max-lines-per-function": ["error", { max: 40, skipBlankLines: true, skipComments: true }],
       complexity: ["error", 12],
+      "no-restricted-imports": [
+        "error",
+        { paths: [{ name: "react-native", importNames: ["ActivityIndicator"], message: "No spinners (design system): use <Skeleton>." }] },
+      ],
     },
   },
   // Legacy debt: these warn instead of fail, and `npm run lint` caps the warning count

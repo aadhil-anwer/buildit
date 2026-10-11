@@ -10,10 +10,12 @@
     "types": [
       "jest",
       "node"
-    ]
+    ],
+    "allowImportingTsExtensions": true
   },
   "include": [
     "src",
+    "scripts",
     "*.ts",
     ".expo/types/**/*.ts",
     "expo-env.d.ts"

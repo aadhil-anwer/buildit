@@ -9,6 +9,7 @@ test.each([
   ["empty-catch", "no-empty"],
   ["floating-promise", "@typescript-eslint/no-floating-promises"],
   ["long-function", "max-lines-per-function"],
+  ["spinner", "no-restricted-imports"],
 ])("lint rejects %s", async (name, rule) => expect(await errorsIn(name)).toContain(rule));
 
 test("lint accepts clean code", async () => expect(await errorsIn("clean")).toEqual([]));

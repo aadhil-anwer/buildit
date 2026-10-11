@@ -1,21 +1,21 @@
 import { useEffect } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import { report } from "@/lib/report";
+import { color, space } from "@/theme";
+import { Button } from "./button";
+import { Text } from "./text";
 
 export function ErrorScreen({ error, retry }: { error: Error; retry: () => unknown }) {
   useEffect(() => report(error, { screen: "error-boundary" }), [error]);
   return (
     <View style={styles.root}>
-      <Text style={styles.title}>Something went wrong</Text>
-      <Text>If it keeps happening, close and reopen the app.</Text>
-      <Pressable accessibilityRole="button" onPress={retry}>
-        <Text>Try again</Text>
-      </Pressable>
+      <Text variant="title">Something went wrong</Text>
+      <Text tone="secondary">If it keeps happening, close and reopen the app.</Text>
+      <Button title="Try again" onPress={retry} />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, justifyContent: "center", padding: 24, gap: 16 },
-  title: { fontSize: 24 },
+  root: { flex: 1, justifyContent: "center", gap: space[4], padding: 24, backgroundColor: color.bg },
 });

@@ -23,7 +23,9 @@
     "scheme": "buildit",
     "plugins": [
       "expo-router",
-      "@sentry/react-native"
+      "@sentry/react-native",
+      "expo-font",
+      "expo-splash-screen"
     ]
   }
 }
