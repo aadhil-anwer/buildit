@@ -2,6 +2,7 @@ import { fireEvent, render, screen } from "@testing-library/react-native";
 import { sampleBedroom, sampleLivingRoom } from "@buildit/core";
 import { formatFixed, t } from "@/i18n";
 import * as store from "@/rooms/store";
+import { useSyncStatus } from "@/sync/use-sync";
 import { Rooms } from ".";
 
 const mockPush = jest.fn();
@@ -9,6 +10,7 @@ jest.mock("expo-router", () => ({ useRouter: () => ({ push: mockPush }) }));
 const seed = (...rooms: [string, ReturnType<typeof sampleBedroom>, number][]) =>
   store.useRooms.setState({ rooms: rooms.map(([name, scene, updatedAt], i) => ({ id: `r${i}`, name, scene, updatedAt, dirty: false })) });
 beforeEach(() => {
+  useSyncStatus.setState({ failed: false });
   seed();
   jest.spyOn(store, "useRoomsReady").mockReturnValue(true);
 });
@@ -48,4 +50,15 @@ test("opening a room, the scan button and settings navigate", async () => {
   expect(mockPush).toHaveBeenCalledWith("/capture");
   await fireEvent.press(screen.getByRole("button", { name: t("setH") }));
   expect(mockPush).toHaveBeenCalledWith("/settings");
+});
+
+test("says when rooms could not be synced, and that they are safe", async () => {
+  useSyncStatus.setState({ failed: true });
+  await render(<Rooms />);
+  expect(screen.getByText(t("syncFailed"))).toBeTruthy();
+});
+
+test("says nothing about syncing when all is well", async () => {
+  await render(<Rooms />);
+  expect(screen.queryByText(t("syncFailed"))).toBeNull();
 });

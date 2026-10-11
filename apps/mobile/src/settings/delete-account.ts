@@ -6,7 +6,7 @@ import { useSettings } from "./store";
 /** Deletes the account on the server; only once that succeeds is this device wiped and signed out. */
 export async function deleteAccount() {
   throwIfError(await supabase.rpc("delete_account"));
-  useRooms.setState({ rooms: [] });
-  useSettings.setState({ walkwayCm: 90 });
+  useRooms.setState({ rooms: [], owner: null });
+  useSettings.setState({ walkwayCm: 90, walkwayDirty: false });
   throwIfError(await supabase.auth.signOut({ scope: "local" }));
 }

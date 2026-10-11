@@ -10,6 +10,7 @@ import { env } from "@/lib/env";
 import { initMonitoring } from "@/lib/monitoring";
 import { report } from "@/lib/report";
 import { color } from "@/theme";
+import { useSync } from "@/sync/use-sync";
 import { useAppFonts } from "@/theme/fonts";
 
 initMonitoring(env.SENTRY_DSN);
@@ -22,6 +23,7 @@ function Routes() {
   const session = useSession();
   const fontsReady = useAppFonts();
   const i18nReady = useI18nReady();
+  useSync();
   const ready = fontsReady && i18nReady && session !== undefined;
   useEffect(() => {
     if (ready) SplashScreen.hideAsync().catch(report);

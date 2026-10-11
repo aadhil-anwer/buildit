@@ -1,5 +1,7 @@
 # Open issues
 
+> **Handoff:** work stopped at the end of Phase 3 on 2026-10-12. Start with `HANDOFF.md`.
+
 ## Owner to-do (things only you can do)
 
 Tick them off here. "Needed by" is the phase that gets blocked without it.
@@ -27,7 +29,7 @@ What is planned but not done, in build order. Done phases are in `git log`; deta
 - [x] My rooms (list, empty state, "Scan a room") built and compared.
 - [x] Capture chooser, Type dimensions, Scan review (plan view, ±5 cm wall steppers, furniture list) built.
 - [x] Settings (language, walkway 90/75, AI usage, sign out, delete account) built and compared.
-- [ ] Local-first rooms with sync to Supabase, and clear offline / failed-sync states.
+- [x] Local-first rooms with sync to Supabase, and clear failed-sync state built (see Sync).
 - [ ] Sign in with Apple (waits for the Apple Developer account).
 
 **Phase 4, room editor:** R3F scene to the design's look, gestures (orbit, pinch, drag with 5 cm grid, wall snap, rotate), bottom sheet (Ask / Add / Item / Finishes / Check), room check chip, walking-space overlay, undo/redo, versions, autosave, thumbnails from snapshots, and the real-device performance gate.
@@ -47,6 +49,18 @@ What is planned but not done, in build order. Done phases are in `git log`; deta
 - [ ] Measure the engine and 3D on a real phone (iPhone 11 class) and fix what misses the budget.
 - [ ] Native-speaker review of every Arabic string we wrote ourselves.
 - [ ] Decisions waiting for you: the dark gold button label (AA contrast) vs the prototype's plain gold, anonymous-account AI abuse, ghost button size (44 vs 40).
+
+## Sync (Phase 3.7)
+
+Verified end to end on web against the local stack (email code sign-in, a room created in the UI appears in `rooms` and `room_versions`, a second fresh browser on the same account lists it). Unit-tested: push, pull, conflicts, edits during a sync, rooms deleted elsewhere, unreadable server data, account switch, walkway preference, debounce, retry, foreground.
+
+Caveats:
+- **Sign-in email now carries the code** (`supabase/templates/code.html`); the hosted Supabase project needs the same template, and the email is bilingual (EN and AR, unreviewed).
+- **Room deletion is not designed**, so there is no way to delete a room yet (no tombstones in sync).
+- **A different account signing in on the same phone wipes the local rooms** (the previous account's rooms live on the server). Unsynced edits from the first account would be lost; sync runs after every change so the window is small.
+- **Sync runs every 2 s after a change and retries every 30 s after a failure**; no exponential backoff yet. Offline failures are not sent to Sentry, other failures are.
+- Native (iOS/Android) behaviour of the app-state listener and offline detection is untested on a device.
+- Fixed while building this: the database test for account deletion counted all rooms (now scoped), and the `tools` tsconfig has Node types.
 
 ## Settings (Phase 3.6)
 
@@ -97,7 +111,7 @@ Compared on the web build, English and Arabic, list and empty state (`COMPARE_GU
 | way text starts at x 57 / 61 / 64 (numeral column shrinks to its digit) | all at 66 | the design's `width: 26px` numeral shrinks in a flex row; a fixed 26px column aligns cleanly |
 
 **Honest caveats**
-- **Rooms are saved on the device only** until sync is built (Phase 3.7). Deleting the app or switching phones loses them. Do not ship before sync.
+- ~~Rooms are saved on the device only~~ Sync now sends rooms to the server (see Sync).
 - **Unreadable stored rooms are dropped and reported** to Sentry (the server copy comes back after sync exists).
 - **The room screen is a placeholder** (name and plan) until the editor (Phase 4).
 - "Edited …" labels count calendar days; beyond five weeks they read "Edited a while ago".

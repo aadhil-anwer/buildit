@@ -8,6 +8,7 @@ import { Text } from "@/components/text";
 import { t } from "@/i18n";
 import { useScreenInsets } from "@/lib/use-screen-insets";
 import { useRooms, useRoomsReady } from "@/rooms/store";
+import { useSyncStatus } from "@/sync/use-sync";
 import { color, withAlpha } from "@/theme";
 import { EmptyState } from "./empty-state";
 import { RoomCard } from "./room-card";
@@ -17,6 +18,7 @@ export function Rooms() {
   const router = useRouter();
   const insets = useScreenInsets();
   const ready = useRoomsReady();
+  const syncFailed = useSyncStatus((s) => s.failed);
   const rooms = useRooms((s) => s.rooms).toSorted((a, b) => b.updatedAt - a.updatedAt);
   return (
     <View style={[styles.root, { paddingTop: insets.top - 4 }]}>
@@ -27,6 +29,7 @@ export function Rooms() {
         </View>
         <IconButton icon="sliders" label={t("setH")} onPress={() => router.push("/settings")} />
       </View>
+      {syncFailed ? <Text variant="small" tone="secondary" accessibilityRole="alert" style={styles.sync}>{t("syncFailed")}</Text> : null}
       <ScrollView contentContainerStyle={rooms.length || !ready ? styles.list : undefined}>
         {!ready ? [0, 1, 2].map((i) => <Skeleton key={i} label={t("loadingRooms")} style={styles.skeleton} />) : null}
         {ready && !rooms.length ? <EmptyState /> : null}
@@ -43,6 +46,7 @@ const styles = StyleSheet.create({
   root: { flex: 1 },
   header: { flexDirection: "row", alignItems: "flex-end", justifyContent: "space-between", paddingTop: 10, paddingHorizontal: 24, paddingBottom: 12 },
   count: { marginTop: 6 },
+  sync: { paddingHorizontal: 24, paddingBottom: 12 },
   list: { paddingTop: 4, paddingHorizontal: 24, paddingBottom: 150, gap: 26 },
   skeleton: { height: 196 },
   bar: { position: "absolute", start: 0, end: 0, bottom: 0, paddingTop: 16, paddingHorizontal: 24 },

@@ -25,7 +25,7 @@ select lives_ok($$select public.delete_account()$$, 'a user can delete their acc
 
 reset role;
 select is((select count(*)::int from auth.users where id = 'aaaaaaaa-0000-0000-0000-000000000001'), 0, 'the login is gone');
-select is((select count(*)::int from public.rooms r where r.owner_id = 'aaaaaaaa-0000-0000-0000-000000000001') + (select count(*)::int from public.room_versions) + (select count(*)::int from public.profiles where id = 'aaaaaaaa-0000-0000-0000-000000000001'), 0, 'and so are their profile, rooms and versions');
+select is((select count(*)::int from public.rooms r where r.owner_id = 'aaaaaaaa-0000-0000-0000-000000000001') + (select count(*)::int from public.room_versions where room_id = (select v::uuid from ids where k = 'room')) + (select count(*)::int from public.profiles where id = 'aaaaaaaa-0000-0000-0000-000000000001'), 0, 'and so are their profile, rooms and versions');
 select is((select count(*)::int from public.profiles where id = 'bbbbbbbb-0000-0000-0000-000000000002'), 1, 'other users are untouched');
 select is((select count(*)::int from public.audit_log where action = 'delete_account' and target = 'aaaaaaaa-0000-0000-0000-000000000001' and detail = '{}'::jsonb), 1, 'the deletion is audited, with no personal data in the entry');
 

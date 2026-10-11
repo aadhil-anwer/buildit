@@ -19,6 +19,10 @@ export interface LocalRoom {
 
 interface State {
   rooms: LocalRoom[];
+  /** The account these rooms belong to, so a different account never sees them. */
+  owner: string | null;
+  /** Called on sign-in: a different account than before starts with no rooms; the same one keeps them. */
+  claim: (userId: string) => void;
   add: (name: string, scene: Scene) => string;
   save: (id: string, scene: Scene) => void;
   rename: (id: string, name: string) => void;
@@ -51,6 +55,8 @@ export const useRooms = create<State>()(
   persist(
     (set) => ({
       rooms: [],
+      owner: null,
+      claim: (userId) => set((s) => (s.owner && s.owner !== userId ? { rooms: [], owner: userId } : { owner: userId })),
       add: (name, scene) => {
         const id = randomId();
         set((s) => ({ rooms: [{ id, name, scene, updatedAt: Date.now(), dirty: true }, ...s.rooms] }));
@@ -64,10 +70,10 @@ export const useRooms = create<State>()(
       name: "rooms",
       version: 1,
       storage: createJSONStorage(() => AsyncStorage),
-      partialize: (s) => ({ rooms: s.rooms }),
+      partialize: (s) => ({ rooms: s.rooms, owner: s.owner }),
       merge: (saved, current) => {
-        const raw = (saved as { rooms?: unknown } | undefined)?.rooms;
-        return raw === undefined ? current : { ...current, rooms: validRooms(raw) };
+        const { rooms, owner } = (saved ?? {}) as { rooms?: unknown; owner?: unknown };
+        return rooms === undefined ? current : { ...current, rooms: validRooms(rooms), owner: typeof owner === "string" ? owner : null };
       },
     },
   ),
