@@ -1,0 +1,81 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { parseScene, randomId, type Scene } from "@buildit/core";
+import { useEffect, useState } from "react";
+import { create } from "zustand";
+import { createJSONStorage, persist } from "zustand/middleware";
+import { z } from "zod";
+import { report } from "@/lib/report";
+
+export interface LocalRoom {
+  id: string;
+  /** The room's id on the server once it has been synced. */
+  remoteId?: string;
+  name: string;
+  scene: Scene;
+  updatedAt: number;
+  /** Changed here and not yet sent to the server. */
+  dirty: boolean;
+}
+
+interface State {
+  rooms: LocalRoom[];
+  add: (name: string, scene: Scene) => string;
+  save: (id: string, scene: Scene) => void;
+  rename: (id: string, name: string) => void;
+  remove: (id: string) => void;
+}
+
+const stored = z.object({ id: z.string(), remoteId: z.string().optional(), name: z.string(), scene: z.unknown(), updatedAt: z.number(), dirty: z.boolean() });
+
+/** Everything read back from storage is checked; what cannot be trusted is dropped and reported, never guessed at. */
+function validRooms(raw: unknown): LocalRoom[] {
+  const list = z.array(z.unknown()).safeParse(raw);
+  if (!list.success) {
+    report(new Error("stored rooms are not a list"), { source: "rooms-store" });
+    return [];
+  }
+  return list.data.flatMap((item) => {
+    const room = stored.safeParse(item);
+    const scene = room.success ? parseScene(room.data.scene) : null;
+    if (room.success && scene) return [{ ...room.data, scene }];
+    report(new Error(`dropped an unreadable stored room "${(item as { name?: string } | null)?.name ?? "?"}"`), { source: "rooms-store" });
+    return [];
+  });
+}
+
+const touch = (id: string, patch: Partial<LocalRoom>) => (s: State) => ({
+  rooms: s.rooms.map((r) => (r.id === id ? { ...r, ...patch, updatedAt: Date.now(), dirty: true } : r)),
+});
+
+export const useRooms = create<State>()(
+  persist(
+    (set) => ({
+      rooms: [],
+      add: (name, scene) => {
+        const id = randomId();
+        set((s) => ({ rooms: [{ id, name, scene, updatedAt: Date.now(), dirty: true }, ...s.rooms] }));
+        return id;
+      },
+      save: (id, scene) => set(touch(id, { scene })),
+      rename: (id, name) => set(touch(id, { name })),
+      remove: (id) => set((s) => ({ rooms: s.rooms.filter((r) => r.id !== id) })),
+    }),
+    {
+      name: "rooms",
+      version: 1,
+      storage: createJSONStorage(() => AsyncStorage),
+      partialize: (s) => ({ rooms: s.rooms }),
+      merge: (saved, current) => {
+        const raw = (saved as { rooms?: unknown } | undefined)?.rooms;
+        return raw === undefined ? current : { ...current, rooms: validRooms(raw) };
+      },
+    },
+  ),
+);
+
+/** False until the saved rooms have been read from the device. */
+export function useRoomsReady() {
+  const [ready, setReady] = useState(useRooms.persist.hasHydrated());
+  useEffect(() => useRooms.persist.onFinishHydration(() => setReady(true)), []);
+  return ready;
+}

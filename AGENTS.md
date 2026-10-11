@@ -127,6 +127,7 @@ npm run web                                    # app on http://localhost:8081
 npm run design:compare -- <screen> [en|ar] [route]
 ```
 
+`COMPARE_GUEST=1` signs in as a guest first and `COMPARE_SEED=rooms` also gives the app the prototype's three rooms, for screens behind the login.
 It serves the prototype, screenshots both at 390×844 into `design-compare/`
 (`*.design.png`, `*.app.png`, `*.diff.png`), prints the % of pixels that differ
 and every text style that differs (family, weight, size, line-height,

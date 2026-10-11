@@ -23,3 +23,8 @@ test("plate mat width can follow the card variant (5px)", async () => {
   const mat = screen.getByTestId("p").children[0] as unknown as { props: { style: object } };
   expect(StyleSheet.flatten(mat.props.style)).toMatchObject({ borderWidth: 5 });
 });
+
+test("a plate can skip the archival grade (the rooms list cards are not graded)", async () => {
+  await render(<Plate testID="p" grade={false}><Hairline /></Plate>);
+  expect(flat("p")).not.toHaveProperty("filter");
+});

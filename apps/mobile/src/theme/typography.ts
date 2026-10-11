@@ -23,16 +23,23 @@ export const RAMP = {
   button17: ["heading", 600, 17, 1.2], // prototype: Scan a room
   body: ["body", 400, 15, 1.55], // styles.css body
   bodySm: ["body", 400, 14, 1.55], // styles.css .input, prototype subtitles
+  small: ["body", 400, 13, 1.55], // prototype: way descriptions
+  count: ["body", 400, 13, 1.55], // prototype: the room count
+  section: ["heading", 400, 34, 1.05], // prototype: empty-state heading
+  wayTitle: ["heading", 600, 19, 1.15], // prototype: the three ways in
+  numeral: ["heading", 400, 30, 1], // prototype: way numbers
   control: ["body", 600, 14, 1.3], // prototype: language toggle
   label: ["body", 600, 13, 1.3],
   caption: ["body", 400, 12, 1.55],
 } as const;
 export type Variant = keyof typeof RAMP;
 
+const TRACKED = new Set<Variant>(["brand", "display", "hero", "title", "section", "heading"]);
+const PARAGRAPH = new Set<Variant>(["body", "bodySm", "small"]);
+
 export function textStyle(variant: Variant, arabic: boolean) {
   const [role, weight, fontSize, lh] = RAMP[variant];
-  const lineHeight = fontSize * (arabic && role === "body" ? 1.85 : lh); // prototype --lh
-  const tracked = role === "heading" && !variant.startsWith("button"); // buttons use the heading face but no tracking
-  const letterSpacing = arabic || !tracked ? 0 : -0.015 * fontSize; // prototype --ls0
+  const lineHeight = fontSize * (arabic && PARAGRAPH.has(variant) ? 1.85 : lh); // prototype --lh, set on paragraphs only
+  const letterSpacing = arabic || !TRACKED.has(variant) ? 0 : -0.015 * fontSize; // prototype --ls0, set on these headings only
   return { fontFamily: FAMILY[arabic ? "ar" : "en"][role][weight], fontSize, lineHeight, letterSpacing };
 }

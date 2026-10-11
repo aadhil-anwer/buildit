@@ -33,3 +33,20 @@ test("the prototype's own sizes: brand 26/1, small body 14, control 14 semibold,
   expect(textStyle("control", false)).toMatchObject({ fontFamily: "Lora_600SemiBold", fontSize: 14 });
   expect([14, 15, 16, 17].map((n) => textStyle(`button${n}` as "button14", false).fontSize)).toEqual([14, 15, 16, 17]);
 });
+
+test("rooms-screen sizes: small 13, empty-state heading 34/1.05, way title 19/1.15 semibold, way numeral 30/1", () => {
+  expect(textStyle("small", false)).toMatchObject({ fontFamily: "Lora_400Regular", fontSize: 13 });
+  expect(textStyle("section", false)).toMatchObject({ fontFamily: "CormorantGaramond_400Regular", fontSize: 34, lineHeight: 34 * 1.05 });
+  expect(textStyle("wayTitle", false)).toMatchObject({ fontFamily: "CormorantGaramond_600SemiBold", fontSize: 19 });
+  expect(textStyle("numeral", false)).toMatchObject({ fontSize: 30, lineHeight: 30 });
+});
+
+test("only the headings the prototype marks are tightened; way titles, numerals and buttons are not", () => {
+  for (const v of ["brand", "display", "hero", "title", "section", "heading"] as const) expect(textStyle(v, false).letterSpacing).toBeLessThan(0);
+  for (const v of ["wayTitle", "numeral", "button14", "button17", "body", "caption", "count"] as const) expect(textStyle(v, false).letterSpacing).toBe(0);
+});
+
+test("Arabic gets the roomy 1.85 line-height on paragraphs only; counts, captions and labels keep 1.55", () => {
+  for (const v of ["body", "bodySm", "small"] as const) expect(textStyle(v, true).lineHeight).toBeCloseTo(textStyle(v, true).fontSize * 1.85);
+  for (const v of ["count", "caption", "label"] as const) expect(textStyle(v, true).lineHeight).toBeCloseTo(textStyle(v, false).lineHeight);
+});

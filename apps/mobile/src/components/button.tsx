@@ -1,6 +1,6 @@
 import { Pressable, StyleSheet, type StyleProp, type ViewStyle } from "react-native";
 import { color, radius, space, withAlpha } from "@/theme";
-import { Icon } from "./icon";
+import { Icon, type IconName } from "./icon";
 import { Text } from "./text";
 
 // Outlined, never filled (design system). Labels use accent700 so they pass AA.
@@ -19,7 +19,7 @@ type Props = {
   onPress?: () => void;
   variant?: keyof typeof VARIANT;
   size?: keyof typeof SIZE;
-  icon?: Parameters<typeof Icon>[0]["name"];
+  icon?: IconName;
   disabled?: boolean;
   /** Work in progress: ignores taps and announces itself as busy. No spinner (design rule). */
   busy?: boolean;

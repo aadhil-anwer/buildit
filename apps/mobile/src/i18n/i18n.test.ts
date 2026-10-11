@@ -2,7 +2,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { reloadAppAsync } from "expo";
 import { getLocales } from "expo-localization";
 import { I18nManager } from "react-native";
-import { formatNumber, initI18n, isArabic, setLanguage, t } from ".";
+import { formatFixed, formatNumber, initI18n, isArabic, setLanguage, t } from ".";
 import { strings } from "./strings";
 
 jest.mock("expo-localization", () => ({ getLocales: jest.fn() }));
@@ -84,4 +84,10 @@ test("isArabic follows the chosen language", async () => {
   await AsyncStorage.setItem("language", "ar");
   await initI18n();
   expect(isArabic()).toBe(true);
+});
+
+test("fixed decimals follow the language too (room sizes read 4.0 × 3.5)", () => {
+  expect(formatFixed(4, 1, "en")).toBe("4.0");
+  expect(formatFixed(3.5, 1, "ar")).toBe("٣٫٥");
+  expect(formatFixed(12, 0, "ar")).toBe("١٢");
 });

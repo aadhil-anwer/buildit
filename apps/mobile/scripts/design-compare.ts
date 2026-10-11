@@ -1,16 +1,20 @@
 // Usage: npm run design:compare -- <prototype screen> [en|ar] [app route]
 // Needs the app running on the web (npm run web). Writes screenshots and a diff to ./design-compare.
+// COMPARE_GUEST=1 signs in as a guest first; COMPARE_SEED=rooms also gives the app the prototype's three rooms.
 import { mkdirSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import pixelmatch from "pixelmatch";
 import { chromium, type Page } from "playwright";
 import { PNG } from "pngjs";
 import { compareText, type Run } from "./lib/compare-text.ts";
+import { seedRooms } from "./lib/seed-rooms.ts";
+import { generated } from "../src/i18n/strings.generated.ts";
 import { serve } from "./lib/serve.ts";
 
 const [screen, lang = "en", route = "/"] = process.argv.slice(2);
 if (!screen) throw new Error("usage: npm run design:compare -- <prototype screen> [en|ar] [app route]");
-const APP = (process.env.APP_URL as string | undefined) ?? "http://localhost:8081";
+const env = (name: string) => process.env[name] as string | undefined;
+const APP = env("APP_URL") ?? "http://localhost:8081";
 const DESIGN = resolve("../../design-docnew");
 const OUT = "design-compare";
 
@@ -40,6 +44,12 @@ async function capture(page: Page, url: string, name: string) {
   return { png, runs: await page.evaluate<Run[]>(COLLECT) };
 }
 
+async function signInAsGuest(page: Page, lang: "en" | "ar") {
+  await page.goto(`${APP}/welcome`, { waitUntil: "networkidle" });
+  await page.getByRole("button", { name: generated[lang].wTry }).click();
+  await page.waitForURL("**/rooms");
+}
+
 function diffImages(a: Buffer, b: Buffer) {
   const [x, y] = [PNG.sync.read(a), PNG.sync.read(b)];
   if (x.width !== y.width || x.height !== y.height) throw new Error(`screenshots differ in size: ${x.width}x${x.height} vs ${y.width}x${y.height}`);
@@ -60,6 +70,8 @@ async function main() {
     const page = await context.newPage();
     const proto = await capture(page, `${design.url}/_screen.html?start=${screen}&lang=${lang}`, `${screen}.${lang}.design`);
     await context.addInitScript(`localStorage.setItem("language", "${lang}")`);
+    if (env("COMPARE_SEED") === "rooms") await context.addInitScript(`localStorage.setItem("rooms", ${JSON.stringify(seedRooms(lang as "en" | "ar"))})`);
+    if (env("COMPARE_GUEST")) await signInAsGuest(page, lang as "en" | "ar");
     const built = await capture(page, `${APP}${route}`, `${screen}.${lang}.app`);
     const diff = diffImages(proto.png, built.png);
     writeFileSync(`${OUT}/${screen}.${lang}.diff.png`, diff.image);

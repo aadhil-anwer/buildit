@@ -24,7 +24,8 @@ What is planned but not done, in build order. Done phases are in `git log`; deta
 
 **Phase 3, entry screens (in progress)**
 - [x] Navigation wired (signed-out → Welcome, signed-in → My rooms) and Welcome compared in EN and AR. Email sign-in has no prototype screen (built in the same scheme, not compared).
-- [ ] My rooms (list, empty state, "Scan a room"), Capture chooser, Type dimensions, Scan review (plan view, ±5 cm wall steppers, furniture list), Settings (language, walkway 90/75, AI usage, sign out, delete account).
+- [x] My rooms (list, empty state, "Scan a room") built and compared.
+- [ ] Capture chooser, Type dimensions, Scan review (plan view, ±5 cm wall steppers, furniture list), Settings (language, walkway 90/75, AI usage, sign out, delete account).
 - [ ] Local-first rooms with sync to Supabase, and clear offline / failed-sync states.
 - [ ] Sign in with Apple (waits for the Apple Developer account).
 
@@ -45,6 +46,25 @@ What is planned but not done, in build order. Done phases are in `git log`; deta
 - [ ] Measure the engine and 3D on a real phone (iPhone 11 class) and fix what misses the budget.
 - [ ] Native-speaker review of every Arabic string we wrote ourselves.
 - [ ] Decisions waiting for you: the dark gold button label (AA contrast) vs the prototype's plain gold, anonymous-account AI abuse, ghost button size (44 vs 40).
+
+## My rooms (Phase 3.2)
+
+Compared on the web build, English and Arabic, list and empty state (`COMPARE_GUEST=1 COMPARE_SEED=rooms npm run design:compare -- rooms en /rooms`; empty state: `rooms-empty` without the seed). All type, colour and spacing values match; what differs:
+
+| Spec | Built | Why |
+| --- | --- | --- |
+| room pictures are 3D renders | plan drawings from above (`PlanView`) | our 3D renderer arrives in Phase 4; snapshots replace the drawings then |
+| "Scan a room" label `#b68235` | `#7d5411` | AA contrast, as on Welcome |
+| Arabic "Scan a room" in Cormorant with fallback glyphs | Amiri 700 | same prototype quirk as Welcome |
+| way text starts at x 57 / 61 / 64 (numeral column shrinks to its digit) | all at 66 | the design's `width: 26px` numeral shrinks in a flex row; a fixed 26px column aligns cleanly |
+
+**Honest caveats**
+- **Rooms are saved on the device only** until sync is built (Phase 3.7). Deleting the app or switching phones loses them. Do not ship before sync.
+- **Unreadable stored rooms are dropped and reported** to Sentry (the server copy comes back after sync exists).
+- **The room screen is a placeholder** (name and plan) until the editor (Phase 4).
+- "Edited …" labels count calendar days; beyond five weeks they read "Edited a while ago".
+- `/capture` and `/settings` (the scan button and settings icon) are built in the next steps; until then they are dead ends.
+- Arabic plural forms are covered for days 2–6 and weeks 2–4 only; check wording with a native speaker.
 
 ## Welcome and sign-in (Phase 3.1)
 

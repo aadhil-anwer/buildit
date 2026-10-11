@@ -17,6 +17,7 @@
     "expo-constants": "~57.0.21",
     "expo-font": "~57.0.4",
     "expo-image": "~57.0.5",
+    "expo-linear-gradient": "~57.0.2",
     "expo-linking": "~57.0.12",
     "expo-localization": "~57.0.2",
     "expo-router": "~57.0.25",
@@ -34,7 +35,8 @@
     "react-native-svg": "15.15.4",
     "react-native-url-polyfill": "^4.0.0",
     "react-native-web": "^0.21.4",
-    "zod": "^4.6.6"
+    "zod": "^4.6.6",
+    "zustand": "^5.0.15"
   },
   "devDependencies": {
     "@testing-library/react-native": "^14.1.0",

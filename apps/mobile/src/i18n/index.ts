@@ -18,8 +18,10 @@ let lang: Lang = "en";
 /** Numbers follow the language: Arabic-Indic digits and the Arabic decimal mark. Strings pass through. */
 export const isArabic = () => lang === "ar";
 
-export const formatNumber = (value: number | string, l: Lang = lang) =>
-  typeof value === "number" && l === "ar" ? String(value).replace(/\d/g, (d) => "٠١٢٣٤٥٦٧٨٩"[+d]).replace(".", "٫") : String(value);
+const digits = (s: string, l: Lang) => (l === "ar" ? s.replace(/\d/g, (d) => "٠١٢٣٤٥٦٧٨٩"[+d]).replace(".", "٫") : s);
+export const formatNumber = (value: number | string, l: Lang = lang) => (typeof value === "number" ? digits(String(value), l) : String(value));
+/** A number with a fixed count of decimals (room sizes read 4.0 × 3.5), in the language's digits. */
+export const formatFixed = (value: number, decimals: number, l: Lang = lang) => digits(value.toFixed(decimals), l);
 
 export function t<K extends Key>(key: K, ...values: Values<K>): string {
   const text = strings[lang][key] as string | undefined; // JS callers can still pass a bad key

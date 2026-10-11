@@ -13,7 +13,9 @@ const ICONS = {
   sliders: { Glyph: SlidersHorizontal, mirror: false },
 };
 
-export function Icon({ name, size = 20, tint = color.text }: { name: keyof typeof ICONS; size?: number; tint?: string }) {
+export type IconName = keyof typeof ICONS;
+
+export function Icon({ name, size = 20, tint = color.text }: { name: IconName; size?: number; tint?: string }) {
   const { Glyph, mirror } = ICONS[name];
   const style = mirror && isArabic() ? { transform: [{ scaleX: -1 }] } : undefined;
   return <Glyph size={size} color={tint} strokeWidth={1.5} style={style} />;
