@@ -63,3 +63,36 @@ test("storage that is not even the right shape yields no rooms and a report", as
   expect(useRooms.getState().rooms).toEqual([]);
   expect(report).toHaveBeenCalled();
 });
+
+test("saving a version keeps the scene as it is now, and does not mark the room as changed", () => {
+  const scene = sampleBedroom();
+  const id = useRooms.getState().add("Bedroom", scene);
+  useRooms.setState((s) => ({ rooms: s.rooms.map((r) => ({ ...r, dirty: false, updatedAt: 1 })) }));
+  useRooms.getState().saveVersion(id, "Before the rug");
+  expect(useRooms.getState().rooms[0]).toMatchObject({ dirty: false, updatedAt: 1 });
+  useRooms.getState().save(id, { ...scene, id: "later" });
+  const room = useRooms.getState().rooms[0];
+  expect(room.versions).toHaveLength(1);
+  expect(room.versions![0]).toMatchObject({ label: "Before the rug", scene: { id: scene.id } });
+});
+
+test("a room keeps only its newest 30 versions", () => {
+  const id = useRooms.getState().add("Bedroom", sampleBedroom());
+  for (let i = 0; i < 35; i++) useRooms.getState().saveVersion(id, `v${i}`);
+  const labels = useRooms.getState().rooms[0].versions!.map((v) => v.label);
+  expect(labels).toHaveLength(30);
+  expect(labels[0]).toBe("v5");
+  expect(labels[29]).toBe("v34");
+});
+
+test("saved versions survive a restart, and an unreadable one is dropped and reported", async () => {
+  const report = jest.spyOn(reporter, "report").mockImplementation(() => undefined);
+  const ok = { id: "v1", label: null, scene: sampleBedroom(), createdAt: 3 };
+  const bad = { id: "v2", label: "x", scene: { nope: 1 }, createdAt: 4 };
+  const room = { id: "r", name: "Room", scene: sampleBedroom(), updatedAt: 5, dirty: false, versions: [ok, bad] };
+  await AsyncStorage.setItem("rooms", JSON.stringify({ state: { rooms: [room] }, version: 1 }));
+  await useRooms.persist.rehydrate();
+  expect(useRooms.getState().rooms[0].versions!.map((v) => v.id)).toEqual(["v1"]);
+  expect(String(report.mock.calls[0][0])).toContain("saved version");
+  expect(report.mock.calls[0][1]).toEqual({ source: "rooms-store" });
+});

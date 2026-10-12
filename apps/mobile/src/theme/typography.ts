@@ -19,6 +19,7 @@ export const RAMP = {
   tab: ["heading", 600, 17, 1.2], // prototype: sheet tabs
   chip: ["heading", 600, 15, 1.2], // prototype: restyle and ask chips
   pill: ["heading", 600, 14, 1.2], // prototype: the 3D / Plan pill
+  versionName: ["heading", 600, 20, 1.1], // prototype: a version's name
   roomName: ["heading", 400, 22, 1], // prototype: the editor header's room name
   paneTitle: ["heading", 400, 22, 1.2], // prototype: sheet pane headings
   chipTitle: ["heading", 600, 15, 1.15], // prototype: room check chip title

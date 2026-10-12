@@ -7,8 +7,9 @@ import { Editor } from "./editor";
 
 jest.mock("@/editor/scene3d/room-canvas", () => ({ RoomCanvas: () => null })); // WebGL needs a real renderer
 const mockBack = jest.fn();
+const mockPush = jest.fn();
 let mockId = "r1";
-jest.mock("expo-router", () => ({ useRouter: () => ({ back: mockBack }), useLocalSearchParams: () => ({ id: mockId }) }));
+jest.mock("expo-router", () => ({ useRouter: () => ({ back: mockBack, push: mockPush }), useLocalSearchParams: () => ({ id: mockId }) }));
 const scene = () => useRooms.getState().rooms[0].scene;
 const press = async (name: string) => await fireEvent.press(await screen.findByRole("button", { name }));
 const tab = async (key: Parameters<typeof t>[0]) => await fireEvent.press(await screen.findByRole("tab", { name: t(key) }));
@@ -82,6 +83,16 @@ test("the room can be switched between 3D and plan", async () => {
   expect(screen.getByTestId("plan-canvas")).toBeTruthy();
   await press(t("v3d"));
   expect(useEditor.getState().view).toBe("3d");
+});
+
+test("the versions button opens this room's versions, and a change offers saving one", async () => {
+  await render(<Editor />);
+  await press(t("verH"));
+  expect(mockPush).toHaveBeenCalledWith("/versions/r1");
+  await press(t("stJapan"));
+  await press(t("tAsk")).catch(() => undefined);
+  await fireEvent.press(await screen.findByRole("button", { name: t("nx3") }));
+  expect(useRooms.getState().rooms[0].versions).toHaveLength(1);
 });
 
 test("a room that is gone says so and offers the way back", async () => {

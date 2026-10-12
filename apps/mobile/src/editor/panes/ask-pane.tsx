@@ -6,6 +6,7 @@ import { useToast } from "@/components/toast";
 import { t, type StringKey } from "@/i18n";
 import { color } from "@/theme";
 import { ruleText } from "../check-copy";
+import { useRooms } from "@/rooms/store";
 import { useEditor, useScene } from "../store";
 import { useRoomCheck } from "../use-room-check";
 
@@ -28,16 +29,24 @@ export function AskPane({ onFix }: { onFix: () => void }) {
   const { rules } = useRoomCheck(scene);
   const commit = useEditor((s) => s.commit);
   const style = nextStyle(scene);
-  // Walking space and saving a version are not built yet, so they are not offered.
-  const steps = nextSteps(scene, { rules }, { walkOn: true, unsaved: false, styled: isStyled(scene) });
+  const roomId = useEditor((s) => s.roomId);
+  const edited = useEditor((s) => !!s.history?.past.length);
+  const lastSaved = useRooms((s) => s.rooms.find((r) => r.id === roomId)?.versions?.at(-1)?.scene);
+  // Walking space is not built yet, so it is not offered.
+  const steps = nextSteps(scene, { rules }, { walkOn: true, unsaved: edited && lastSaved !== scene, styled: isStyled(scene) });
 
   const label = (step: NextStep): string => {
     if (step.id === "fix") return t("nx1", ruleText(rules.find((r) => r.id === step.ruleId)!));
+    if (step.id === "save") return t("nx3");
     return step.id === "rug" ? t("nx5") : t("nx4", t(design.styles[style ?? "japan"].label as StringKey));
   };
   const run = (step: NextStep) => {
     if (step.id === "fix") return onFix();
     if (step.id === "style" && style) return void commit(restyle(scene, style));
+    if (step.id === "save" && roomId) {
+      useRooms.getState().saveVersion(roomId, null);
+      return useToast.getState().show(t("tKept"));
+    }
     const rug = suggestions(scene, []).find((s) => s.id === "rug");
     if (!rug || !commit(applyChange(scene, rug.change))) useToast.getState().show(t("rugNoFit"));
   };

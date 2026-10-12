@@ -6,6 +6,17 @@ import { createJSONStorage, persist } from "zustand/middleware";
 import { z } from "zod";
 import { report } from "@/lib/report";
 
+/** A named copy of a room's scene, kept on this phone. */
+export interface LocalVersion {
+  id: string;
+  label: string | null;
+  scene: Scene;
+  createdAt: number;
+}
+
+/** How many saved versions a room keeps; the oldest go first. */
+const MAX_VERSIONS = 30;
+
 export interface LocalRoom {
   id: string;
   /** The room's id on the server once it has been synced. */
@@ -15,6 +26,8 @@ export interface LocalRoom {
   updatedAt: number;
   /** Changed here and not yet sent to the server. */
   dirty: boolean;
+  /** Versions saved on purpose, oldest first. They stay on this phone: they are not synced yet. */
+  versions?: LocalVersion[];
 }
 
 interface State {
@@ -26,10 +39,24 @@ interface State {
   add: (name: string, scene: Scene) => string;
   save: (id: string, scene: Scene) => void;
   rename: (id: string, name: string) => void;
+  /** Keep the room's scene as it is now under a name (or none). Does not count as a change to sync. */
+  saveVersion: (id: string, label: string | null) => void;
   remove: (id: string) => void;
 }
 
-const stored = z.object({ id: z.string(), remoteId: z.string().optional(), name: z.string(), scene: z.unknown(), updatedAt: z.number(), dirty: z.boolean() });
+const storedVersion = z.object({ id: z.string(), label: z.string().nullable(), scene: z.unknown(), createdAt: z.number() });
+const stored = z.object({ id: z.string(), remoteId: z.string().optional(), name: z.string(), scene: z.unknown(), updatedAt: z.number(), dirty: z.boolean(), versions: z.array(z.unknown()).optional() });
+
+/** Saved versions read back from storage; one that cannot be read is dropped and reported. */
+function validVersions(raw: unknown[] | undefined): LocalVersion[] | undefined {
+  return raw?.flatMap((item) => {
+    const v = storedVersion.safeParse(item);
+    const scene = v.success ? parseScene(v.data.scene) : null;
+    if (v.success && scene) return [{ ...v.data, scene }];
+    report(new Error("dropped an unreadable saved version"), { source: "rooms-store" });
+    return [];
+  });
+}
 
 /** Everything read back from storage is checked; what cannot be trusted is dropped and reported, never guessed at. */
 function validRooms(raw: unknown): LocalRoom[] {
@@ -41,7 +68,7 @@ function validRooms(raw: unknown): LocalRoom[] {
   return list.data.flatMap((item) => {
     const room = stored.safeParse(item);
     const scene = room.success ? parseScene(room.data.scene) : null;
-    if (room.success && scene) return [{ ...room.data, scene }];
+    if (room.success && scene) return [{ ...room.data, scene, versions: validVersions(room.data.versions) }];
     report(new Error(`dropped an unreadable stored room "${(item as { name?: string } | null)?.name ?? "?"}"`), { source: "rooms-store" });
     return [];
   });
@@ -64,6 +91,10 @@ export const useRooms = create<State>()(
       },
       save: (id, scene) => set(touch(id, { scene })),
       rename: (id, name) => set(touch(id, { name })),
+      saveVersion: (id, label) =>
+        set((s) => ({
+          rooms: s.rooms.map((r) => (r.id === id ? { ...r, versions: [...(r.versions ?? []), { id: randomId(), label, scene: r.scene, createdAt: Date.now() }].slice(-MAX_VERSIONS) } : r)),
+        })),
       remove: (id) => set((s) => ({ rooms: s.rooms.filter((r) => r.id !== id) })),
     }),
     {
