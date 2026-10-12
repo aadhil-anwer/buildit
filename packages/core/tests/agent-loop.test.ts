@@ -101,3 +101,11 @@ test("earlier turns are passed on as alternating messages starting with the pers
   await collect(model, { scene: bedroom(), message: "now the rug", history: [{ role: "assistant", text: "stray" }, { role: "user", text: "move the bed" }, { role: "assistant", text: "Done." }] });
   expect(seen[0].map((m) => m.role)).toEqual(["user", "assistant", "user"]);
 });
+
+test("asking for another option tells the designer what the last answer changed and to try something else", async () => {
+  const { model, seen } = scriptedModel([say("ok")]);
+  await collect(model, { scene: bedroom(), message: "more space", avoid: ["bed_1", "desk_1"] });
+  const first = seen[0][0];
+  expect(first.role === "user" && first.text).toContain("another option");
+  expect(first.role === "user" && first.text).toContain("bed_1, desk_1");
+});

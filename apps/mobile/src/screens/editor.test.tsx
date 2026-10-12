@@ -6,6 +6,8 @@ import { useRooms } from "@/rooms/store";
 import { Editor } from "./editor";
 
 jest.mock("@/editor/scene3d/room-canvas", () => ({ RoomCanvas: () => null })); // WebGL needs a real renderer
+jest.mock("@/auth/session", () => ({ useSession: () => ({ user: { email: "noor@example.com" } }) }));
+jest.mock("@/settings/use-ai-usage", () => ({ useAiUsage: () => ({ usage: { used: 3, limit: 20, resetsAt: new Date() }, failed: false }) }));
 const mockBack = jest.fn();
 const mockPush = jest.fn();
 let mockId = "r1";

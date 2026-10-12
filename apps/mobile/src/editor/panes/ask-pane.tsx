@@ -1,12 +1,18 @@
 import { applyChange, design, nextSteps, restyle, STYLE_KEYS, suggestions, type NextStep, type Scene, type StyleKey } from "@buildit/core";
-import { Pressable, StyleSheet, View } from "react-native";
+import { useState } from "react";
+import { Pressable, StyleSheet, TextInput, View } from "react-native";
+import { send, useAsk } from "@/ai/ask-store";
+import { useSession } from "@/auth/session";
 import { Icon } from "@/components/icon";
 import { Text } from "@/components/text";
 import { useToast } from "@/components/toast";
 import { t, type StringKey } from "@/i18n";
 import { color } from "@/theme";
+import { textStyle } from "@/theme/typography";
 import { ruleText } from "../check-copy";
 import { useRooms } from "@/rooms/store";
+import { useAiUsage } from "@/settings/use-ai-usage";
+import { Done, Failed, Guest, Limit, Running } from "./ask-cards";
 import { useEditor, useScene } from "../store";
 import { useRoomCheck } from "../use-room-check";
 
@@ -74,25 +80,86 @@ function StyleChips() {
   );
 }
 
-/** What to do next in this room, and one-tap restyles. Typing a request to the designer arrives with the AI designer, so it is not shown yet. */
-export function AskPane({ onFix }: { onFix: () => void }) {
-  const { steps, label, run } = useNextSteps(onFix);
+const CHIPS = ["chip1", "chip2", "chip3", "chip4"] as const;
+
+/** The request box, how many requests are left today, and the design's four quick asks. */
+function AskBox({ disabled }: { disabled?: boolean }) {
+  const [text, setText] = useState("");
+  const requests = useAsk((s) => s.requests);
+  const { usage } = useAiUsage(requests);
+  const submit = (question: string) => {
+    if (!question.trim()) return;
+    setText("");
+    void send(question.trim());
+  };
   return (
     <View>
-      {steps.length ? <Text variant="kicker" tone="secondary" style={styles.kicker}>{t("nextH")}</Text> : null}
+      {disabled ? null : (
+        <View style={styles.box}>
+          <TextInput accessibilityLabel={t("askPh")} placeholder={t("askPh")} placeholderTextColor={color.neutral500} value={text} onChangeText={setText} onSubmitEditing={() => submit(text)} returnKeyType="send" maxLength={1000} style={styles.input} />
+          <Pressable accessibilityRole="button" accessibilityLabel={t("aiSend")} accessibilityState={{ disabled: !text.trim() }} disabled={!text.trim()} hitSlop={3} onPress={() => submit(text)} style={[styles.send, !text.trim() && styles.sendOff]}>
+            <Icon name="send" size={18} tint={color.accent} />
+          </Pressable>
+        </View>
+      )}
+      {usage ? <Text variant="caption" tone="secondary" style={styles.usage}>{t("left", Math.max(0, usage.limit - usage.used), usage.limit)}</Text> : null}
+    </View>
+  );
+}
+
+function AskChips({ disabled }: { disabled?: boolean }) {
+  return (
+    <View style={[styles.chips, disabled && styles.dim]}>
+      {CHIPS.map((key) => (
+        <Pressable key={key} accessibilityRole="button" accessibilityLabel={t(key)} accessibilityState={{ disabled: !!disabled }} disabled={disabled} hitSlop={{ top: 5, bottom: 5 }} onPress={() => void send(t(key))} style={styles.askChip}>
+          <Text variant="chip">{t(key)}</Text>
+        </Pressable>
+      ))}
+    </View>
+  );
+}
+
+/** Ask: the designer (request box, quick asks, and the answer as it arrives), then what to do next in this room and one-tap restyles. */
+export function AskPane({ onFix }: { onFix: () => void }) {
+  const { steps, label, run } = useNextSteps(onFix);
+  const phase = useAsk((s) => s.phase);
+  const session = useSession();
+  const guest = !session?.user.email;
+  if (phase.name === "running") return <Running phase={phase} />;
+  if (phase.name === "done") return <Done phase={phase} />;
+  if (phase.name === "error") return <Failed phase={phase} />;
+  const limited = phase.name === "limit";
+  return (
+    <View>
+      {guest || phase.name === "guest" ? <Guest /> : limited ? <Limit phase={phase} /> : <AskBox />}
+      {steps.length ? <Text variant="kicker" tone="secondary" style={[styles.kicker, styles.first]}>{t("nextH")}</Text> : null}
       {steps.map((step) => <Step key={step.id} label={label(step)} onPress={() => run(step)} />)}
       <Text variant="kicker" tone="secondary" style={[styles.kicker, styles.styles]}>{t("stylesH")}</Text>
       <StyleChips />
+      {guest ? null : (
+        <>
+          <Text variant="kicker" tone="secondary" style={[styles.kicker, styles.styles]}>{t("askH")}</Text>
+          <AskChips disabled={limited} />
+        </>
+      )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   kicker: { marginBottom: 2 },
+  first: { marginTop: 18 },
+  box: { flexDirection: "row", alignItems: "center", gap: 8, paddingVertical: 5, paddingStart: 18, paddingEnd: 5, borderWidth: 1, borderColor: color.divider, borderRadius: 99 },
+  input: { flex: 1, minWidth: 0, height: 36, paddingVertical: 0, fontFamily: textStyle("body", false).fontFamily, fontSize: 15, color: color.text },
+  send: { width: 38, height: 38, borderRadius: 19, borderWidth: 1, borderColor: color.accent, alignItems: "center", justifyContent: "center" },
+  sendOff: { opacity: 0.4 },
+  usage: { marginTop: 8, fontVariant: ["tabular-nums"] },
+  dim: { opacity: 0.45 },
   styles: { marginTop: 18, marginBottom: 8 },
   step: { flexDirection: "row", alignItems: "center", gap: 12, paddingVertical: 12, paddingHorizontal: 2, borderBottomWidth: 1, borderBottomColor: color.divider },
   stepText: { flex: 1 },
   chips: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+  askChip: { paddingVertical: 8, paddingHorizontal: 14, borderWidth: 1, borderColor: color.divider, borderRadius: 99 },
   chip: { flexDirection: "row", alignItems: "center", gap: 14, paddingVertical: 7, paddingStart: 12, paddingEnd: 14, borderWidth: 1, borderColor: color.divider, borderRadius: 99 },
   chipOn: { borderColor: color.accent },
   dots: { flexDirection: "row" },

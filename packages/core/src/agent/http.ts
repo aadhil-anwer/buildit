@@ -26,6 +26,7 @@ const body = z.object({
   message: z.string().trim().min(1).max(1000),
   history: z.array(z.object({ role: z.enum(["user", "assistant"]), text: z.string().max(2000) })).max(12).optional(),
   selectedId: z.string().max(100).nullish(),
+  avoid: z.array(z.string().max(100)).max(40).optional(),
 });
 
 /**
@@ -43,5 +44,5 @@ export async function handleAgent(raw: unknown, deps: AgentDeps): Promise<AgentR
   if (cap.status === "unauthenticated") return { status: 401, body: { code: "unauthenticated" } };
   if (cap.status === "email_required") return { status: 403, body: { code: "email_required" } };
   if (cap.status === "limit") return { status: 429, body: { code: "limit", limit: cap.limit, resetsAt: cap.resetsAt } };
-  return { status: 200, events: runAgent(deps.model, { scene, message: parsed.data.message, history: parsed.data.history, selectedId: parsed.data.selectedId }) };
+  return { status: 200, events: runAgent(deps.model, { scene, message: parsed.data.message, history: parsed.data.history, selectedId: parsed.data.selectedId, avoid: parsed.data.avoid }) };
 }

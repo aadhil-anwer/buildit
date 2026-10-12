@@ -29,7 +29,7 @@ function consumeFor(authorization: string | null) {
 }
 
 async function post(body: Record<string, unknown>) {
-  const res = await fetch("https://api.anthropic.com/v1/messages", {
+  const res = await fetch(`${Deno.env.get("ANTHROPIC_API_URL") ?? "https://api.anthropic.com"}/v1/messages`, {
     method: "POST",
     headers: { "content-type": "application/json", "x-api-key": Deno.env.get("ANTHROPIC_API_KEY")!, "anthropic-version": "2023-06-01" },
     body: JSON.stringify(body),

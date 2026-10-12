@@ -8,6 +8,7 @@ import { Text } from "@/components/text";
 import { useToast } from "@/components/toast";
 import { t, type StringKey } from "@/i18n";
 import { color, shadow, withAlpha } from "@/theme";
+import { useAsk } from "@/ai/ask-store";
 import { useEditor, useScene } from "./store";
 
 const WORDS: Record<Suggestion["id"], [StringKey, StringKey]> = { lamp: ["sLamp", "sLampWhy"], rug: ["sRug", "sRugWhy"], wall: ["sWall", "sWallWhy"], headboard: ["sHead", "sHeadWhy"] };
@@ -22,7 +23,8 @@ function useSuggestion() {
   const [dismissed, selected, tab] = [useEditor((s) => s.dismissed), useEditor((s) => s.selectedId), useEditor((s) => s.tab)];
   const next = suggestions(scene, dismissed)[0];
   const [shown, setShown] = useState<Suggestion["id"] | null>(null);
-  const quiet = !selected && tab !== "check";
+  const asking = useAsk((s) => s.phase.name === "running" || s.phase.name === "done" || s.phase.name === "error");
+  const quiet = !selected && tab !== "check" && !asking;
   useEffect(() => {
     setShown(null);
     if (!next || !quiet) return;

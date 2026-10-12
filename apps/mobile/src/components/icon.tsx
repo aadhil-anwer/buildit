@@ -1,5 +1,6 @@
 import ArrowLeftRight from "lucide-react-native/icons/arrow-left-right";
 import ArrowUp from "lucide-react-native/icons/arrow-up";
+import Clock from "lucide-react-native/icons/clock";
 import ChevronRight from "lucide-react-native/icons/chevron-right";
 import Lock from "lucide-react-native/icons/lock";
 import LockOpen from "lucide-react-native/icons/lock-open";
@@ -24,6 +25,7 @@ import { color } from "@/theme";
 const ICONS = {
   back: { Glyph: ChevronLeft, mirror: true },
   check: { Glyph: Check, mirror: false },
+  clock: { Glyph: Clock, mirror: false },
   close: { Glyph: X, mirror: false },
   dot: { Glyph: RingDot, mirror: false },
   delete: { Glyph: Trash, mirror: false },

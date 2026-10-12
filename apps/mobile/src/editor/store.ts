@@ -15,6 +15,8 @@ interface State {
   view: EditorView;
   /** Show where a person can walk (gold) and where it is too tight (rust). */
   walk: boolean;
+  /** A room shown for a moment (the designer working step by step), not yet part of the history. */
+  preview: Scene | null;
   /** Suggestions the person has dismissed or tried in this visit, so the card does not offer them again. */
   dismissed: string[];
   tab: EditorTab;
@@ -30,6 +32,7 @@ interface State {
   setView: (view: EditorView) => void;
   setWalk: (walk: boolean) => void;
   dismiss: (id: string) => void;
+  setPreview: (scene: Scene | null) => void;
   setTab: (tab: EditorTab) => void;
 }
 
@@ -46,9 +49,10 @@ export const useEditor = create<State>()((set) => ({
   selectedId: null,
   view: "3d",
   walk: false,
+  preview: null,
   dismissed: [],
   tab: "tAsk",
-  open: (roomId, scene) => set({ roomId, history: H.start(scene), selectedId: null, view: "3d", walk: false, dismissed: [], tab: "tAsk" }),
+  open: (roomId, scene) => set({ roomId, history: H.start(scene), selectedId: null, view: "3d", walk: false, preview: null, dismissed: [], tab: "tAsk" }),
   commit: (result) => {
     if (result.ok) set((s) => (s.history ? saved(s, H.push(s.history, result.scene)) : s));
     return result.ok;
@@ -60,9 +64,11 @@ export const useEditor = create<State>()((set) => ({
   setView: (view) => set({ view }),
   setWalk: (walk) => set({ walk }),
   dismiss: (id) => set((s) => ({ dismissed: [...s.dismissed, id] })),
+  setPreview: (preview) => set({ preview }),
   setTab: (tab) => set({ tab }),
 }));
 
 /** The scene being edited. Only valid while a room is open. */
-export const useScene = () => useEditor((s) => s.history!.present);
+/** The room on screen: the designer's step in progress if there is one, else the current state. */
+export const useScene = () => useEditor((s) => s.preview ?? s.history!.present);
 export const useSelected = () => useEditor((s) => s.history?.present.objects.find((o) => o.id === s.selectedId));

@@ -32,6 +32,8 @@ export interface AgentRequest {
   message: string;
   history?: { role: "user" | "assistant"; text: string }[];
   selectedId?: string | null;
+  /** For "show another option": ids of the pieces the last answer changed. The designer is asked for a different approach. */
+  avoid?: string[];
 }
 
 export interface AgentStep {
@@ -67,7 +69,7 @@ const MAX_HISTORY = 12;
 function userMessage(req: AgentRequest): string {
   const summary = summarizeScene(req.scene, layoutReport(req.scene, 0.1));
   const selected = req.selectedId ? getObject(req.scene, req.selectedId) : undefined;
-  return [`<room>\n${JSON.stringify(summary)}\n</room>`, selected ? `Selected object: ${selected.id} (${selected.name}).` : "No object is selected.", `User: ${req.message.trim()}`].join("\n\n");
+  return [`<room>\n${JSON.stringify(summary)}\n</room>`, selected ? `Selected object: ${selected.id} (${selected.name}).` : "No object is selected.", ...(req.avoid?.length ? [`The person asked for another option. The last answer changed: ${req.avoid.join(", ")}. Choose a different approach; do not repeat those moves.`] : []), `User: ${req.message.trim()}`].join("\n\n");
 }
 
 /** Earlier turns as alternating messages starting with the person's. */

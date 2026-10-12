@@ -12,7 +12,7 @@ export interface AiUsage {
 const row = z.object({ used: z.number(), daily_limit: z.number(), resets_at: z.string() });
 
 /** Today's AI usage, read from the server. A failure is reported and flagged; it never blocks the screen. */
-export function useAiUsage() {
+export function useAiUsage(refreshKey: unknown = 0) {
   const [state, setState] = useState<{ usage?: AiUsage; failed: boolean }>({ failed: false });
   useEffect(() => {
     void (async () => {
@@ -25,6 +25,6 @@ export function useAiUsage() {
       const first = parsed.data[0];
       setState({ usage: { used: first.used, limit: first.daily_limit, resetsAt: new Date(first.resets_at) }, failed: false });
     })();
-  }, []);
+  }, [refreshKey]);
   return state;
 }
