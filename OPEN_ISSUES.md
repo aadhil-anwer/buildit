@@ -52,14 +52,50 @@ What is planned but not done, in build order. Done phases are in `git log`; deta
 
 ## Editor (Phase 4, in progress)
 
-Built: `Sheet` (196 / 404 / 640 pt, grabber tap and drag, Reanimated height), `SheetTabs`, both mounted in `src/screens/editor.tsx`. Unit-tested with Reanimated and gesture handler mocked.
+**Built:** `Sheet` (196 / 404 / 640 pt, drag or tap the grabber, Reanimated height) with the Ask / Add / Item / Finishes tabs and the Check pane; header (back, room name, undo, redo, versions); room-check chip; 3D view (React Three Fiber, orthographic 33 degree view, hidden camera-facing walls, tap to select, drag a piece in 5 cm steps, drag floor to orbit, pinch to zoom); Plan view (tap, drag, same 5 cm steps); every change is one undoable step (50 deep) saved to the room at once; Fix (time-sliced layout improver); restyle; versions (save, list, restore) on this phone.
 
-- **Not design-compared yet** (EN and AR, every state). Needs the web build and a guest session (local Supabase).
-- **Sheet drag and the 380 ms glide have never run in a real renderer** (jest uses mocks). Check on web, then on a device. Android uses 28 pt corners per the handoff; only the iOS 20 pt is built.
-- **Tab bodies are not built.** Each shows "isn't built yet" (a dead end, temporary).
-- **Adding Reanimated, worklets and gesture handler is a native change**: `app.json` version is now 1.1.0, so a new development build is needed and OTA updates will not reach older builds. Never publish to `production` without the owner's say-so.
-- **Sheet tab strip tap targets** use 4 pt of hit slop above and below an ~38 pt strip (target 46 pt); the grabber is 22 pt plus 11 pt slop each side (44 pt). Unmeasured on a device.
-- **The guest email upgrade is only unit-tested.** It has not been tried against Supabase (the `email_change` flow, `double_confirm_changes`, the code template).
+**What was checked, and on what**
+- 424 unit tests (`npm run verify` green), including the engine ops the editor calls, history, picking and drag maths, wall cut-outs, furniture parts, versions and every pane.
+- Web build in Chromium with **software GL** against the local Supabase: Editor EN and AR, Check, Finishes, Item, Versions compared with the prototype (type, positions, colours match except the notes below); tap, orbit and drag driven with the mouse and seen working.
+- 3D stats on that browser (bedroom, `globalThis.__builditPerf`, development builds only): **16 draw calls, 3,062 triangles, 9 geometries, 3 textures**. Budgets: 150 / 150k / 32 MB.
+- **Nothing has run on iOS or Android, in the simulator or on a phone.** The frame rate, JS-thread blocking, memory, thermal behaviour, expo-gl, real touch (pinch has not even been tried with a mouse) and the sheet's drag and glide are all unmeasured. The 60 fps gate in STACK.md is **not met by evidence**, so Phase 4 is not done until it runs on an iPhone 11 class phone.
+- 3D cannot be compared pixel by pixel with the prototype: the prototype's own 3D draws nothing in headless Chromium. The look (lights, tone mapping, camera angle) follows `room3d.js`; furniture shapes, floor and wall colours are not matched side by side.
+
+**Not built yet (each one is a visible gap or a missing control)**
+- Walking-space overlay and the walk button; wall-length labels on the walls in 3D and the plan (the dimension pills the prototype shows); wall snap while dragging; rotating a piece by gesture (Item pane turns 90 degrees only).
+- Plank floor and contact-shadow PNG assets (the floor is one flat colour), door-swing arcs, window frames.
+- Quality tiers from the device (`expo-device` was dropped until then), pausing the canvas when the app is in the background or the editor is not focused, dropping to the low tier when frames are slow.
+- Header **Share** button (Phase 8: needs the GL snapshot and the share sheet). Room thumbnails are still plan drawings, not 3D snapshots.
+- Ask tab: the request box, "N of 20 requests left" and the four ask chips wait for the AI designer (Phase 5). The tab shows Suggested next and Restyle, which work without it. "Check the walking space" is not offered until the overlay exists.
+- Undo history lives in memory: closing the editor starts a new one (the room itself is saved).
+- Sheet size changes re-fit the room instantly; they do not glide with the sheet.
+- Dragging a **locked** piece in 3D orbits the view without saying why (in the plan it is refused with a message).
+- Android: 28 pt sheet corners and Material controls (Phase 7).
+
+**Known differences from the prototype**
+- Pane headings use Cormorant 400 where the prototype asks for 500 (500 is not loaded; weights are one file each).
+- Fix and Restore buttons are 44 pt tall (prototype 34 and 30), for the tap-target rule.
+- The room-check chip's second line is Lora; the prototype leaves it in the browser's default Arial (a button that did not inherit the font).
+- Arabic tab labels sit about 5 px higher than the prototype's.
+- Add tab sizes come from the engine's catalog (rug 230 x 160, coffee table 120 x 60, bookshelf 90 x 35) and differ slightly from the prototype's hard-coded ones.
+- Versions: the top row is always the room as it is now ("Where you are now", tagged Current); saved versions follow with Restore. The prototype tags the latest saved one Current instead.
+- Undo and redo icons are mirrored under RTL; the prototype does not mirror them.
+
+**Wrong or weak, to fix**
+- The Check rule sentences say "it needs 90" even when the walkway preference is 75 cm (the design's strings carry the number).
+- Fix searches for 1.5 s; the budget says 300 ms in 8 ms slices. Not measured on a phone.
+- Versions are **not synced**: they live in the room's local record and survive restarts, but a second phone does not see them and deleting the app loses them (the room itself syncs).
+- `design:compare` needs `CHROMIUM_PATH` and `UNPKG_DIR` in this cloud container (see HANDOFF.md).
+
+**Native changes in this phase (new development build needed, never publish to `production` without the owner's say-so):** Reanimated, worklets, gesture handler, expo-gl and expo-asset / expo-file-system (peers of React Three Fiber). `app.json` version is **1.2.0**; an OTA update cannot reach older builds.
+
+**Questions for the owner**
+1. Should saved versions sync to the server? The schema supports it (`save_version` with kind `manual` and a label) but it makes Save push the current scene as that version. Today they are local only. Which do you want?
+2. Is "Where you are now" as the top Versions row acceptable, or should it follow the prototype (latest saved = Current)?
+3. Walkway preference 75: should the rule sentences read "needs 75" then? That means new copy in both languages.
+4. Undo and redo mirrored under RTL, or kept pointing the same way as the prototype?
+5. Header Share: do you want it hidden until Phase 8 (current) or visible and explaining "coming soon"?
+6. Device for the performance gate: an iPhone 11 (or similar) with a development build. Who runs it, and when?
 
 ## Sync (Phase 3.7)
 

@@ -1,4 +1,4 @@
-# Handoff (stopped 2026-10-12, at the end of Phase 3)
+# Handoff (updated 2026-10-12, Phase 4 in progress)
 
 Read this first, then `CLAUDE.md` (working rules), `STACK.md`, `OPEN_ISSUES.md` (owner to-do list and everything unverified), and the plan at `~/.claude/plans/stateful-napping-aurora.md` if it exists (the phases are also in `OPEN_ISSUES.md` under "Pending work").
 
@@ -18,7 +18,14 @@ Branch `claude/jolly-bell-hhwtu2`, all pushed, CI green. `npm run verify` and `n
 2. **Phase 4: the room editor**, the heart of the app. R3F native scene to the design's look, gestures (orbit, pinch, drag with 5 cm grid and wall snap, rotate), the bottom sheet (Ask / Add / Item / Finishes / Check) as one shared `Sheet` primitive (replace the plain modals in the wall stepper and dialogs), room check chip, walking-space overlay, undo/redo, versions, thumbnails from snapshots (replace `PlanView` thumbnails), and the on-device performance gate (STACK.md budgets are unmeasured on Hermes). `src/screens/editor.tsx` is a placeholder to replace.
 3. Phase 5 AI designer (Edge Function on `packages/core`), Phase 6 capture (needs Apple account and a LiDAR iPhone), Phase 7 Android, Phase 8 launch. Details in `OPEN_ISSUES.md`.
 
+## Phase 4 status (read `OPEN_ISSUES.md` > Editor first)
+
+The editor works end to end on the web build (3D and plan, tabs, check, versions, undo). It has **never run on a phone or simulator**; that, plus the gaps and questions listed there, is what is left. Code: `src/editor/` (store, history, panes, plan canvas, `scene3d/`), `src/screens/editor.tsx`, `src/screens/versions.tsx`, `src/components/sheet*.tsx`.
+
 ## Things to know
+
+- **Cloud container recipe** (what worked in the cloud session): start Docker with `dockerd &`, then `npx supabase start`; write `apps/mobile/.env.local` from `npx supabase status -o env`; `npx expo start --web --port 8081 -c`. The prototype loads React from unpkg, which the container blocks: fetch `react@18.3.1`, `react-dom@18.3.1` and `@babel/standalone@7.29.0` with `npm pack` into a folder laid out as `<dir>/react@18.3.1/umd/...`, then run `UNPKG_DIR=<dir> CHROMIUM_PATH=/opt/pw-browsers/chromium-1194/chrome-linux/chrome COMPARE_GUEST=1 COMPARE_SEED=rooms npm run design:compare -- editor en /editor/seed0` (add `?tab=tFin&select=bed_1` for other panes). `npx expo install` fails here (blocked); take versions from `node_modules/expo/bundledNativeModules.json`.
+- Git author in a fresh container is not the owner: commit with `git -c user.name="Aadhil Anwer" -c user.email="aadhilanwer@gmail.com"`.
 
 - **Commits:** author is the owner (repo-local git config); never mention Claude/AI in commits or PRs; stage exact paths and check `git status` for untracked files before pushing (a missed new file broke CI once); push the branch at least daily; watch CI (`gh run watch`).
 - **Run locally:** `npx supabase start` (ports are shifted +100: API 54421, DB 54422, mail 54424, because another project uses the defaults), copy `apps/mobile/.env.example` to `.env.local` with values from `npx supabase status`, then `npm run web` in `apps/mobile`.
