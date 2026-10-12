@@ -52,7 +52,7 @@ What is planned but not done, in build order. Done phases are in `git log`; deta
 
 ## Design quality: the road to "interior-designer level" (honest status)
 
-Today the engine has 8 advisory design rules (`DESIGN_RULES`: coffee-table gap, TV distance, conversation distance, rug under sofa, dining chair pull-out, bed foot, headboard under a window, nightstand pair) plus the room check (walkway, doors, bed sides, storage reach, window light). They are commonly cited rules of thumb, **not reviewed by a designer**, and they only produce tips; they do not yet feed `improve`'s cost function or the score. This is a good checker, not a replacement for a designer. To get closer:
+Today the engine has 8 advisory design rules (`DESIGN_RULES`: coffee-table gap, TV distance, conversation distance, rug under sofa, dining chair pull-out, bed foot, headboard under a window, nightstand pair) plus the room check (walkway, doors, bed sides, storage reach, window light). They are commonly cited rules of thumb, **not reviewed by a designer**, and they show as tips and nudge `improve` (0.4 cost per unmet rule, far below a blocked door); they are not in the room-check score. This is a good checker, not a replacement for a designer. To get closer:
 - [ ] A designer (ideally one who knows GCC homes) reviews every threshold in `DESIGN_RULES` and the Arabic tip strings. Owner to arrange.
 - [x] Tips feed `improve`'s cost. [ ] Still not in the room-check score; decide after designer review of the thresholds.
 - [ ] More rules: focal point (seating faces a TV/window/feature wall), desk beside not facing a window, wardrobe/door clash, 60-30-10 colour split, balance and symmetry, majlis layout and door-sightline privacy (needs a local reviewer).
