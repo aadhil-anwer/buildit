@@ -1,5 +1,6 @@
 // The engine's public API: everything the app and the Edge Function import from "@buildit/core".
 export * from "./catalog";
+export * from "./agent";
 export * from "./check";
 export { design } from "./design.generated";
 export * from "./importers/roomplan";
@@ -14,6 +15,7 @@ export * from "./rules/design-tips";
 export * from "./scene";
 export * from "./schema";
 export * from "./styles";
+export * from "./summary";
 export * from "./suggest";
 export * from "./templates";
 export * from "./types";
