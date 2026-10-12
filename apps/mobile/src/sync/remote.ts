@@ -5,7 +5,15 @@ import { supabase } from "@/lib/supabase";
 import type { Remote } from "./sync";
 
 const roomRow = z.object({ id: z.string(), name: z.string(), updated_at: z.string(), current: z.object({ scene: z.unknown() }).nullable() });
+const versionRow = z.object({ id: z.string(), room_id: z.string(), label: z.string(), created_at: z.string(), scene: z.unknown() });
 const walkway = z.union([z.literal(75), z.literal(90)]);
+
+/** Versions people saved on purpose (a manual save or an AI result, with a name), newest first. */
+async function listVersions() {
+  const reply = await supabase.from("room_versions").select("id,room_id,label,created_at,scene").in("kind", ["manual", "ai"]).not("label", "is", null).order("created_at", { ascending: false }).limit(300);
+  throwIfError(reply);
+  return z.array(versionRow).parse(reply.data as unknown).map((v) => ({ id: v.id, roomId: v.room_id, label: v.label, createdAt: Date.parse(v.created_at), scene: v.scene }));
+}
 
 /** The real server. Every reply is checked before anything uses it; errors are raised, never swallowed. */
 export function createRemote(userId: string): Remote {
@@ -15,12 +23,18 @@ export function createRemote(userId: string): Remote {
       throwIfError(reply);
       return z.string().parse(reply.data as unknown);
     },
-    async saveVersion(remoteId, scene) {
-      throwIfError(await supabase.rpc("save_version", { p_room_id: remoteId, p_scene: scene, p_kind: "autosave", p_label: null }));
+    async saveVersion(remoteId, scene, kind, label) {
+      const reply = await supabase.rpc("save_version", { p_room_id: remoteId, p_scene: scene, p_kind: kind, p_label: label });
+      throwIfError(reply);
+      return z.string().parse(reply.data as unknown);
+    },
+    async deleteRoom(remoteId) {
+      throwIfError(await supabase.rpc("delete_room", { p_room_id: remoteId }));
     },
     async renameRoom(remoteId, name) {
       throwIfError(await supabase.from("rooms").update({ name }).eq("id", remoteId));
     },
+    listVersions,
     async listRooms() {
       const reply = await supabase.from("rooms").select("id,name,updated_at,current:room_versions!rooms_current_version_fk(scene)");
       throwIfError(reply);

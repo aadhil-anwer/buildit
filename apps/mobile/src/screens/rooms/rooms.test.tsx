@@ -62,3 +62,24 @@ test("says nothing about syncing when all is well", async () => {
   await render(<Rooms />);
   expect(screen.queryByText(t("syncFailed"))).toBeNull();
 });
+
+test("pressing and holding a room asks first, and only deleting removes it (and queues the server delete)", async () => {
+  store.useRooms.setState({ rooms: [{ id: "a", remoteId: "srv-a", name: "Study", scene: sampleLivingRoom(), updatedAt: 2, dirty: false }, { id: "b", name: "Bedroom", scene: sampleBedroom(), updatedAt: 1, dirty: false }], deleted: [] });
+  await render(<Rooms />);
+  await fireEvent(screen.getByRole("button", { name: new RegExp(`^Study\\.`) }), "longPress");
+  expect(screen.getByText(t("delRoomH"))).toBeTruthy();
+  expect(screen.getByText(t("delRoomP", "Study"))).toBeTruthy();
+  await fireEvent.press(screen.getByRole("button", { name: t("cancel") }));
+  expect(store.useRooms.getState().rooms).toHaveLength(2);
+  await fireEvent(screen.getByRole("button", { name: new RegExp(`^Study\\.`) }), "longPress");
+  await fireEvent.press(screen.getByRole("button", { name: t("delConf") }));
+  expect(store.useRooms.getState().rooms.map((r) => r.name)).toEqual(["Bedroom"]);
+  expect(store.useRooms.getState().deleted).toEqual(["srv-a"]);
+});
+
+test("a room can also be deleted with the screen reader's Delete action", async () => {
+  seed(["Study", sampleLivingRoom(), 1]);
+  await render(<Rooms />);
+  await fireEvent(screen.getByRole("button", { name: new RegExp(`^Study\\.`) }), "accessibilityAction", { nativeEvent: { actionName: "delete" } });
+  expect(screen.getByText(t("delRoomH"))).toBeTruthy();
+});

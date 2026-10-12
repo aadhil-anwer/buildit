@@ -64,6 +64,20 @@ test("startSync: an unsent walkway choice also syncs", async () => {
   expect(sync).toHaveBeenCalledTimes(1);
 });
 
+test("startSync: a room deleted here, or a version saved here, also syncs", async () => {
+  useRooms.setState({ owner: "user-1", rooms: [{ ...room(false), remoteId: "srv", versions: [] }] });
+  await start();
+  sync.mockClear();
+  useRooms.getState().remove("a");
+  await tick(2100);
+  expect(sync).toHaveBeenCalledTimes(1);
+  useRooms.setState({ deleted: [], rooms: [{ ...room(false), remoteId: "srv" }] });
+  sync.mockClear();
+  useRooms.getState().saveVersion("a", "Saved version");
+  await tick(2100);
+  expect(sync).toHaveBeenCalledTimes(1);
+});
+
 test("startSync: changes that are not unsent edits (what sync itself writes) do not start another sync", async () => {
   await start();
   sync.mockClear();

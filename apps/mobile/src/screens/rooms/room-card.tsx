@@ -8,13 +8,13 @@ import { editedText } from "@/rooms/edited";
 import type { LocalRoom } from "@/rooms/store";
 import { color } from "@/theme";
 
-/** One room: its picture, name, when it was edited and its size. */
-export function RoomCard({ room, onOpen }: { room: LocalRoom; onOpen: () => void }) {
+/** One room: its picture, name, when it was edited and its size. Press and hold (or the screen reader's Delete action) asks to delete it. */
+export function RoomCard({ room, onOpen, onDelete }: { room: LocalRoom; onOpen: () => void; onDelete: () => void }) {
   const b = roomBounds(room.scene.room);
   const size = `${formatFixed(b.maxX - b.minX, 1)} × ${formatFixed(b.maxZ - b.minZ, 1)} ${t("m")}`;
   const meta = `${editedText(room.updatedAt, Date.now())} · ${size}`;
   return (
-    <Pressable accessibilityRole="button" accessibilityLabel={`${room.name}. ${meta}`} onPress={onOpen}>
+    <Pressable accessibilityRole="button" accessibilityLabel={`${room.name}. ${meta}`} accessibilityHint={t("roomHint")} accessibilityActions={[{ name: "delete", label: t("delRoom") }]} onAccessibilityAction={(e) => e.nativeEvent.actionName === "delete" && onDelete()} onPress={onOpen} onLongPress={onDelete}>
       <Plate mat={5} grade={false} style={styles.picture}>
         <PlanView scene={room.scene} />
       </Plate>

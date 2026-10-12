@@ -15,7 +15,11 @@ const RETRY_MS = 30_000;
 export const useSyncStatus = create<{ failed: boolean }>(() => ({ failed: false }));
 
 const isOffline = (error: unknown) => /failed to fetch|network request failed|networkerror|load failed/i.test(String((error as { message?: string } | null)?.message ?? error));
-const hasUnsent = () => useRooms.getState().rooms.some((r) => r.dirty) || useSettings.getState().walkwayDirty;
+/** Changes still to send: edited rooms, saved versions, rooms deleted here, the walkway preference. */
+const hasUnsent = () => {
+  const { rooms, deleted } = useRooms.getState();
+  return rooms.some((r) => r.dirty || r.versions?.some((v) => !v.remoteId)) || deleted.length > 0 || useSettings.getState().walkwayDirty;
+};
 
 /** Runs one sync at a time. A request that arrives mid-sync is remembered and run straight after; a failure retries in 30 s. */
 function createRunner(remote: Remote) {

@@ -46,7 +46,7 @@ function useNextSteps(onFix: () => void) {
     if (step.id === "style" && style) return void commit(restyle(scene, style));
     if (step.id === "walk") return useEditor.getState().setWalk(true);
     if (step.id === "save" && roomId) {
-      useRooms.getState().saveVersion(roomId, null);
+      useRooms.getState().saveVersion(roomId, t("verSaveLabel"));
       return useToast.getState().show(t("tKept"));
     }
     const rug = suggestions(scene, []).find((s) => s.id === "rug");

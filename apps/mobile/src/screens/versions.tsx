@@ -40,7 +40,7 @@ export function Versions() {
   const now = Date.now();
 
   const save = () => {
-    useRooms.getState().saveVersion(room.id, null);
+    useRooms.getState().saveVersion(room.id, t("verSaveLabel"));
     useToast.getState().show(t("tKept"));
   };
   const restore = (version: LocalVersion) => {

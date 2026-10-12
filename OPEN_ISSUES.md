@@ -83,20 +83,19 @@ What is planned but not done, in build order. Done phases are in `git log`; deta
 
 **Wrong or weak, to fix**
 - Fix now searches for at most 300 ms, the STACK.md budget, in 8 ms slices. On a laptop a room it cannot fix uses the whole budget and does not improve at 150 to 1500 ms, so the budget is not what limits it; a fixable room has not been tried on a phone.
-- Versions are **not synced yet** (decided: they will be): they live in the room's local record and survive restarts, but a second phone does not see them and deleting the app loses them.
 - `design:compare` needs `CHROMIUM_PATH` and `UNPKG_DIR` in this cloud container (see HANDOFF.md).
 
 **Native changes in this phase (new development build needed, never publish to `production` without the owner's say-so):** Reanimated, worklets, gesture handler, expo-gl and expo-asset / expo-file-system (peers of React Three Fiber). `app.json` version is **1.2.0**; an OTA update cannot reach older builds.
 
 **Owner decisions (answered 2026-10-12)**
-1. Saved versions **sync to the server** (as `manual` versions with their label). To build.
+1. Saved versions **sync to the server** (as `manual` versions with their label). **Built** (see Sync).
 2. Versions top row stays "Where you are now" (differs from the prototype, accepted).
-3. Check sentences **follow the walkway setting** (75 or 90 cm), new copy in both languages. To build.
+3. Check sentences **follow the walkway setting** (75 or 90 cm), new copy in both languages. **Built** (the walkway sentence uses the room's own width; the other rules stay at 60 cm).
 4. Undo and redo stay mirrored under RTL.
 5. Header Share stays hidden until Phase 8.
 6. Button labels keep the darker gold (AA); ghost buttons stay 44 pt tall.
 7. **AI designer requires an email**: guests can design by hand but must add an email to use AI (enforce on the server in `consume_ai_request`, and say so in the Ask tab). Phase 5.
-8. **Room deletion**: long-press a room card, confirm dialog, deletes on the server too (needs sync tombstones). To build.
+8. **Room deletion**: long-press a room card, confirm dialog, deletes on the server too. **Built** (see Sync). Nothing on screen says "press and hold"; it is in the screen reader hint and Delete action only (discoverability to decide).
 9. Performance gate device: **iPhone 13** (newer than the iPhone 11 floor, so it flatters the numbers; mark results "iPhone 13, not floor device" until an iPhone 11 class phone is tried).
 10. Merge to the main branch **after the on-device perf check**; keep pushing the branch daily; never merge without the owner.
 11. Arabic strings written by us ship without native review for now (still flagged below).
@@ -107,7 +106,8 @@ Verified end to end on web against the local stack (email code sign-in, a room c
 
 Caveats:
 - **Sign-in email now carries the code** (`supabase/templates/code.html`); the hosted Supabase project needs the same template, and the email is bilingual (EN and AR, unreviewed).
-- **Room deletion is not designed**, so there is no way to delete a room yet (no tombstones in sync).
+- **Room deletion** is built without a design: long-press a room card, confirm, then `delete_room` on the server (new migration, pgTAP-tested; a room the server already lost counts as deleted). A queued delete survives restarts (`deleted` in the rooms store) and is dropped on an account switch.
+- **Saved versions sync**: sent oldest first as `manual` versions with their name, then the latest scene is saved again as current so the room never goes back to an older scene; pulled from the server by id, newest 30 kept per room. Checked against the local Supabase by hand (a saved version reached `room_versions`; a deleted room stayed deleted). Unit-tested with a fake server. Not tried: two phones at once. The server also holds each room's first version as an unnamed `manual` row (from `create_room`); the pull ignores unnamed ones.
 - **A different account signing in on the same phone wipes the local rooms** (the previous account's rooms live on the server). Unsynced edits from the first account would be lost; sync runs after every change so the window is small.
 - **Sync runs every 2 s after a change and retries every 30 s after a failure**; no exponential backoff yet. Offline failures are not sent to Sentry, other failures are.
 - Native (iOS/Android) behaviour of the app-state listener and offline detection is untested on a device.

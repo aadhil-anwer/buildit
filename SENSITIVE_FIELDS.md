@@ -7,7 +7,7 @@ Columns a client must never write, and why. Update this file in the same change 
 | --- | --- | --- | --- |
 | `profiles.id`, `created_at` | read | identity and history | trigger on sign-up |
 | `profiles.language`, `walkway_pref_cm` | read, update own | the user's own settings, validated by CHECK (en/ar, 75/90) | direct update |
-| `rooms.id`, `owner_id` | read | ownership: changing it would hand a room to someone else | `create_room()` |
+| `rooms.id`, `owner_id` | read | ownership: changing it would hand a room to someone else | `create_room()`; a room is removed only by `delete_room()` (owner only, "not found" for anyone else) |
 | `rooms.current_version_id` | read | must always point at a real version of this room | `save_version()`, `restore_version()`, `create_room()` |
 | `rooms.created_at`, `updated_at` | read | history | default / trigger |
 | `rooms.name` | read, update own | harmless label, length-checked | direct update |

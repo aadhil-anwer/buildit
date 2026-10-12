@@ -64,12 +64,12 @@ test("storage that is not even the right shape yields no rooms and a report", as
   expect(report).toHaveBeenCalled();
 });
 
-test("saving a version keeps the scene as it is now, and does not mark the room as changed", () => {
+test("saving a version keeps the scene as it is now, marks the room to sync, but is not an edit", () => {
   const scene = sampleBedroom();
   const id = useRooms.getState().add("Bedroom", scene);
   useRooms.setState((s) => ({ rooms: s.rooms.map((r) => ({ ...r, dirty: false, updatedAt: 1 })) }));
   useRooms.getState().saveVersion(id, "Before the rug");
-  expect(useRooms.getState().rooms[0]).toMatchObject({ dirty: false, updatedAt: 1 });
+  expect(useRooms.getState().rooms[0]).toMatchObject({ dirty: true, updatedAt: 1 }); // to sync, but the edited time stays
   useRooms.getState().save(id, { ...scene, id: "later" });
   const room = useRooms.getState().rooms[0];
   expect(room.versions).toHaveLength(1);

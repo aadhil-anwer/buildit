@@ -1,13 +1,16 @@
 import { useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
+import { useState } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 import { Button } from "@/components/button";
 import { IconButton } from "@/components/icon-button";
+import { ConfirmDialog } from "@/components/confirm-dialog";
 import { Skeleton } from "@/components/skeleton";
 import { Text } from "@/components/text";
 import { t } from "@/i18n";
 import { useScreenInsets } from "@/lib/use-screen-insets";
-import { useRooms, useRoomsReady } from "@/rooms/store";
+import { useEditor } from "@/editor/store";
+import { useRooms, useRoomsReady, type LocalRoom } from "@/rooms/store";
 import { useSyncStatus } from "@/sync/use-sync";
 import { color, withAlpha } from "@/theme";
 import { EmptyState } from "./empty-state";
@@ -20,6 +23,14 @@ export function Rooms() {
   const ready = useRoomsReady();
   const syncFailed = useSyncStatus((s) => s.failed);
   const rooms = useRooms((s) => s.rooms).toSorted((a, b) => b.updatedAt - a.updatedAt);
+  const [deleting, setDeleting] = useState<LocalRoom | null>(null);
+  const confirmDelete = () => {
+    if (deleting) {
+      if (useEditor.getState().roomId === deleting.id) useEditor.setState({ roomId: null, history: null });
+      useRooms.getState().remove(deleting.id);
+    }
+    setDeleting(null);
+  };
   return (
     <View style={[styles.root, { paddingTop: insets.top - 4 }]}>
       <View style={styles.header}>
@@ -33,8 +44,9 @@ export function Rooms() {
       <ScrollView contentContainerStyle={rooms.length || !ready ? styles.list : undefined}>
         {!ready ? [0, 1, 2].map((i) => <Skeleton key={i} label={t("loadingRooms")} style={styles.skeleton} />) : null}
         {ready && !rooms.length ? <EmptyState /> : null}
-        {ready ? rooms.map((room) => <RoomCard key={room.id} room={room} onOpen={() => router.push(`/editor/${room.id}`)} />) : null}
+        {ready ? rooms.map((room) => <RoomCard key={room.id} room={room} onOpen={() => router.push(`/editor/${room.id}`)} onDelete={() => setDeleting(room)} />) : null}
       </ScrollView>
+      <ConfirmDialog visible={!!deleting} title={t("delRoomH")} body={deleting ? t("delRoomP", deleting.name) : ""} cancelLabel={t("cancel")} confirmLabel={t("delConf")} onCancel={() => setDeleting(null)} onConfirm={confirmDelete} />
       <LinearGradient colors={[withAlpha(color.bg, 0), color.bg, color.bg]} locations={[0, 0.34, 1]} style={[styles.bar, { paddingBottom: insets.bottom }]}>
         <Button title={t("scan")} icon="scan" size={17} onPress={() => router.push("/capture")} style={styles.scan} />
       </LinearGradient>

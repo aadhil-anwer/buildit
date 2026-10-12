@@ -12,6 +12,8 @@ export interface LocalVersion {
   label: string | null;
   scene: Scene;
   createdAt: number;
+  /** The server's id for it once it has been sent (or came from there). */
+  remoteId?: string;
 }
 
 /** How many saved versions a room keeps; the oldest go first. */
@@ -26,7 +28,7 @@ export interface LocalRoom {
   updatedAt: number;
   /** Changed here and not yet sent to the server. */
   dirty: boolean;
-  /** Versions saved on purpose, oldest first. They stay on this phone: they are not synced yet. */
+  /** Versions saved on purpose, oldest first. Synced to the server with the room. */
   versions?: LocalVersion[];
 }
 
@@ -34,17 +36,19 @@ interface State {
   rooms: LocalRoom[];
   /** The account these rooms belong to, so a different account never sees them. */
   owner: string | null;
+  /** Rooms deleted here whose server copy is still to be deleted (the server ids), so a delete is not undone by the next pull. */
+  deleted: string[];
   /** Called on sign-in: a different account than before starts with no rooms; the same one keeps them. */
   claim: (userId: string) => void;
   add: (name: string, scene: Scene) => string;
   save: (id: string, scene: Scene) => void;
   rename: (id: string, name: string) => void;
-  /** Keep the room's scene as it is now under a name (or none). Does not count as a change to sync. */
-  saveVersion: (id: string, label: string | null) => void;
+  /** Keep the room's scene as it is now under a name. Marks the room to sync, but is not an edit (the edited time stays). */
+  saveVersion: (id: string, label: string) => void;
   remove: (id: string) => void;
 }
 
-const storedVersion = z.object({ id: z.string(), label: z.string().nullable(), scene: z.unknown(), createdAt: z.number() });
+const storedVersion = z.object({ id: z.string(), label: z.string().nullable(), scene: z.unknown(), createdAt: z.number(), remoteId: z.string().optional() });
 const stored = z.object({ id: z.string(), remoteId: z.string().optional(), name: z.string(), scene: z.unknown(), updatedAt: z.number(), dirty: z.boolean(), versions: z.array(z.unknown()).optional() });
 
 /** Saved versions read back from storage; one that cannot be read is dropped and reported. */
@@ -83,7 +87,8 @@ export const useRooms = create<State>()(
     (set) => ({
       rooms: [],
       owner: null,
-      claim: (userId) => set((s) => (s.owner && s.owner !== userId ? { rooms: [], owner: userId } : { owner: userId })),
+      deleted: [],
+      claim: (userId) => set((s) => (s.owner && s.owner !== userId ? { rooms: [], deleted: [], owner: userId } : { owner: userId })),
       add: (name, scene) => {
         const id = randomId();
         set((s) => ({ rooms: [{ id, name, scene, updatedAt: Date.now(), dirty: true }, ...s.rooms] }));
@@ -93,18 +98,23 @@ export const useRooms = create<State>()(
       rename: (id, name) => set(touch(id, { name })),
       saveVersion: (id, label) =>
         set((s) => ({
-          rooms: s.rooms.map((r) => (r.id === id ? { ...r, versions: [...(r.versions ?? []), { id: randomId(), label, scene: r.scene, createdAt: Date.now() }].slice(-MAX_VERSIONS) } : r)),
+          rooms: s.rooms.map((r) => (r.id === id ? { ...r, dirty: true, versions: [...(r.versions ?? []), { id: randomId(), label, scene: r.scene, createdAt: Date.now() }].slice(-MAX_VERSIONS) } : r)),
         })),
-      remove: (id) => set((s) => ({ rooms: s.rooms.filter((r) => r.id !== id) })),
+      remove: (id) =>
+        set((s) => {
+          const gone = s.rooms.find((r) => r.id === id)?.remoteId;
+          return { rooms: s.rooms.filter((r) => r.id !== id), deleted: gone ? [...s.deleted, gone] : s.deleted };
+        }),
     }),
     {
       name: "rooms",
       version: 1,
       storage: createJSONStorage(() => AsyncStorage),
-      partialize: (s) => ({ rooms: s.rooms, owner: s.owner }),
+      partialize: (s) => ({ rooms: s.rooms, owner: s.owner, deleted: s.deleted }),
       merge: (saved, current) => {
-        const { rooms, owner } = (saved ?? {}) as { rooms?: unknown; owner?: unknown };
-        return rooms === undefined ? current : { ...current, rooms: validRooms(rooms), owner: typeof owner === "string" ? owner : null };
+        const { rooms, owner, deleted } = (saved ?? {}) as { rooms?: unknown; owner?: unknown; deleted?: unknown };
+        const ids = z.array(z.string()).safeParse(deleted);
+        return rooms === undefined ? current : { ...current, rooms: validRooms(rooms), owner: typeof owner === "string" ? owner : null, deleted: ids.success ? ids.data : [] };
       },
     },
   ),

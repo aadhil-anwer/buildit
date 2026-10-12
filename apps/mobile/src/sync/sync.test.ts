@@ -1,46 +1,15 @@
 import { sampleBedroom, sampleLivingRoom, type Scene } from "@buildit/core";
 import * as reporter from "@/lib/report";
-import { useRooms, type LocalRoom } from "@/rooms/store";
+import { useRooms, type LocalRoom, type LocalVersion } from "@/rooms/store";
 import { useSettings } from "@/settings/store";
-import { syncOnce, type Remote, type RemoteRoom } from "./sync";
+import { fakeRemote } from "@/test/fake-remote";
+import { syncOnce, type RemoteVersion } from "./sync";
 
-/** An in-memory stand-in for the server: rooms with versions, and the profile's walkway. */
-function fakeRemote(initial: RemoteRoom[] = []) {
-  const rooms = new Map(initial.map((r) => [r.id, { ...r }]));
-  const calls: string[] = [];
-  let n = 0;
-  let walkway: 75 | 90 | null = null;
-  const remote: Remote = {
-    createRoom: (name, scene) => {
-      const id = `remote-${++n}`;
-      rooms.set(id, { id, name, scene, updatedAt: Date.now() });
-      calls.push(`create ${name}`);
-      return Promise.resolve(id);
-    },
-    saveVersion: (id, scene) => {
-      const r = rooms.get(id);
-      if (!r) return Promise.reject(new Error("room not found"));
-      rooms.set(id, { ...r, scene, updatedAt: Date.now() });
-      calls.push(`save ${id}`);
-      return Promise.resolve();
-    },
-    renameRoom: (id, name) => {
-      const r = rooms.get(id);
-      if (r) rooms.set(id, { ...r, name });
-      calls.push(`rename ${id}`);
-      return Promise.resolve();
-    },
-    listRooms: () => Promise.resolve([...rooms.values()]),
-    getWalkway: () => Promise.resolve(walkway),
-    setWalkway: (cm) => Promise.resolve(void (walkway = cm)),
-  };
-  return { remote, rooms, calls, setWalkwayOnServer: (cm: 75 | 90) => (walkway = cm) };
-}
 const local = (over: Partial<LocalRoom> & { id: string }): LocalRoom => ({ name: "Bedroom", scene: sampleBedroom(), updatedAt: 1000, dirty: false, ...over });
 const rooms = () => useRooms.getState().rooms;
 
 beforeEach(() => {
-  useRooms.setState({ rooms: [], owner: null });
+  useRooms.setState({ rooms: [], owner: null, deleted: [] });
   useSettings.setState({ walkwayCm: 90, walkwayDirty: false });
 });
 
@@ -168,4 +137,92 @@ test("walkway preference: an unsent local choice beats the server's", async () =
   useSettings.setState({ walkwayCm: 90, walkwayDirty: true });
   await syncOnce(fake.remote);
   expect(await fake.remote.getWalkway()).toBe(90);
+});
+
+const version = (over: Partial<LocalVersion> & { id: string }): LocalVersion => ({ label: "Keep", scene: sampleBedroom(), createdAt: 500, ...over });
+
+test("deleting: a room deleted here is deleted on the server, not pulled back, and forgotten once done", async () => {
+  const fake = fakeRemote([{ id: "r1", name: "Bedroom", scene: sampleBedroom(), updatedAt: 1000 }]);
+  useRooms.setState({ rooms: [local({ id: "a", remoteId: "r1" })] });
+  useRooms.getState().remove("a");
+  expect(useRooms.getState().deleted).toEqual(["r1"]);
+  await syncOnce(fake.remote);
+  expect(fake.calls).toEqual(["delete r1"]);
+  expect(rooms()).toEqual([]);
+  expect(useRooms.getState().deleted).toEqual([]);
+});
+
+test("deleting: a room that never reached the server needs no server call", async () => {
+  const fake = fakeRemote();
+  useRooms.setState({ rooms: [local({ id: "a", dirty: true })] });
+  useRooms.getState().remove("a");
+  await syncOnce(fake.remote);
+  expect(fake.calls).toEqual([]);
+});
+
+test("deleting: if the server already lost the room that counts as done; any other failure keeps it queued", async () => {
+  const fake = fakeRemote();
+  useRooms.setState({ rooms: [], deleted: ["already-gone"] });
+  await syncOnce(fake.remote);
+  expect(useRooms.getState().deleted).toEqual([]);
+  const error = new Error("offline");
+  useRooms.setState({ deleted: ["r5"] });
+  await expect(syncOnce({ ...fake.remote, deleteRoom: () => Promise.reject(error) })).rejects.toBe(error);
+  expect(useRooms.getState().deleted).toEqual(["r5"]);
+});
+
+test("versions: one saved here is sent as a named version, then the latest scene is made current again", async () => {
+  const old = sampleBedroom();
+  const now = sampleLivingRoom();
+  const fake = fakeRemote([{ id: "r1", name: "Bedroom", scene: now, updatedAt: 1000 }]);
+  useRooms.setState({ rooms: [local({ id: "a", remoteId: "r1", scene: now, dirty: true, versions: [version({ id: "v1", scene: old, label: "Before" })] })] });
+  await syncOnce(fake.remote);
+  expect(fake.calls).toEqual(['rename r1', 'save r1 "Before"', "save r1"]);
+  expect(fake.rooms.get("r1")!.scene).toBe(now); // the room did not go back to the old scene
+  expect(rooms()[0].versions![0].remoteId).toMatch(/^version-/);
+  expect(rooms()[0].dirty).toBe(false);
+});
+
+test("versions: saving one without editing sends just that version, with no extra autosave", async () => {
+  const scene = sampleBedroom();
+  const fake = fakeRemote([{ id: "r1", name: "Bedroom", scene, updatedAt: 1000 }]);
+  useRooms.setState({ rooms: [local({ id: "a", remoteId: "r1", scene })] });
+  useRooms.getState().saveVersion("a", "Saved version");
+  await syncOnce(fake.remote);
+  expect(fake.calls).toEqual(["rename r1", 'save r1 "Saved version"']);
+  await syncOnce(fake.remote);
+  expect(fake.calls).toHaveLength(2); // already sent: nothing more
+});
+
+test("versions: a new room is created first, then its versions, then it is left holding the latest scene", async () => {
+  const old = sampleBedroom();
+  const fake = fakeRemote();
+  useRooms.setState({ rooms: [local({ id: "a", dirty: true, scene: sampleLivingRoom(), versions: [version({ id: "v1", scene: old })] })] });
+  await syncOnce(fake.remote);
+  expect(fake.calls).toEqual(["create Bedroom", 'save remote-1 "Keep"', "save remote-1"]);
+});
+
+test("versions: ones saved on another phone appear here, once, oldest first, newest 30 kept", async () => {
+  const saved = Array.from({ length: 35 }, (_, i): RemoteVersion => ({ id: `s${i}`, roomId: "r1", label: `v${i}`, createdAt: 1000 + i, scene: sampleBedroom() }));
+  const fake = fakeRemote([{ id: "r1", name: "Bedroom", scene: sampleBedroom(), updatedAt: 1000 }], saved);
+  await syncOnce(fake.remote);
+  await syncOnce(fake.remote);
+  const labels = rooms()[0].versions!.map((v) => v.label);
+  expect(labels).toHaveLength(30);
+  expect(labels[0]).toBe("v5");
+  expect(labels[29]).toBe("v34");
+});
+
+test("versions: a server version whose scene cannot be read is skipped and reported", async () => {
+  const report = jest.spyOn(reporter, "report").mockImplementation(() => undefined);
+  const fake = fakeRemote([{ id: "r1", name: "Bedroom", scene: sampleBedroom(), updatedAt: 1000 }], [{ id: "s1", roomId: "r1", label: "Broken", createdAt: 1, scene: { nope: 1 } }]);
+  await syncOnce(fake.remote);
+  expect(rooms()[0].versions ?? []).toEqual([]);
+  expect(String(report.mock.calls[0][0])).toContain("Broken");
+});
+
+test("account switches: the previous account's queued deletes are dropped with its rooms", () => {
+  useRooms.setState({ rooms: [], owner: "user-1", deleted: ["r1"] });
+  useRooms.getState().claim("user-2");
+  expect(useRooms.getState().deleted).toEqual([]);
 });

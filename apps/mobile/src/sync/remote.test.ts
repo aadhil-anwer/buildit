@@ -7,9 +7,9 @@ jest.mock("@/lib/supabase", () => ({ supabase: { rpc: jest.fn(), from: jest.fn()
 const db = supabase as unknown as { rpc: jest.Mock; from: jest.Mock };
 
 /** A stand-in for supabase-js's query builder: every step returns itself, and awaiting it gives `result`. */
-interface Query { select: jest.Mock; update: jest.Mock; eq: jest.Mock; maybeSingle: jest.Mock; then: (resolve: (v: unknown) => void) => void }
+interface Query { select: jest.Mock; update: jest.Mock; eq: jest.Mock; in: jest.Mock; not: jest.Mock; order: jest.Mock; limit: jest.Mock; maybeSingle: jest.Mock; then: (resolve: (v: unknown) => void) => void }
 function query(result: unknown): Query {
-  const q: Query = { select: jest.fn(() => q), update: jest.fn(() => q), eq: jest.fn(() => q), maybeSingle: jest.fn(() => Promise.resolve(result)), then: (resolve: (v: unknown) => void) => resolve(result) };
+  const q: Query = { select: jest.fn(() => q), update: jest.fn(() => q), eq: jest.fn(() => q), in: jest.fn(() => q), not: jest.fn(() => q), order: jest.fn(() => q), limit: jest.fn(() => q), maybeSingle: jest.fn(() => Promise.resolve(result)), then: (resolve: (v: unknown) => void) => resolve(result) };
   return q;
 }
 const remote = createRemote("user-1");
@@ -27,15 +27,43 @@ describe("rooms", () => {
     await expect(remote.createRoom("Bedroom", scene)).rejects.toThrow();
   });
 
-  test("saving goes through save_version as an autosave, and server errors are raised as they are", async () => {
+});
+
+describe("versions and deleting", () => {
+  test("saving goes through save_version with its kind and label, returns the version id, and server errors are raised as they are", async () => {
     db.rpc.mockResolvedValue({ data: "v1", error: null });
-    await remote.saveVersion("r1", scene);
+    expect(await remote.saveVersion("r1", scene, "autosave", null)).toBe("v1");
     expect(db.rpc).toHaveBeenCalledWith("save_version", { p_room_id: "r1", p_scene: scene, p_kind: "autosave", p_label: null });
+    await remote.saveVersion("r1", scene, "manual", "Before the rug");
+    expect(db.rpc).toHaveBeenLastCalledWith("save_version", { p_room_id: "r1", p_scene: scene, p_kind: "manual", p_label: "Before the rug" });
     const error = Object.assign(new Error("room not found"), { code: "P0002" });
     db.rpc.mockResolvedValue({ data: null, error });
-    await expect(remote.saveVersion("r1", scene)).rejects.toBe(error);
+    await expect(remote.saveVersion("r1", scene, "autosave", null)).rejects.toBe(error);
   });
 
+  test("deleting goes through delete_room, and a server error is raised as it is", async () => {
+    db.rpc.mockResolvedValue({ data: null, error: null });
+    await remote.deleteRoom("r1");
+    expect(db.rpc).toHaveBeenCalledWith("delete_room", { p_room_id: "r1" });
+    const error = Object.assign(new Error("room not found"), { code: "P0002" });
+    db.rpc.mockResolvedValue({ data: null, error });
+    await expect(remote.deleteRoom("r1")).rejects.toBe(error);
+  });
+
+  test("listing versions asks only for saved ones with a name, newest first, and checks every row", async () => {
+    const q = query({ data: [{ id: "v1", room_id: "r1", label: "Keep", created_at: "2026-10-12T10:00:00Z", scene }], error: null });
+    db.from.mockReturnValue(q);
+    expect(await remote.listVersions()).toEqual([{ id: "v1", roomId: "r1", label: "Keep", createdAt: Date.parse("2026-10-12T10:00:00Z"), scene }]);
+    expect(db.from).toHaveBeenCalledWith("room_versions");
+    expect(q.in).toHaveBeenCalledWith("kind", ["manual", "ai"]);
+    expect(q.order).toHaveBeenCalledWith("created_at", { ascending: false });
+    db.from.mockReturnValue(query({ data: [{ id: 1 }], error: null }));
+    await expect(remote.listVersions()).rejects.toThrow();
+  });
+
+});
+
+describe("renaming and listing", () => {
   test("renaming updates only that room's name", async () => {
     const q = query({ error: null });
     db.from.mockReturnValue(q);
