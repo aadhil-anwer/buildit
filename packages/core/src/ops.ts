@@ -194,6 +194,17 @@ export function removeObject(scene: Scene, id: string): OpResult {
   return { scene: { ...scene, objects: scene.objects.filter((o) => o.id !== id) }, ok: true, message: `Removed ${id}.`, changed: [] };
 }
 
+/** Put an object at an exact pose (a drag or a nudge). Refused if it would leave the room, overlap something or block a door. */
+export function placeObject(scene: Scene, id: string, pose: Pose): OpResult {
+  const obj = getObject(scene, id);
+  if (!obj) return fail(scene, `No object with id "${id}"`);
+  if (obj.locked) return fail(scene, lockedError(obj));
+  const check = checkPose(scene, obj, pose);
+  if (!check.ok) return fail(scene, `Could not place ${id}: ${check.reasons.join("; ")}`);
+  const next = setPose(scene, id, pose);
+  return { scene: next, ok: true, message: `Placed ${id}: ${describePosition(next, getObject(next, id)!)}.`, changed: [id] };
+}
+
 /** Swap an object for another catalog item, keeping its spot and facing. */
 export function replaceObject(scene: Scene, id: string, catalogId: string): OpResult {
   const obj = getObject(scene, id);
