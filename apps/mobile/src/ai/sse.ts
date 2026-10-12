@@ -2,6 +2,15 @@ import { parseScene, type Scene } from "@buildit/core";
 import { z } from "zod";
 
 const facts = z.object({ score: z.number(), walkwayCm: z.number().nullable(), errors: z.number(), warnings: z.number(), seats: z.number(), tipsMet: z.number(), tipsTotal: z.number() });
+const size = z.object({ w: z.number(), d: z.number() });
+const nofit = z.object({
+  catalogId: z.string(),
+  type: z.string(),
+  need: size,
+  largest: size,
+  without: size.extend({ type: z.string() }).optional(),
+  alternative: size.extend({ catalogId: z.string(), type: z.string() }).optional(),
+});
 const step = z.object({ tool: z.string(), ok: z.boolean(), summary: z.string() });
 const sceneField = z.unknown().transform((v, ctx): Scene => {
   const scene = parseScene(v);
@@ -13,7 +22,7 @@ const sceneField = z.unknown().transform((v, ctx): Scene => {
 const event = z.discriminatedUnion("type", [
   z.object({ type: z.literal("step"), step, scene: sceneField, changed: z.array(z.string()) }),
   z.object({ type: z.literal("text"), text: z.string() }),
-  z.object({ type: z.literal("done"), scene: sceneField, steps: z.array(step), verdict: z.enum(["changed", "unchanged", "reverted"]), before: facts, after: facts, reply: z.string().nullable() }),
+  z.object({ type: z.literal("done"), scene: sceneField, steps: z.array(step), verdict: z.enum(["changed", "unchanged", "reverted"]), before: facts, after: facts, reply: z.string().nullable(), nofit: nofit.nullable() }),
   z.object({ type: z.literal("error"), code: z.enum(["model_failed", "refused", "too_long"]), message: z.string() }),
 ]);
 

@@ -1,13 +1,18 @@
-import type { Scene } from "@buildit/core";
+import { addObject, type FurnitureType, type Scene } from "@buildit/core";
 import { create } from "zustand";
 import { useToast } from "@/components/toast";
 import { useEditor } from "@/editor/store";
 import { t } from "@/i18n";
 import { report } from "@/lib/report";
+import { typeName } from "@/rooms/names";
 import { useRooms } from "@/rooms/store";
 import { changeLines } from "./changes";
 import { askDesigner, type Refusal } from "./client";
+import type { DesignerEvent } from "./sse";
 import { measuredRows, type MeasuredRow } from "./measured";
+
+/** The designer could not place something: the engine's measurement of why, and what would work. */
+type NoFit = Extract<DesignerEvent, { type: "done" }>["nofit"] & object;
 
 type Kind = "offline" | "unreachable" | "model_failed" | "refused" | "too_long";
 
@@ -15,7 +20,7 @@ type Kind = "offline" | "unreachable" | "model_failed" | "refused" | "too_long";
 export type Phase =
   | { name: "idle" }
   | { name: "running"; question: string; lines: string[] }
-  | { name: "done"; question: string; verdict: "changed" | "unchanged" | "reverted"; lines: string[]; rows: MeasuredRow[]; reply: string | null; changedIds: string[] }
+  | { name: "done"; question: string; verdict: "changed" | "unchanged" | "reverted"; lines: string[]; rows: MeasuredRow[]; reply: string | null; changedIds: string[]; nofit: NoFit | null }
   | { name: "limit"; resetsAt: Date }
   | { name: "guest" }
   | { name: "error"; kind: Kind; question: string };
@@ -57,7 +62,7 @@ export async function send(question: string, { avoid }: { avoid?: string[] } = {
   }
 }
 
-async function play(events: AsyncGenerator<import("./sse").DesignerEvent>, start: Scene, question: string) {
+async function play(events: AsyncGenerator<DesignerEvent>, start: Scene, question: string) {
   let shown = start;
   for await (const e of events) {
     if (e.type === "step") {
@@ -71,7 +76,7 @@ async function play(events: AsyncGenerator<import("./sse").DesignerEvent>, start
       const changed = e.verdict === "changed";
       if (changed) useEditor.getState().commit({ ok: true, scene: e.scene, message: "", changed: [] });
       useAsk.setState((s) => ({ turns: [...s.turns, { role: "user" as const, text: question }, ...(e.reply ? [{ role: "assistant" as const, text: e.reply }] : [])].slice(-12) }));
-      set({ name: "done", question, verdict: e.verdict, lines: changed ? changeLines(start, e.scene) : [], rows: changed ? measuredRows(e.before, e.after) : [], reply: e.reply, changedIds: changed ? changedIds(start, e.scene) : [] });
+      set({ name: "done", question, verdict: e.verdict, lines: changed ? changeLines(start, e.scene) : [], rows: changed ? measuredRows(e.before, e.after) : [], reply: e.reply, changedIds: changed ? changedIds(start, e.scene) : [], nofit: e.nofit });
     }
   }
 }
@@ -100,3 +105,11 @@ export function another() {
 }
 
 export const dismiss = () => set({ name: "idle" });
+
+/** Add the smaller piece that does fit (from the "does not fit" card). Says so if it still cannot be placed. */
+export function addAlternative(catalogId: string, type: FurnitureType) {
+  const editor = useEditor.getState();
+  if (!editor.history) return;
+  if (editor.commit(addObject(editor.history.present, catalogId))) set({ name: "idle" });
+  else useToast.getState().show(t("addNoFit", typeName(type)));
+}

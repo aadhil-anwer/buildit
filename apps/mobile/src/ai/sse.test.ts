@@ -11,7 +11,7 @@ const all = async (it: AsyncGenerator<DesignerEvent>) => {
   for await (const e of it) out.push(e);
   return out;
 };
-const done = (scene: unknown) => sse("done", { scene, steps: [], verdict: "unchanged", before: facts, after: facts, reply: null });
+const done = (scene: unknown) => sse("done", { scene, steps: [], verdict: "unchanged", before: facts, after: facts, reply: null, nofit: null });
 
 test("events arrive in order with their data checked", async () => {
   const text = sse("text", { text: "Hello" }) + done(sampleBedroom());
@@ -43,4 +43,10 @@ test("an event of an unknown kind, or with the wrong shape, is an error", async 
 test("a final event with no blank line after it is still read", async () => {
   const events = await all(parseEvents(chunks(`event: text\ndata: ${JSON.stringify({ type: "text", text: "tail" })}`)));
   expect(events).toHaveLength(1);
+});
+
+test("a 'does not fit' answer with the measured sizes and a smaller piece is understood", async () => {
+  const nofit = { catalogId: "dining_table_10", type: "dining_table", need: { w: 4.5, d: 2.6 }, largest: { w: 2.4, d: 2 }, without: { w: 2.4, d: 2, type: "desk" }, alternative: { catalogId: "dining_table_4", type: "dining_table", w: 1.2, d: 0.8 } };
+  const [e] = await all(parseEvents(chunks(sse("done", { scene: sampleBedroom(), steps: [], verdict: "unchanged", before: facts, after: facts, reply: null, nofit }))));
+  expect(e.type === "done" && e.nofit?.alternative?.catalogId).toBe("dining_table_4");
 });

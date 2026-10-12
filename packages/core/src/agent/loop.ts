@@ -1,6 +1,7 @@
 import { getObject } from "../scene";
 import { layoutReport, summarizeScene } from "../summary";
 import type { Scene } from "../types";
+import { findNoFit, type NoFit } from "./nofit";
 import { factChanges, measure, numbersAreMeasured, type FactChange, type Facts } from "./facts";
 import { SYSTEM_PROMPT } from "./prompt";
 import { executeTool, TOOL_DEFS, type ToolDef } from "./tools";
@@ -60,6 +61,8 @@ export type AgentEvent =
       measured: FactChange[];
       /** The model's closing words, only when every number in them is one the engine measured. */
       reply: string | null;
+      /** Set when a piece the person asked for did not fit: the measured reason and what would. */
+      nofit: NoFit | null;
     }
   | { type: "error"; code: "model_failed" | "refused" | "too_long"; message: string };
 
@@ -102,24 +105,27 @@ async function ask(model: AgentModel, messages: Message[]): Promise<ModelTurn | 
 /** Runs the model's tool calls on the engine, in order; returns the room after them, what to tell the model, and the steps to show. */
 function execute(scene: Scene, calls: ModelToolCall[]) {
   const results: { id: string; content: string; isError: boolean }[] = [];
+  const failedAdds: string[] = [];
   const shown: { step: AgentStep; scene: Scene; changed: string[] }[] = [];
   for (const c of calls) {
     const outcome = executeTool(scene, c.name, c.input);
     scene = outcome.scene;
     results.push({ id: c.id, content: outcome.content, isError: !outcome.ok });
+    const wanted = (c.input as { catalog_id?: unknown } | null)?.catalog_id;
+    if (!outcome.ok && c.name === "add_object" && typeof wanted === "string") failedAdds.push(wanted);
     if (outcome.mutating || !outcome.ok) shown.push({ step: { tool: c.name, ok: outcome.ok, summary: outcome.summary }, scene, changed: outcome.changed });
   }
-  return { scene, results, shown };
+  return { scene, results, shown, failedAdds };
 }
 
 /** The closing event: the engine's before and after, and a revert when the AI added hard errors. */
-function conclude(req: AgentRequest, scene: Scene, steps: AgentStep[], reply: string, before: Facts): Extract<AgentEvent, { type: "done" }> {
+function conclude(req: AgentRequest, scene: Scene, steps: AgentStep[], reply: string, before: Facts, failedAdds: string[]): Extract<AgentEvent, { type: "done" }> {
   const after = measure(scene);
   const reverted = after.errors > before.errors;
   const shown = reverted ? before : after;
   const verdict: Verdict = reverted ? "reverted" : steps.some((s) => s.ok) ? "changed" : "unchanged";
   const quotable = reply && numbersAreMeasured(reply, [before, after], req.message);
-  return { type: "done", scene: reverted ? req.scene : scene, steps, verdict, before, after: shown, measured: factChanges(before, shown), reply: quotable ? reply : null };
+  return { type: "done", scene: reverted ? req.scene : scene, steps, verdict, before, after: shown, measured: factChanges(before, shown), reply: quotable ? reply : null, nofit: failedAdds.length ? findNoFit(scene, failedAdds[failedAdds.length - 1]) : null };
 }
 
 /**
@@ -133,6 +139,7 @@ export async function* runAgent(model: AgentModel, req: AgentRequest): AsyncGene
   let scene = req.scene;
   const steps: AgentStep[] = [];
   let reply = "";
+  const failedAdds: string[] = [];
 
   for (let turn = 0; turn < MAX_TURNS; turn++) {
     const result = await ask(model, messages);
@@ -147,11 +154,12 @@ export async function* runAgent(model: AgentModel, req: AgentRequest): AsyncGene
     messages.push({ role: "assistant", text: result.text, toolCalls: result.toolCalls });
     const ran = execute(scene, result.toolCalls);
     scene = ran.scene;
+    failedAdds.push(...ran.failedAdds);
     for (const s of ran.shown) {
       steps.push(s.step);
       yield { type: "step", ...s };
     }
     messages.push({ role: "tool", results: ran.results });
   }
-  yield conclude(req, scene, steps, reply, before);
+  yield conclude(req, scene, steps, reply, before, failedAdds);
 }

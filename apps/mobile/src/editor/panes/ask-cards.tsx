@@ -1,10 +1,11 @@
 import { useRouter } from "expo-router";
 import { StyleSheet, View } from "react-native";
-import { another, dismiss, keep, send, undoResult, type Phase } from "@/ai/ask-store";
+import { addAlternative, another, dismiss, keep, send, undoResult, type Phase } from "@/ai/ask-store";
 import { Button } from "@/components/button";
 import { Icon } from "@/components/icon";
 import { Text } from "@/components/text";
-import { t } from "@/i18n";
+import { formatFixed, t } from "@/i18n";
+import { typeName } from "@/rooms/names";
 import { color, rust } from "@/theme";
 
 type Of<N extends Phase["name"]> = Extract<Phase, { name: N }>;
@@ -25,10 +26,30 @@ export function Running({ phase }: { phase: Of<"running"> }) {
   );
 }
 
+const m = (v: number) => formatFixed(v, 1);
+
+/** "It won't fit": what it needs against what there is (measured), what removing a piece would give, and a smaller one that does fit. */
+function NoFitCard({ nofit }: { nofit: NonNullable<Of<"done">["nofit"]> }) {
+  const alt = nofit.alternative;
+  return (
+    <View>
+      <Text variant="paneTitle" style={styles.title}>{t("aiNofitH", typeName(nofit.type as never))}</Text>
+      <Text variant="bodySm" tone="secondary" style={styles.reply}>{t("aiNofitP", m(nofit.need.w), m(nofit.need.d), m(nofit.largest.w), m(nofit.largest.d))}</Text>
+      {nofit.without ? <Text variant="bodySm" tone="secondary" style={styles.reply}>{t("aiNofitWithout", m(nofit.without.w), m(nofit.without.d), typeName(nofit.without.type as never))}</Text> : null}
+      <Text variant="bodySm" style={styles.verdict}>{alt ? t("aiNofitTry", typeName(alt.type as never), Math.round(alt.w * 100), Math.round(alt.d * 100)) : t("aiNofitNone")}</Text>
+      <View style={styles.actions}>
+        {alt ? <Button title={t("aiAddAlt", typeName(alt.type as never))} size={15} onPress={() => addAlternative(alt.catalogId, alt.type as never)} style={styles.grow} /> : null}
+        <Button title={t("aiGotIt")} variant="secondary" size={15} onPress={dismiss} style={styles.grow} />
+      </View>
+    </View>
+  );
+}
+
 const VERDICT = { changed: ["aiDone", null], unchanged: ["aiNothing", "aiNothingP"], reverted: ["aiReverted", "aiRevertedP"] } as const;
 
 /** The answer: what changed, the engine's measured before and after, and Keep / Undo / another option. */
 export function Done({ phase }: { phase: Of<"done"> }) {
+  if (phase.nofit && phase.verdict !== "changed") return <NoFitCard nofit={phase.nofit} />;
   const [title, body] = VERDICT[phase.verdict];
   const changed = phase.verdict === "changed";
   return (
@@ -104,6 +125,7 @@ const styles = StyleSheet.create({
   title: { marginBottom: 8 },
   quote: { fontStyle: "italic", marginBottom: 8 },
   reply: { marginBottom: 10 },
+  verdict: { paddingVertical: 11, borderTopWidth: 1, borderBottomWidth: 1, borderColor: color.divider },
   kicker: { marginTop: 14, marginBottom: 4 },
   line: { flexDirection: "row", alignItems: "center", gap: 12, paddingVertical: 9, borderTopWidth: 1, borderTopColor: color.divider },
   row: { paddingVertical: 7, borderTopWidth: 1, borderTopColor: color.divider },

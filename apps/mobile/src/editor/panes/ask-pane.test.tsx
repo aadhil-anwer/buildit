@@ -56,18 +56,41 @@ test("running: shows the question and what has been done so far", async () => {
 });
 
 test("done: what changed, the measured before and after, and Keep, Undo and another option", async () => {
-  phase({ phase: { name: "done", question: "q", verdict: "changed", lines: ["Moving the Bed 15 cm east"], rows: [{ key: "score", label: t("facScore"), before: "75", after: "91" }], reply: "Done.", changedIds: ["bed_1"] } });
+  phase({ phase: { name: "done", question: "q", verdict: "changed", lines: ["Moving the Bed 15 cm east"], rows: [{ key: "score", label: t("facScore"), before: "75", after: "91" }], reply: "Done.", changedIds: ["bed_1"], nofit: null } });
   await render(<AskPane onFix={jest.fn()} />);
   for (const text of [t("aiDone"), "Done.", t("changed"), t("measured"), t("facScore"), "75", "91"]) expect(screen.getByText(text)).toBeTruthy();
   for (const name of [t("keep"), t("undoB"), t("another")]) expect(screen.getByRole("button", { name })).toBeTruthy();
 });
 
 test.each([["unchanged", "aiNothing", "aiNothingP"], ["reverted", "aiReverted", "aiRevertedP"]] as const)("done but %s: says so, says why, and only offers to close", async (verdict, title, body) => {
-  phase({ phase: { name: "done", question: "q", verdict, lines: [], rows: [], reply: null, changedIds: [] } });
+  phase({ phase: { name: "done", question: "q", verdict, lines: [], rows: [], reply: null, changedIds: [], nofit: null } });
   await render(<AskPane onFix={jest.fn()} />);
   expect(screen.getByText(t(title))).toBeTruthy();
   expect(screen.getByText(t(body))).toBeTruthy();
   expect(screen.queryByRole("button", { name: t("keep") })).toBeNull();
+  await fireEvent.press(screen.getByRole("button", { name: t("aiGotIt") }));
+  expect(useAsk.getState().phase.name).toBe("idle");
+});
+
+test("done but something would not fit: the measured need and room, what removing a piece gives, and a smaller one to add", async () => {
+  const nofit = { catalogId: "dining_table_10", type: "dining_table", need: { w: 4.5, d: 2.6 }, largest: { w: 2.4, d: 2 }, without: { w: 3.1, d: 2.2, type: "desk" }, alternative: { catalogId: "dining_table_4", type: "dining_table", w: 1.2, d: 0.8 } };
+  phase({ phase: { name: "done", question: "a table for ten", verdict: "unchanged", lines: [], rows: [], reply: null, changedIds: [], nofit } });
+  await render(<AskPane onFix={jest.fn()} />);
+  expect(screen.getByText(t("aiNofitH", t("iTable")))).toBeTruthy();
+  expect(screen.getByText(t("aiNofitP", "4.5", "2.6", "2.4", "2.0"))).toBeTruthy();
+  expect(screen.getByText(t("aiNofitWithout", "3.1", "2.2", t("iDesk")))).toBeTruthy();
+  expect(screen.getByText(t("aiNofitTry", t("iTable"), 120, 80))).toBeTruthy();
+  await fireEvent.press(screen.getByRole("button", { name: t("aiAddAlt", t("iTable")) }));
+  expect(useEditor.getState().history!.present.objects.some((o) => o.catalogId === "dining_table_4")).toBe(true);
+  expect(useAsk.getState().phase.name).toBe("idle");
+});
+
+test("nothing of that kind fits: says so and what would make room, with no Add button", async () => {
+  const nofit = { catalogId: "dining_table_10", type: "dining_table", need: { w: 4.5, d: 2.6 }, largest: { w: 2.4, d: 2 } };
+  phase({ phase: { name: "done", question: "q", verdict: "unchanged", lines: [], rows: [], reply: null, changedIds: [], nofit } });
+  await render(<AskPane onFix={jest.fn()} />);
+  expect(screen.getByText(t("aiNofitNone"))).toBeTruthy();
+  expect(screen.queryByRole("button", { name: new RegExp(`^${t("aiAddAlt", "")}`.slice(0, 6)) })).toBeNull();
   await fireEvent.press(screen.getByRole("button", { name: t("aiGotIt") }));
   expect(useAsk.getState().phase.name).toBe("idle");
 });

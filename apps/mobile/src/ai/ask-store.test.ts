@@ -15,7 +15,7 @@ const warmer = (s: Scene): Scene => ({ ...s, room: { ...s.room, wallColor: desig
 async function* stream(...events: DesignerEvent[]) {
   for (const e of events) yield await Promise.resolve(e);
 }
-const done = (scene: Scene, over: Partial<Extract<DesignerEvent, { type: "done" }>> = {}): DesignerEvent => ({ type: "done", scene, steps: [], verdict: "changed", before: facts(), after: facts({ score: 91, walkwayCm: 92 }), reply: null, ...over });
+const done = (scene: Scene, over: Partial<Extract<DesignerEvent, { type: "done" }>> = {}): DesignerEvent => ({ type: "done", scene, steps: [], verdict: "changed", before: facts(), after: facts({ score: 91, walkwayCm: 92 }), reply: null, nofit: null, ...over });
 const present = () => useEditor.getState().history!.present;
 
 beforeEach(() => {
