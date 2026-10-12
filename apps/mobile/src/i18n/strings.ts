@@ -1,4 +1,5 @@
 import { generated } from "./strings.generated";
+import { tips } from "./tips-strings";
 
 // Strings the design doc does not have (it only covers the designed screens).
 // The Arabic here has not had a native-speaker review (see OPEN_ISSUES.md).
@@ -115,14 +116,6 @@ const extra = {
     aiMore: "and {0} more changes",
     tipsH: "Design tips",
     tipsSub: "Rules of thumb, not requirements. Take what suits you.",
-    tipCoffeeOk: "The coffee table is {0} cm from the sofa, an easy reach",
-    tipCoffeeNo: "The coffee table is {0} cm from the sofa; 30 to 55 cm is easiest to reach",
-    tipTvOk: "The TV is {0} m from the seat, a comfortable distance for this screen",
-    tipTvNo: "The TV is {0} m from the seat; {1} to {2} m suits this screen",
-    tipTalkOk: "Seats facing each other are {0} m apart, close enough to talk easily",
-    tipTalkNo: "Seats facing each other are {0} m apart; under {1} m keeps talk easy",
-    tipRugOk: "The sofa's front legs are on the rug",
-    tipRugNo: "The rug stops short of the sofa; its front legs look best on it",
     delRoom: "Delete room",
     delRoomH: "Delete this room?",
     delRoomP: "“{0}” and its saved versions will be deleted from this phone and from your account. This can't be undone.",
@@ -257,14 +250,6 @@ const extra = {
     aiMore: "و{0} تغييرات أخرى",
     tipsH: "نصائح التصميم",
     tipsSub: "قواعد إرشادية وليست شروطًا. خذ ما يناسبك.",
-    tipCoffeeOk: "طاولة القهوة على بُعد {0} سم من الأريكة، يسهل الوصول إليها",
-    tipCoffeeNo: "طاولة القهوة على بُعد {0} سم من الأريكة؛ الأسهل أن تكون بين ٣٠ و٥٥ سم",
-    tipTvOk: "التلفزيون على بُعد {0} م من المقعد، مسافة مريحة لهذه الشاشة",
-    tipTvNo: "التلفزيون على بُعد {0} م من المقعد؛ المسافة المناسبة لهذه الشاشة بين {1} و{2} م",
-    tipTalkOk: "المقاعد المتقابلة تبعد {0} م، قريبة بما يكفي للحديث بسهولة",
-    tipTalkNo: "المقاعد المتقابلة تبعد {0} م؛ أقل من {1} م تُبقي الحديث مريحًا",
-    tipRugOk: "الساقان الأماميتان للأريكة فوق السجادة",
-    tipRugNo: "السجادة تقصر عن الأريكة؛ الأفضل أن تكون ساقاها الأماميتان فوقها",
     delRoom: "حذف الغرفة",
     delRoomH: "حذف هذه الغرفة؟",
     delRoomP: "ستُحذف «{0}» ونسخها المحفوظة من هذا الهاتف ومن حسابك. لا يمكن التراجع عن ذلك.",
@@ -290,6 +275,6 @@ const extra = {
 } as const;
 
 export const strings = {
-  en: { ...generated.en, ...extra.en },
-  ar: { ...generated.ar, ...extra.ar },
+  en: { ...generated.en, ...extra.en, ...tips.en },
+  ar: { ...generated.ar, ...extra.ar, ...tips.ar },
 } as const;

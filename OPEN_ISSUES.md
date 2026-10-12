@@ -50,6 +50,16 @@ What is planned but not done, in build order. Done phases are in `git log`; deta
 - [ ] Native-speaker review of every Arabic string we wrote ourselves.
 - [x] Decisions on the gold label, anonymous AI abuse and ghost size are answered (see Editor > Owner decisions).
 
+## Design quality: the road to "interior-designer level" (honest status)
+
+Today the engine has 8 advisory design rules (`DESIGN_RULES`: coffee-table gap, TV distance, conversation distance, rug under sofa, dining chair pull-out, bed foot, headboard under a window, nightstand pair) plus the room check (walkway, doors, bed sides, storage reach, window light). They are commonly cited rules of thumb, **not reviewed by a designer**, and they only produce tips; they do not yet feed `improve`'s cost function or the score. This is a good checker, not a replacement for a designer. To get closer:
+- [ ] A designer (ideally one who knows GCC homes) reviews every threshold in `DESIGN_RULES` and the Arabic tip strings. Owner to arrange.
+- [ ] Wire tips into `improve`/score so the optimizer and the AI chase the same rules.
+- [ ] More rules: focal point (seating faces a TV/window/feature wall), desk beside not facing a window, wardrobe/door clash, 60-30-10 colour split, balance and symmetry, majlis layout and door-sightline privacy (needs a local reviewer).
+- [ ] Run the evals against the real model (needs the Anthropic key) and have a designer score about 20 outputs against a plain chatbot's answers on the same rooms.
+- [ ] Scan accuracy (LiDAR) bounds everything above; unverified until a LiDAR device is tested.
+- [ ] Users expect photoreal pictures; a 3D room will look plainer. Optional "mood render" is an owner decision, not planned.
+
 ## Editor (Phase 4, in progress)
 
 **Built:** wall snap (a dragged piece within 8 cm of a wall jumps flush; the drag preview does not show the snap, the landing does; unit-tested, not tried by hand), suggestion card (appears 2.6 s after the room is left alone, 6 s after a dismissal; Try it applies the change as one undoable step), door swings, walking-space overlay (walk button and the "Check the walking space" suggestion; gold where a person can walk, rust where it is too tight, from the engine's clearance grid; checked in the browser in 3D and plan, not compared with the prototype); `Sheet` (196 / 404 / 640 pt, drag or tap the grabber, Reanimated height) with the Ask / Add / Item / Finishes tabs and the Check pane; header (back, room name, undo, redo, versions); room-check chip; 3D view (React Three Fiber, orthographic 33 degree view, hidden camera-facing walls, tap to select, drag a piece in 5 cm steps, drag floor to orbit, pinch to zoom); Plan view (tap, drag, same 5 cm steps); every change is one undoable step (50 deep) saved to the room at once; Fix (time-sliced layout improver); restyle; versions (save, list, restore) on this phone.

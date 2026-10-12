@@ -11,4 +11,8 @@ test("each tip reads as a sentence with the measured numbers", () => {
   expect(tipText(tip({ id: "conversation_distance", ok: false, value: 3.4, ideal: [0, 3] }))).toBe(t("tipTalkNo", "3.4", "3.0"));
   expect(tipText(tip({ id: "rug_under_seating", ok: true }))).toBe(t("tipRugOk"));
   expect(tipText(tip({ id: "rug_under_seating", ok: false }))).toBe(t("tipRugNo"));
+  expect(tipText(tip({ id: "dining_pullout", ok: false }))).toBe(t("tipDiningNo"));
+  expect(tipText(tip({ id: "bed_foot", ok: true }))).toBe(t("tipBedFootOk"));
+  expect(tipText(tip({ id: "headboard_window", ok: false }))).toBe(t("tipHeadWinNo"));
+  expect(tipText(tip({ id: "bed_pair", ok: true }))).toBe(t("tipPairOk"));
 });

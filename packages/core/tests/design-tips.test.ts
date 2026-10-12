@@ -74,3 +74,37 @@ test("the scene summary handed to the AI carries each tip with its measured valu
   expect(summary.design_tips).toEqual([expect.objectContaining({ rule: "coffee_table_gap", meets_rule: false, measured_m: 0.1, comfortable_m: [0.3, 0.55] })]);
   expect(summary.design_tips[0].source).toContain("common practice");
 });
+
+describe("dining chair pull-out", () => {
+  // Chair at rotation 0 faces south, so its back (the pull-out side) is north.
+  test("a chair with 75 cm clear behind it passes; one against a wall fails", () => {
+    expect(tip(put(empty(), "dining_chair", 3, 3, 0), "dining_pullout")!.ok).toBe(true);
+    expect(tip(put(empty(), "dining_chair", 3, 0.25, 0), "dining_pullout")!.ok).toBe(false);
+  });
+
+  test("a sofa right behind the chair fails it", () => {
+    expect(tip(put(put(empty(), "dining_chair", 3, 3, 0), "sofa_3_seat", 3, 2.2, 0), "dining_pullout")!.ok).toBe(false);
+  });
+});
+
+describe("bed foot", () => {
+  test("60 cm free at the foot of the bed passes; a wall there fails", () => {
+    expect(tip(put(empty(), "bed_double", 3, 2, 180), "bed_foot")!.ok).toBe(true);
+    expect(tip(put(empty(), "bed_double", 3, 4.7, 0), "bed_foot")!.ok).toBe(false);
+  });
+});
+
+describe("bed pair", () => {
+  const bed = () => put(empty(), "bed_double", 3, 2, 180);
+  test("a nightstand on one side only is flagged; both sides pass", () => {
+    const one = put(bed(), "nightstand", 3 - 0.95, 1.2, 180);
+    expect(tip(one, "bed_pair")!.ok).toBe(false);
+    expect(tip(put(one, "nightstand", 3 + 0.95, 1.2, 180), "bed_pair")!.ok).toBe(true);
+  });
+
+  test("a single bed is not asked for two", () => expect(tip(put(empty(), "bed_single", 3, 2, 180), "bed_pair")).toBeUndefined());
+});
+
+describe("headboard under a window", () => {
+  test("no window, no tip", () => expect(tip(put(empty(), "bed_double", 3, 2, 180), "headboard_window")).toBeUndefined());
+});

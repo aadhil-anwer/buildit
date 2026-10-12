@@ -10,6 +10,10 @@ const WORDS: Record<TipId, (v: number, lo: number, hi: number) => [ok: string, n
   tv_distance: (v, lo, hi) => [t("tipTvOk", metres(v)), t("tipTvNo", metres(v), metres(lo), metres(hi))],
   conversation_distance: (v, _lo, hi) => [t("tipTalkOk", metres(v)), t("tipTalkNo", metres(v), metres(hi))],
   rug_under_seating: () => [t("tipRugOk"), t("tipRugNo")],
+  dining_pullout: () => [t("tipDiningOk"), t("tipDiningNo")],
+  bed_foot: () => [t("tipBedFootOk"), t("tipBedFootNo")],
+  headboard_window: () => [t("tipHeadWinOk"), t("tipHeadWinNo")],
+  bed_pair: () => [t("tipPairOk"), t("tipPairNo")],
 };
 
 /** One design tip in a sentence, with the engine's own measured numbers. */

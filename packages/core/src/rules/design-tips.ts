@@ -3,12 +3,13 @@
  * thresholds. Every number below is a commonly cited rule of thumb, not a standard; `source` says where it comes from.
  * Distances are metres. The AI is given these results (with the numbers) and may not invent its own.
  */
-import { getCatalogItem } from "../catalog";
-import { dot, frontDir, norm, obbDistance, obbOverlap, sub } from "../geometry";
+import { getCatalogItem, typeInfo } from "../catalog";
+import { dot, frontDir, localXDir, norm, obbDistance, obbInsidePolygon, obbOf, obbOverlap, sub } from "../geometry";
+import { openingZone } from "../room";
 import { objectObb } from "../scene";
 import type { Scene, SceneObject } from "../types";
 
-export type TipId = "coffee_table_gap" | "tv_distance" | "conversation_distance" | "rug_under_seating";
+export type TipId = "coffee_table_gap" | "tv_distance" | "conversation_distance" | "rug_under_seating" | "dining_pullout" | "bed_foot" | "headboard_window" | "bed_pair";
 
 export interface DesignRule {
   id: TipId;
@@ -23,6 +24,10 @@ export const DESIGN_RULES: Record<TipId, DesignRule> = {
   tv_distance: { id: "tv_distance", range: [1.5, 2.5], source: "common practice: viewing distance 1.5-2.5 times the screen diagonal (PRODUCT.md)" },
   conversation_distance: { id: "conversation_distance", range: [0, 3.0], source: "common practice: seats that face each other within about 2.4-3.0 m for easy conversation" },
   rug_under_seating: { id: "rug_under_seating", range: [0, 0], source: "common practice: at least the front legs of seating sit on the rug" },
+  dining_pullout: { id: "dining_pullout", range: [0.75, 0.9], source: "Neufert / common practice: 75-90 cm behind a dining chair so it can be pulled out" },
+  bed_foot: { id: "bed_foot", range: [0.6, 0.9], source: "common practice: at least 60 cm (ideally 90) clear at the foot of a bed to pass" },
+  headboard_window: { id: "headboard_window", range: [0, 0], source: "common practice: a bed's headboard is better against solid wall than under a window (draught, light, privacy)" },
+  bed_pair: { id: "bed_pair", range: [0, 0], source: "common practice: a nightstand on both sides of a double bed so both sleepers have one" },
 };
 
 export interface DesignTip {
@@ -89,7 +94,42 @@ function rugUnderSeating(scene: Scene): DesignTip[] {
   });
 }
 
+/** Is a stretch of floor (a box in front of or behind a piece) inside the room and free of other standing furniture? */
+function zoneClear(scene: Scene, owner: SceneObject, distance: number, along: 1 | -1, deep: number): boolean {
+  const f = frontDir(owner.rotation);
+  const centre = { x: owner.x + f.x * along * (owner.d / 2 + distance / 2), z: owner.z + f.z * along * (owner.d / 2 + distance / 2) };
+  const box = obbOf({ ...centre, rotation: owner.rotation }, deep, distance);
+  const others = scene.objects.filter((o) => o.id !== owner.id && !typeInfo(o.type).floorLevel && !(typeInfo(o.type).hasKneeSpace && owner.type.endsWith("chair")));
+  return obbInsidePolygon(box, scene.room.corners) && !others.some((o) => obbOverlap(box, objectObb(o)) > 0.01);
+}
+
+function diningPullout(scene: Scene): DesignTip[] {
+  return scene.objects.filter((o) => o.type === "dining_chair").map((c) => ({ id: "dining_pullout" as const, ok: zoneClear(scene, c, DESIGN_RULES.dining_pullout.range[0], -1, c.w), objectIds: [c.id] }));
+}
+
+function bedFoot(scene: Scene): DesignTip[] {
+  return scene.objects.filter((o) => o.type === "bed").map((b) => ({ id: "bed_foot" as const, ok: zoneClear(scene, b, DESIGN_RULES.bed_foot.range[0], 1, b.w), objectIds: [b.id] }));
+}
+
+function headboardWindow(scene: Scene): DesignTip[] {
+  const windows = scene.room.openings.filter((o) => o.type === "window");
+  return scene.objects.filter((o) => o.type === "bed").flatMap((b) => {
+    if (!windows.length) return [];
+    const under = windows.some((w) => obbOverlap(objectObb(b), openingZone(scene.room, w)) > 0.05 && b.h > w.sill + 0.05);
+    return [{ id: "headboard_window" as const, ok: !under, objectIds: [b.id] }];
+  });
+}
+
+function bedPair(scene: Scene): DesignTip[] {
+  const stands = scene.objects.filter((o) => o.type === "nightstand");
+  return scene.objects.filter((o) => o.type === "bed" && o.w >= 1.3).map((b) => {
+    const beside = stands.filter((n) => obbDistance(objectObb(b), objectObb(n)) < 0.35);
+    const sides = new Set(beside.map((n) => Math.sign(dot({ x: n.x - b.x, z: n.z - b.z }, localXDir(b.rotation))) || 1));
+    return { id: "bed_pair" as const, ok: sides.size === 2, objectIds: [b.id, ...beside.map((n) => n.id)] };
+  });
+}
+
 /** The tips that apply to this room: one per rule that has something to measure, passing or not. */
 export function designTips(scene: Scene): DesignTip[] {
-  return [...coffeeTableGap(scene), ...tvDistance(scene), ...conversationDistance(scene), ...rugUnderSeating(scene)];
+  return [...coffeeTableGap(scene), ...tvDistance(scene), ...conversationDistance(scene), ...rugUnderSeating(scene), ...diningPullout(scene), ...bedFoot(scene), ...headboardWindow(scene), ...bedPair(scene)];
 }
