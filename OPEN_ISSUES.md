@@ -11,7 +11,7 @@ Tick them off here. "Needed by" is the phase that gets blocked without it.
 - [ ] **Supabase project** (free tier is fine to start): project URL, anon key, and a service-role key kept only in Supabase secrets. Needed by: Phase 2.
 - [ ] **Anthropic API key** for the AI designer (server-side secret only). Needed by: Phase 5.
 - [ ] **Apple Developer account** ($99/year, takes a day or two to approve). Needed by: Phase 4 on-device testing, required for Phase 6 and the App Store.
-- [ ] **Tell me your iPhone model.** RoomPlan LiDAR scanning needs a Pro model (12 Pro or later). Needed by: Phase 6.
+- [x] **iPhone model: base iPhone 13, no LiDAR** (answered). LiDAR room scanning (RoomPlan) cannot be tried on it; the guided ARKit scan and typed dimensions can. LiDAR needs a 12 Pro / 13 Pro or later (or a Pro iPad) to test, or ship it unverified. Decision needed before Phase 6: which phone tests LiDAR?
 - [ ] **Google Play developer account** ($25 once). Needed by: Phase 7.
 - [ ] **Final app name** (BuildIt is a working name), plus a domain, support email, privacy policy and terms of service. Needed by: Phase 8 (the name by Phase 3 if you want it on screens).
 - [ ] **Delete the old copies** in `/home/zorothepirate/buildit/`: `CLAUDE.md`, `AGENTS.md`, `STACK.md`, `design-docnew/`, `design-doc.zip`, `design-docnew.zip`. The real ones are in `app/`. Do it when you're happy; I won't delete without your say.
