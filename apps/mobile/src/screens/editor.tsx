@@ -13,6 +13,7 @@ import { useFail } from "@/lib/use-fail";
 import { EditorHeader } from "@/editor/header";
 import { fixLayout } from "@/editor/fix";
 import { PlanCanvas } from "@/editor/plan-canvas";
+import { SuggestionCard } from "@/editor/suggestion-card";
 import { RoomCanvas } from "@/editor/scene3d/room-canvas";
 import { AddPane } from "@/editor/panes/add-pane";
 import { AskPane } from "@/editor/panes/ask-pane";
@@ -67,6 +68,7 @@ function EditorBody({ name }: { name: string }) {
       <Canvas scene={scene} selectedId={selectedId} topInset={insets.top + 98} bottomInset={heights[snap]} walk={walk} onSelect={useEditor.getState().select} onPlace={place} />
       <View style={[styles.top, { top: insets.top - 4 }]}><EditorHeader name={name} /></View>
       <View style={[styles.chips, { top: insets.top + 46 }]}><ChipsRow /></View>
+      <SuggestionCard top={insets.top + 98} />
       <Toast top={insets.top + 100} />
       <Sheet snap={snap} onSnapChange={setSnap}>
         <SheetTabs tabs={TAB_KEYS.map((key) => ({ key, label: t(key) }))} value={tab} onChange={useEditor.getState().setTab} />

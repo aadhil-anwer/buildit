@@ -15,6 +15,8 @@ interface State {
   view: EditorView;
   /** Show where a person can walk (gold) and where it is too tight (rust). */
   walk: boolean;
+  /** Suggestions the person has dismissed or tried in this visit, so the card does not offer them again. */
+  dismissed: string[];
   tab: EditorTab;
   /** Open a room: a fresh history and nothing selected. */
   open: (roomId: string, scene: Scene) => void;
@@ -27,6 +29,7 @@ interface State {
   select: (id: string | null) => void;
   setView: (view: EditorView) => void;
   setWalk: (walk: boolean) => void;
+  dismiss: (id: string) => void;
   setTab: (tab: EditorTab) => void;
 }
 
@@ -43,8 +46,9 @@ export const useEditor = create<State>()((set) => ({
   selectedId: null,
   view: "3d",
   walk: false,
+  dismissed: [],
   tab: "tAsk",
-  open: (roomId, scene) => set({ roomId, history: H.start(scene), selectedId: null, view: "3d", walk: false, tab: "tAsk" }),
+  open: (roomId, scene) => set({ roomId, history: H.start(scene), selectedId: null, view: "3d", walk: false, dismissed: [], tab: "tAsk" }),
   commit: (result) => {
     if (result.ok) set((s) => (s.history ? saved(s, H.push(s.history, result.scene)) : s));
     return result.ok;
@@ -55,6 +59,7 @@ export const useEditor = create<State>()((set) => ({
   select: (selectedId) => set((s) => ({ selectedId, tab: selectedId ? "tItem" : s.tab })),
   setView: (view) => set({ view }),
   setWalk: (walk) => set({ walk }),
+  dismiss: (id) => set((s) => ({ dismissed: [...s.dismissed, id] })),
   setTab: (tab) => set({ tab }),
 }));
 

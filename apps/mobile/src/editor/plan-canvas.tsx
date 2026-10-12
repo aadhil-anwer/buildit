@@ -70,7 +70,7 @@ export function PlanCanvas({ scene, selectedId, topInset, bottomInset, walk, onS
   return (
     <GestureDetector gesture={gesture}>
       <View testID="plan-canvas" style={[styles.canvas, { top: topInset, height }]}>
-        <PlanView scene={scene} width={width} height={height} pad={24} selectedId={selectedId} hiddenId={dragId} walk={walk ? overlayRuns(walk) : undefined} />
+        <PlanView scene={scene} width={width} height={height} pad={24} selectedId={selectedId} hiddenId={dragId} walk={walk ? overlayRuns(walk) : undefined} doors />
         {/* eslint-disable-next-line no-restricted-syntax -- the plan is drawn in world space (north up), which never mirrors under RTL */}
         {grabbed ? <Animated.View pointerEvents="none" style={[styles.piece, { left: grabbed.cx - grabbed.w / 2, top: grabbed.cy - grabbed.d / 2, width: grabbed.w, height: grabbed.d, backgroundColor: grabbed.color }, style]} /> : null}
       </View>

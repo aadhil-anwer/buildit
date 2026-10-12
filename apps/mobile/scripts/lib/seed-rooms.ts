@@ -3,7 +3,7 @@ import { generated } from "../../src/i18n/strings.generated.ts";
 const DAY = 86_400_000;
 const scene = (name: string, w: number, d: number) => ({
   version: 1, id: name,
-  room: { name, corners: [{ x: 0, z: 0 }, { x: w, z: 0 }, { x: w, z: d }, { x: 0, z: d }], height: 2.8, openings: [], floorColor: "#cdbca3", wallColor: "#efe9e0" },
+  room: { name, corners: [{ x: 0, z: 0 }, { x: w, z: 0 }, { x: w, z: d }, { x: 0, z: d }], height: 2.8, openings: [{ id: "door_1", type: "door", wall: 1, offset: d - 1.4, width: 0.9, height: 2.1, sill: 0 }, { id: "window_1", type: "window", wall: 0, offset: w / 2 - 0.7, width: 1.4, height: 1.3, sill: 0.9 }], floorColor: "#cdbca3", wallColor: "#efe9e0" },
   objects: [{ id: "bed_1", catalogId: "bed_queen", type: "bed", name: "Bed", w: 1.7, d: 2.15, h: 1.1, x: w / 2, z: 1.3, rotation: 0, color: "#d8cfc2" }],
   constraints: { minWalkway: 0.8 },
 });

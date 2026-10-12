@@ -7,6 +7,8 @@ import { ACESFilmicToneMapping, PCFSoftShadowMap, Vector3 } from "three";
 import { color } from "@/theme";
 import { draggedTo, floorPoint, pickPiece, type Drag } from "./interaction";
 import { PerfProbe } from "./perf-probe";
+import { useCanvasActive } from "./use-canvas-active";
+import { DoorSwings } from "./door-swings";
 import { Piece } from "./piece";
 import { WalkFloor } from "./walk-floor";
 import { RoomShell } from "./room-shell";
@@ -129,15 +131,17 @@ export function RoomCanvas({ scene, selectedId, topInset, bottomInset, walk, onS
   const view = useRef<View3D>({ ...START });
   const state = useRef<RootState | null>(null);
   const gesture = useRoomGestures(scene, state, view, { onSelect, onPlace });
+  const active = useCanvasActive();
   return (
     <GestureDetector gesture={gesture}>
       <View testID="room-canvas" style={[styles.canvas, { top: topInset, height }]}>
-        <Canvas orthographic frameloop="demand" dpr={[1, 2]} shadows={{ type: PCFSoftShadowMap }} gl={{ toneMapping: ACESFilmicToneMapping, toneMappingExposure: 0.92 }} camera={{ near: -50, far: 100, zoom: 60 }}>
+        <Canvas orthographic frameloop={active ? "demand" : "never"} dpr={[1, 2]} shadows={{ type: PCFSoftShadowMap }} gl={{ toneMapping: ACESFilmicToneMapping, toneMappingExposure: 0.92 }} camera={{ near: -50, far: 100, zoom: 60 }}>
           <Probe into={state} />
           <PerfProbe />
           <Rig scene={scene} view={view} />
           <Lights scene={scene} />
           <RoomShell room={scene.room} view={view} />
+          <DoorSwings room={scene.room} />
           {walk ? <WalkFloor report={walk} /> : null}
           <group name="pieces">
             {scene.objects.map((o) => <Piece key={o.id} piece={o} selected={o.id === selectedId} floorLevel={!!typeInfo(o.type).floorLevel} />)}

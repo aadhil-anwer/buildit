@@ -113,6 +113,7 @@ const GENERIC: CatalogItem[] = [
   { id: "bed_king", name: "King bed 180", type: "bed", w: 1.95, d: 2.15, h: 1.1, color: "#d8cfc2", seats: 0 },
   { id: "nightstand", name: "Nightstand", type: "nightstand", w: 0.5, d: 0.4, h: 0.55, color: "#cbbfae" },
   // Decor
+  { id: "rug_bedroom", name: "Rug 150×220", type: "rug", w: 2.2, d: 1.5, h: 0.01, color: "#d6c7ae" },
   { id: "rug_small", name: "Rug 160×230", type: "rug", w: 2.3, d: 1.6, h: 0.01, color: "#d6c7ae" },
   { id: "rug_medium", name: "Rug 200×300", type: "rug", w: 3.0, d: 2.0, h: 0.01, color: "#d6c7ae" },
   { id: "rug_large", name: "Rug 250×350", type: "rug", w: 3.5, d: 2.5, h: 0.01, color: "#c8b79a" },

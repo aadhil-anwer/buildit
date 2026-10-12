@@ -3,6 +3,7 @@ import { roomCheck } from "../src/check";
 import { design } from "../src/design.generated";
 import { nextSteps, suggestions, applyChange } from "../src/suggest";
 import { RECT_WALL, makeOpening } from "../src/room";
+import { getCatalogItem } from "../src/catalog";
 import { objectFromCatalogId } from "../src/scene";
 import { emptyRoom, sampleBedroom } from "../src/templates";
 import type { Scene } from "../src/types";
@@ -63,4 +64,12 @@ describe("suggested next (the Ask tab)", () => {
     const calm = roomCheck({ ...bedroom, objects: [] });
     expect(nextSteps({ ...bedroom, objects: [] }, calm, { walkOn: true, unsaved: false, styled: true }).map((n) => n.id)).toEqual(["rug"]);
   });
+});
+
+test("the rug suggestion offers the 220 × 150 cm rug its words promise", () => {
+  const bare = sampleBedroom();
+  const rug = suggestions({ ...bare, objects: bare.objects.filter((o) => o.type !== "rug") }, []).find((s) => s.id === "rug");
+  expect(rug?.change.op).toBe("add");
+  const item = getCatalogItem((rug!.change as { catalogId: string }).catalogId)!;
+  expect([item.w, item.d]).toEqual([2.2, 1.5]);
 });

@@ -26,7 +26,7 @@ export function suggestions(scene: Scene, dismissed: string[]): Suggestion[] {
   const { wall, furniture } = design.materials;
   const all: (Suggestion | false | undefined)[] = [
     desk && !find("floor_lamp") && { id: "lamp", change: { op: "add", catalogId: "floor_lamp", placement: { type: "near", target: desk.id } } },
-    rugTarget && !find("rug") && { id: "rug", change: { op: "add", catalogId: "rug_small", placement: { type: "next_to", target: rugTarget.id, side: "under" } } },
+    rugTarget && !find("rug") && { id: "rug", change: { op: "add", catalogId: "rug_bedroom", placement: { type: "next_to", target: rugTarget.id, side: "under" } } },
     scene.room.wallColor === wall.chalk && { id: "wall", change: { op: "finish", wall: wall.sand } },
     bed?.color === furniture.sage && { id: "headboard", change: { op: "color", ids: [bed.id], color: furniture.clay } },
   ];

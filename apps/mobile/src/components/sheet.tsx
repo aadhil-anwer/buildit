@@ -1,5 +1,5 @@
 import { useEffect, type ReactNode } from "react";
-import { StyleSheet, useWindowDimensions, View } from "react-native";
+import { Platform, StyleSheet, useWindowDimensions, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, { Easing, runOnJS, useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
 import { t } from "@/i18n";
@@ -7,6 +7,8 @@ import { useScreenInsets } from "@/lib/use-screen-insets";
 import { color, withAlpha } from "@/theme";
 import { fitHeights, nextSnap, settleSnap, type Snap } from "./sheet-snap";
 
+/** 20 on iOS; the Android handoff asks for 28. */
+const CORNER = Platform.OS === "android" ? 28 : 20;
 const GLIDE = { duration: 380, easing: Easing.bezier(0.2, 0.8, 0.2, 1) };
 
 interface Props {
@@ -48,7 +50,7 @@ export function Sheet({ snap, onSnapChange, children }: Props) {
 }
 
 const styles = StyleSheet.create({
-  sheet: { position: "absolute", start: 0, end: 0, bottom: 0, borderTopStartRadius: 20, borderTopEndRadius: 20, borderTopWidth: 1, borderColor: color.divider, backgroundColor: color.bg, boxShadow: `0 -6px 28px ${withAlpha(color.text, 0.14)}` },
+  sheet: { position: "absolute", start: 0, end: 0, bottom: 0, borderTopStartRadius: CORNER, borderTopEndRadius: CORNER, borderTopWidth: 1, borderColor: color.divider, backgroundColor: color.bg, boxShadow: `0 -6px 28px ${withAlpha(color.text, 0.14)}` },
   grabber: { height: 22, alignItems: "center", justifyContent: "center" },
   bar: { width: 38, height: 4, borderRadius: 2, backgroundColor: color.neutral300 },
 });
