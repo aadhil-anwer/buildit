@@ -110,7 +110,7 @@ test("a guest can add an email to keep the account, and a signed-in user is not 
   mockSession = { user: {} };
   const guest = await render(<Settings />);
   await fireEvent.press(button(t("upgradeGuest")));
-  expect(mockPush).toHaveBeenCalledWith("/sign-in?upgrade=1");
+  expect(mockPush).toHaveBeenCalledWith("/upgrade");
   await guest.unmount();
   mockSession = { user: { email: "noor@example.com" } };
   await render(<Settings />);
