@@ -16,6 +16,7 @@ export const RAMP = {
   hero: ["heading", 400, 38, 1.02], // README: Welcome headline 38/1.02
   title: ["heading", 400, 26, 1.1], // README: room name 26
   heading: ["heading", 600, 18, 1.1],
+  tab: ["heading", 600, 17, 1.2], // prototype: sheet tabs
   brand: ["heading", 400, 26, 1], // prototype: Welcome logotype
   button14: ["heading", 600, 14, 1.2], // styles.css .btn
   button15: ["heading", 600, 15, 1.2], // prototype: text buttons ("Try without an account")

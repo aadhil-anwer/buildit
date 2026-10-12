@@ -17,6 +17,13 @@ test("shows the room's name and plan", async () => {
   expect(screen.getByText("Bedroom")).toBeTruthy();
 });
 
+test("has the design's four tabs in a sheet, and says the contents are not built yet", async () => {
+  await render(<Editor />);
+  for (const key of ["tAsk", "tAdd", "tItem", "tFin"] as const) expect(screen.getByRole("tab", { name: t(key) })).toBeTruthy();
+  await fireEvent.press(screen.getByRole("tab", { name: t("tAdd") }));
+  expect(screen.getByText(t("tabSoon"))).toBeTruthy();
+});
+
 test("a room that is gone says so and offers the way back", async () => {
   mockId = "missing";
   await render(<Editor />);

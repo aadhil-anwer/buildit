@@ -2,6 +2,7 @@ import { Stack, type ErrorBoundaryProps } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
 import { View } from "react-native";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SessionProvider, useSession } from "@/auth/session";
 import { ErrorScreen } from "@/components/error-screen";
 import { isArabic } from "@/i18n";
@@ -43,6 +44,7 @@ function Routes() {
           <Stack.Screen name="capture/dimensions" />
           <Stack.Screen name="review/[id]" />
           <Stack.Screen name="settings" />
+          <Stack.Screen name="upgrade" />
         </Stack.Protected>
       </Stack>
     </View>
@@ -51,8 +53,10 @@ function Routes() {
 
 export default function RootLayout() {
   return (
-    <SessionProvider>
-      <Routes />
-    </SessionProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SessionProvider>
+        <Routes />
+      </SessionProvider>
+    </GestureHandlerRootView>
   );
 }
