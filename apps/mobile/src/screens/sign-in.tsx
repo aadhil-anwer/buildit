@@ -1,7 +1,7 @@
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
-import { sendEmailCode, verifyEmailCode } from "@/auth/auth";
+import { sendEmailCode, sendUpgradeCode, verifyEmailCode, verifyUpgradeCode } from "@/auth/auth";
 import { useAuthAction } from "@/auth/use-auth-action";
 import { Button } from "@/components/button";
 import { Icon } from "@/components/icon";
@@ -10,8 +10,14 @@ import { TextField } from "@/components/text-field";
 import { t } from "@/i18n";
 import { useScreenInsets } from "@/lib/use-screen-insets";
 
-/** Email sign-in: ask for the address, then for the six-digit code that was sent to it. */
-export function SignIn() {
+const COPY = {
+  signIn: { title: ["authEmailTitle", "authCodeTitle"], hint: "authEmailHint" },
+  upgrade: { title: ["authUpgradeTitle", "authCodeTitle"], hint: "authUpgradeHint" },
+} as const;
+
+/** Email sign-in: ask for the address, then for the six-digit code that was sent to it. With `upgrade`, a guest attaches the email to their account instead and returns to where they were. */
+export function SignIn({ upgrade = false }: { upgrade?: boolean }) {
+  const [sendCode, verifyCode] = upgrade ? [sendUpgradeCode, verifyUpgradeCode] : [sendEmailCode, verifyEmailCode];
   const router = useRouter();
   const insets = useScreenInsets();
   const { run, message, busy } = useAuthAction();
@@ -22,7 +28,11 @@ export function SignIn() {
 
   const send = () => {
     setEmpty(!email.trim());
-    if (email.trim()) void run(async () => (await sendEmailCode(email.trim()), setSent(true)));
+    if (email.trim()) void run(async () => (await sendCode(email.trim()), setSent(true)));
+  };
+  const confirm = async () => {
+    await verifyCode(email.trim(), code.trim());
+    if (upgrade) router.back();
   };
   const error = message ? t(message) : empty ? t("authBadEmail") : undefined;
 
@@ -31,16 +41,16 @@ export function SignIn() {
       <Pressable accessibilityRole="button" accessibilityLabel={t("back")} onPress={() => router.back()} hitSlop={12} style={styles.back}>
         <Icon name="back" />
       </Pressable>
-      <Text variant="title">{t(sent ? "authCodeTitle" : "authEmailTitle")}</Text>
-      <Text variant="bodySm" tone="secondary">{sent ? t("authCodeHint", email.trim()) : t("authEmailHint")}</Text>
+      <Text variant="title">{t(COPY[upgrade ? "upgrade" : "signIn"].title[+!!sent])}</Text>
+      <Text variant="bodySm" tone="secondary">{sent ? t("authCodeHint", email.trim()) : t(COPY[upgrade ? "upgrade" : "signIn"].hint)}</Text>
       {sent ? (
         <TextField label={t("authCodeLabel")} value={code} onChangeText={setCode} error={error} keyboardType="number-pad" maxLength={6} textContentType="oneTimeCode" autoComplete="sms-otp" />
       ) : (
         <TextField label={t("authEmailLabel")} value={email} onChangeText={setEmail} error={error} keyboardType="email-address" autoCapitalize="none" autoCorrect={false} autoComplete="email" textContentType="emailAddress" />
       )}
       <View style={styles.actions}>
-        <Button title={t(sent ? "authVerify" : "authSend")} size={16} busy={busy} onPress={sent ? () => void run(() => verifyEmailCode(email.trim(), code.trim())) : send} />
-        {sent ? <Button title={t("authResend")} variant="ghost" busy={busy} onPress={() => void run(() => sendEmailCode(email.trim()))} /> : null}
+        <Button title={t(sent ? "authVerify" : "authSend")} size={16} busy={busy} onPress={sent ? () => void run(confirm) : send} />
+        {sent ? <Button title={t("authResend")} variant="ghost" busy={busy} onPress={() => void run(() => sendCode(email.trim()))} /> : null}
       </View>
     </View>
   );

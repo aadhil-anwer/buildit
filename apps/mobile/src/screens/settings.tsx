@@ -40,6 +40,7 @@ function UsageSection() {
 
 /** Who is signed in, sign out (asking first for a guest, who cannot sign back in), and deleting the account. */
 function AccountSection() {
+  const router = useRouter();
   const session = useSession();
   const fail = useFail();
   const [dialog, setDialog] = useState<"guest-out" | "delete" | null>(null);
@@ -63,6 +64,7 @@ function AccountSection() {
   return (
     <Section title={t("account")}>
       <Text variant="count" tone="secondary" style={styles.email}>{session?.user.email || t("guestAccount")}</Text>
+      {isGuest ? <Button title={t("upgradeGuest")} variant="primary" size={15} onPress={() => router.push("/sign-in?upgrade=1")} /> : null}
       <Button title={t("signout")} icon="logout" variant="secondary" size={15} onPress={() => (isGuest ? setDialog("guest-out") : void signOut().catch(fail))} />
       <Button title={t("delAcc")} variant="danger" size={15} onPress={() => setDialog("delete")} style={styles.delete} />
       <ConfirmDialog visible={dialog === "guest-out"} title={t("guestOutH")} body={t("guestOutP")} cancelLabel={t("cancel")} confirmLabel={t("signout")} onCancel={() => setDialog(null)} onConfirm={() => void signOut().catch(fail)} />

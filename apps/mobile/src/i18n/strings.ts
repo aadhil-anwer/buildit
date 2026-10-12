@@ -67,6 +67,10 @@ const extra = {
     roomGone: "That room isn't here any more. It may have been deleted on another device.",
     authOffline: "Couldn't reach BuildIt. Check your connection and try again.",
     authRate: "Too many codes requested. Wait a minute, then try again.",
+    authEmailTaken: "That email already has an account. Sign out of this guest account and sign in with it, or use a different email.",
+    authUpgradeTitle: "Keep your rooms",
+    authUpgradeHint: "Add an email so you can sign back in on any phone. Your rooms stay as they are.",
+    upgradeGuest: "Add an email to keep your account",
   },
   ar: {
     errTitle: "حدث خطأ ما",
@@ -132,6 +136,10 @@ const extra = {
     roomGone: "هذه الغرفة لم تعد موجودة. ربما حُذفت من جهاز آخر.",
     authOffline: "تعذّر الوصول إلى BuildIt. تحقق من اتصالك وحاول مرة أخرى.",
     authRate: "طُلبت رموز كثيرة. انتظر دقيقة ثم حاول مرة أخرى.",
+    authEmailTaken: "لهذا البريد حساب بالفعل. سجّل الخروج من حساب الضيف هذا ثم ادخل به، أو استخدم بريدًا آخر.",
+    authUpgradeTitle: "احتفظ بغرفك",
+    authUpgradeHint: "أضف بريدًا إلكترونيًا لتتمكن من تسجيل الدخول من أي هاتف. تبقى غرفك كما هي.",
+    upgradeGuest: "أضف بريدًا إلكترونيًا للاحتفاظ بحسابك",
   },
 } as const;
 

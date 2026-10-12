@@ -14,7 +14,7 @@ Branch `claude/jolly-bell-hhwtu2`, all pushed, CI green. `npm run verify` and `n
 
 ## Resume here (in order)
 
-1. **Phase 3 leftovers:** Sign in with Apple (needs the owner's Apple Developer account; the button is hidden until configured). Guest-to-email upgrade path. Room deletion UI (not designed).
+1. **Phase 3 leftovers:** Sign in with Apple (needs the owner's Apple Developer account; the button is hidden until configured). Room deletion UI (not designed). The guest-to-email upgrade is built (Settings > Add an email) but only unit-tested; try it against local Supabase.
 2. **Phase 4: the room editor**, the heart of the app. R3F native scene to the design's look, gestures (orbit, pinch, drag with 5 cm grid and wall snap, rotate), the bottom sheet (Ask / Add / Item / Finishes / Check) as one shared `Sheet` primitive (replace the plain modals in the wall stepper and dialogs), room check chip, walking-space overlay, undo/redo, versions, thumbnails from snapshots (replace `PlanView` thumbnails), and the on-device performance gate (STACK.md budgets are unmeasured on Hermes). `src/screens/editor.tsx` is a placeholder to replace.
 3. Phase 5 AI designer (Edge Function on `packages/core`), Phase 6 capture (needs Apple account and a LiDAR iPhone), Phase 7 Android, Phase 8 launch. Details in `OPEN_ISSUES.md`.
 

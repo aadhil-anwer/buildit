@@ -77,9 +77,9 @@ Compared on the web build (English and Arabic, guest account). Type, colours, sp
 - **Walkway preference is saved on the device only** (not yet in the `profiles` table) and is applied to **new** rooms. Existing rooms keep theirs; the editor will apply the preference when it runs the room check (Phase 4). Server sync comes with sync (Phase 3.7).
 - **AI usage** is read with the new read-only `ai_usage_today()` function (migration `20261013000000`), so looking at it never uses a request. If it cannot load, the screen says so and the failure is reported.
 - **Signing out keeps this device's rooms** (they have not been synced anywhere yet). Decide with sync: sign out on a shared phone should not leave someone's rooms behind, but clearing them now would lose unsynced work.
-- **Guest sign-out asks first** because a guest account cannot be signed back into. There is no way to attach an email to a guest yet (the plan's "upgrade path"); add it before launch.
+- **Guest sign-out asks first** because a guest account cannot be signed back into. A guest can add an email from Settings (`updateUser` + `verifyOtp` type `email_change`, same account so rooms stay). Unverified against a running Supabase: only unit-tested. The hosted project needs the `email_change` code template too. An email that already has an account is refused with a message; merging a guest's rooms into that account is not built.
 - **Delete account** removes the account and all server data and wipes this device; it does **not** remove files in storage (see Backend).
-- **Arabic to review:** guest warning, usage and delete messages.
+- **Arabic to review:** guest warning, usage and delete messages, guest upgrade strings.
 
 ## Capture, dimensions and review (Phase 3.3 to 3.5)
 

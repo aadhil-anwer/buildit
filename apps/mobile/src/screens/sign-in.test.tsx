@@ -6,8 +6,9 @@ import { SignIn } from "./sign-in";
 
 const mockBack = jest.fn();
 jest.mock("expo-router", () => ({ useRouter: () => ({ back: mockBack }) }));
-jest.mock("@/auth/auth", () => ({ ...jest.requireActual<object>("@/auth/auth"), sendEmailCode: jest.fn(), verifyEmailCode: jest.fn() }));
+jest.mock("@/auth/auth", () => ({ ...jest.requireActual<object>("@/auth/auth"), sendEmailCode: jest.fn(), verifyEmailCode: jest.fn(), sendUpgradeCode: jest.fn(), verifyUpgradeCode: jest.fn() }));
 const [send, verify] = [jest.mocked(auth.sendEmailCode), jest.mocked(auth.verifyEmailCode)];
+const [sendUp, verifyUp] = [jest.mocked(auth.sendUpgradeCode), jest.mocked(auth.verifyUpgradeCode)];
 
 const button = (key: Parameters<typeof t>[0]) => screen.getByRole("button", { name: t(key) });
 async function toCodeStep() {
@@ -15,7 +16,7 @@ async function toCodeStep() {
   await fireEvent.press(button("authSend"));
   await screen.findByText(t("authCodeHint", "a@b.co"));
 }
-beforeEach(() => (send.mockResolvedValue(), verify.mockResolvedValue()));
+beforeEach(() => (send.mockResolvedValue(), verify.mockResolvedValue(), sendUp.mockResolvedValue(), verifyUp.mockResolvedValue(), mockBack.mockClear()));
 
 test("asks for the email first, and an empty one is refused without calling the server", async () => {
   await render(<SignIn />);
@@ -64,4 +65,25 @@ test("a failure nobody can fix reaches the error boundary", async () => {
   await fireEvent.changeText(screen.getByLabelText(t("authEmailLabel")), "a@b.co");
   await fireEvent.press(button("authSend"));
   expect(await screen.findByText("caught: mail server on fire")).toBeTruthy();
+});
+
+test("a guest upgrade attaches the email to the account and returns to the previous screen", async () => {
+  await render(<SignIn upgrade />);
+  expect(screen.getByText(t("authUpgradeTitle"))).toBeTruthy();
+  await toCodeStep();
+  await fireEvent.changeText(screen.getByLabelText(t("authCodeLabel")), "123456");
+  await fireEvent.press(button("authVerify"));
+  expect(sendUp).toHaveBeenCalledWith("a@b.co");
+  expect(verifyUp).toHaveBeenCalledWith("a@b.co", "123456");
+  expect(send).not.toHaveBeenCalled();
+  expect(verify).not.toHaveBeenCalled();
+  expect(mockBack).toHaveBeenCalled();
+});
+
+test("an upgrade to an email that already has an account says so and what to do", async () => {
+  sendUp.mockRejectedValue({ code: "email_exists", status: 422 });
+  await render(<SignIn upgrade />);
+  await fireEvent.changeText(screen.getByLabelText(t("authEmailLabel")), "a@b.co");
+  await fireEvent.press(button("authSend"));
+  expect(await screen.findByText(t("authEmailTaken"))).toBeTruthy();
 });

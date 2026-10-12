@@ -1,17 +1,21 @@
 import { supabase } from "@/lib/supabase";
-import { authErrorKey, sendEmailCode, signInAnonymously, signOut, verifyEmailCode } from "./auth";
+import { authErrorKey, sendEmailCode, sendUpgradeCode, signInAnonymously, signOut, verifyEmailCode, verifyUpgradeCode } from "./auth";
 
 jest.mock("@/lib/supabase", () => ({
-  supabase: { auth: { signInAnonymously: jest.fn(), signInWithOtp: jest.fn(), verifyOtp: jest.fn(), signOut: jest.fn() } },
+  supabase: { auth: { signInAnonymously: jest.fn(), signInWithOtp: jest.fn(), updateUser: jest.fn(), verifyOtp: jest.fn(), signOut: jest.fn() } },
 }));
-const auth = supabase.auth as unknown as Record<"signInAnonymously" | "signInWithOtp" | "verifyOtp" | "signOut", jest.Mock>;
+const auth = supabase.auth as unknown as Record<"signInAnonymously" | "signInWithOtp" | "updateUser" | "verifyOtp" | "signOut", jest.Mock>;
 beforeEach(() => Object.values(auth).forEach((f) => f.mockResolvedValue({ error: null })));
 
 test("each call goes to the right Supabase method with the right arguments", async () => {
   await signInAnonymously();
   await sendEmailCode("a@b.co");
   await verifyEmailCode("a@b.co", "123456");
+  await sendUpgradeCode("a@b.co");
+  await verifyUpgradeCode("a@b.co", "654321");
   await signOut();
+  expect(auth.updateUser).toHaveBeenCalledWith({ email: "a@b.co" });
+  expect(auth.verifyOtp).toHaveBeenCalledWith({ email: "a@b.co", token: "654321", type: "email_change" });
   expect(auth.signInAnonymously).toHaveBeenCalledWith();
   expect(auth.signInWithOtp).toHaveBeenCalledWith({ email: "a@b.co" });
   expect(auth.verifyOtp).toHaveBeenCalledWith({ email: "a@b.co", token: "123456", type: "email" });
@@ -22,6 +26,7 @@ test.each([
   ["signInAnonymously", () => signInAnonymously()],
   ["signInWithOtp", () => sendEmailCode("a@b.co")],
   ["verifyOtp", () => verifyEmailCode("a@b.co", "1")],
+  ["updateUser", () => sendUpgradeCode("a@b.co")],
   ["signOut", () => signOut()],
 ])("%s failing rejects with the very same error", async (method, call) => {
   const error = new Error("nope");
@@ -35,6 +40,7 @@ test.each([
   [{ code: "validation_failed", status: 400 }, "authBadEmail"],
   [{ code: "email_address_invalid", status: 400 }, "authBadEmail"],
   [{ code: "over_email_send_rate_limit", status: 429 }, "authRate"],
+  [{ code: "email_exists", status: 422 }, "authEmailTaken"],
 ])("%j shows %s", (error, key) => expect(authErrorKey(error)).toBe(key));
 
 test("an error it does not recognise has no message, so callers must rethrow it", () => {

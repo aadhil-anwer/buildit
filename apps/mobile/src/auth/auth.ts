@@ -9,6 +9,9 @@ export const throwIfError = (result: { error: Error | null }) => {
 export const signInAnonymously = async () => throwIfError(await supabase.auth.signInAnonymously());
 export const sendEmailCode = async (email: string) => throwIfError(await supabase.auth.signInWithOtp({ email }));
 export const verifyEmailCode = async (email: string, token: string) => throwIfError(await supabase.auth.verifyOtp({ email, token, type: "email" }));
+/** Guest upgrade: attaching an email keeps the same account (and its rooms). The code arrives as an email-change confirmation. */
+export const sendUpgradeCode = async (email: string) => throwIfError(await supabase.auth.updateUser({ email }));
+export const verifyUpgradeCode = async (email: string, token: string) => throwIfError(await supabase.auth.verifyOtp({ email, token, type: "email_change" }));
 export const signOut = async () => throwIfError(await supabase.auth.signOut());
 
 const KNOWN: Record<string, StringKey> = {
@@ -16,6 +19,7 @@ const KNOWN: Record<string, StringKey> = {
   validation_failed: "authBadEmail",
   email_address_invalid: "authBadEmail",
   over_email_send_rate_limit: "authRate",
+  email_exists: "authEmailTaken",
 };
 
 /** The message to show for failures a person can fix. Anything else returns undefined and must be rethrown. */

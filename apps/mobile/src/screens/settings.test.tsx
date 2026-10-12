@@ -6,9 +6,10 @@ import { useSettings } from "@/settings/store";
 import { Settings } from "./settings";
 
 const mockBack = jest.fn();
+const mockPush = jest.fn();
 let mockSession: { user: { email?: string } } | null = { user: { email: "noor@example.com" } };
 let mockUsage: { usage?: { used: number; limit: number; resetsAt: Date }; failed: boolean } = { usage: { used: 3, limit: 20, resetsAt: new Date() }, failed: false };
-jest.mock("expo-router", () => ({ useRouter: () => ({ back: mockBack }) }));
+jest.mock("expo-router", () => ({ useRouter: () => ({ back: mockBack, push: mockPush }) }));
 jest.mock("@/auth/session", () => ({ useSession: () => mockSession }));
 jest.mock("@/auth/auth", () => ({ ...jest.requireActual<object>("@/auth/auth"), signOut: jest.fn() }));
 jest.mock("@/settings/use-ai-usage", () => ({ useAiUsage: () => mockUsage }));
@@ -103,4 +104,15 @@ test("back leaves the screen", async () => {
   await render(<Settings />);
   await fireEvent.press(button(t("back")));
   expect(mockBack).toHaveBeenCalled();
+});
+
+test("a guest can add an email to keep the account, and a signed-in user is not offered it", async () => {
+  mockSession = { user: {} };
+  const guest = await render(<Settings />);
+  await fireEvent.press(button(t("upgradeGuest")));
+  expect(mockPush).toHaveBeenCalledWith("/sign-in?upgrade=1");
+  await guest.unmount();
+  mockSession = { user: { email: "noor@example.com" } };
+  await render(<Settings />);
+  expect(screen.queryByText(t("upgradeGuest"))).toBeNull();
 });
