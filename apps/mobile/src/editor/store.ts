@@ -3,6 +3,8 @@ import { create } from "zustand";
 import { useRooms } from "@/rooms/store";
 import * as H from "./history";
 
+type EditorView = "3d" | "plan";
+
 /** The four tabs, plus the room check, which opens from its chip and is not a tab. */
 export type EditorTab = "tAsk" | "tAdd" | "tItem" | "tFin" | "check";
 
@@ -10,6 +12,7 @@ interface State {
   roomId: string | null;
   history: H.History | null;
   selectedId: string | null;
+  view: EditorView;
   tab: EditorTab;
   /** Open a room: a fresh history and nothing selected. */
   open: (roomId: string, scene: Scene) => void;
@@ -20,6 +23,7 @@ interface State {
   undo: () => void;
   redo: () => void;
   select: (id: string | null) => void;
+  setView: (view: EditorView) => void;
   setTab: (tab: EditorTab) => void;
 }
 
@@ -34,8 +38,9 @@ export const useEditor = create<State>()((set) => ({
   roomId: null,
   history: null,
   selectedId: null,
+  view: "3d",
   tab: "tAsk",
-  open: (roomId, scene) => set({ roomId, history: H.start(scene), selectedId: null, tab: "tAsk" }),
+  open: (roomId, scene) => set({ roomId, history: H.start(scene), selectedId: null, view: "3d", tab: "tAsk" }),
   commit: (result) => {
     if (result.ok) set((s) => (s.history ? saved(s, H.push(s.history, result.scene)) : s));
     return result.ok;
@@ -44,6 +49,7 @@ export const useEditor = create<State>()((set) => ({
   undo: () => set((s) => (s.history ? saved(s, H.undo(s.history)) : s)),
   redo: () => set((s) => (s.history ? saved(s, H.redo(s.history)) : s)),
   select: (selectedId) => set((s) => ({ selectedId, tab: selectedId ? "tItem" : s.tab })),
+  setView: (view) => set({ view }),
   setTab: (tab) => set({ tab }),
 }));
 

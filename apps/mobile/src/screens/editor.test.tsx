@@ -5,6 +5,7 @@ import { useEditor } from "@/editor/store";
 import { useRooms } from "@/rooms/store";
 import { Editor } from "./editor";
 
+jest.mock("@/editor/scene3d/room-canvas", () => ({ RoomCanvas: () => null })); // WebGL needs a real renderer
 const mockBack = jest.fn();
 let mockId = "r1";
 jest.mock("expo-router", () => ({ useRouter: () => ({ back: mockBack }), useLocalSearchParams: () => ({ id: mockId }) }));
@@ -14,7 +15,7 @@ const tab = async (key: Parameters<typeof t>[0]) => await fireEvent.press(await 
 
 beforeEach(() => {
   mockId = "r1";
-  useEditor.setState({ roomId: null, history: null, selectedId: null, tab: "tAsk" });
+  useEditor.setState({ roomId: null, history: null, selectedId: null, view: "3d", tab: "tAsk" });
   useRooms.setState({ rooms: [{ id: "r1", name: "Bedroom", scene: sampleBedroom(), updatedAt: 0, dirty: false }] });
 });
 
@@ -71,6 +72,16 @@ test("a restyle changes the room's colours", async () => {
   await render(<Editor />);
   await press(t("stJapan"));
   expect(scene().room.wallColor).toBe(design.styles.japan.wall);
+});
+
+test("the room can be switched between 3D and plan", async () => {
+  await render(<Editor />);
+  expect(useEditor.getState().view).toBe("3d");
+  await press(t("vplan"));
+  expect(useEditor.getState().view).toBe("plan");
+  expect(screen.getByTestId("plan-canvas")).toBeTruthy();
+  await press(t("v3d"));
+  expect(useEditor.getState().view).toBe("3d");
 });
 
 test("a room that is gone says so and offers the way back", async () => {

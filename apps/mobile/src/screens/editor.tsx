@@ -2,6 +2,7 @@ import type { OpResult } from "@buildit/core";
 import { useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
+import { Segmented } from "@/components/segmented";
 import { Sheet } from "@/components/sheet";
 import { fitHeights, type Snap } from "@/components/sheet-snap";
 import { SheetTabs } from "@/components/sheet-tabs";
@@ -13,6 +14,7 @@ import { useFail } from "@/lib/use-fail";
 import { EditorHeader } from "@/editor/header";
 import { fixLayout } from "@/editor/fix";
 import { PlanCanvas } from "@/editor/plan-canvas";
+import { RoomCanvas } from "@/editor/scene3d/room-canvas";
 import { AddPane } from "@/editor/panes/add-pane";
 import { AskPane } from "@/editor/panes/ask-pane";
 import { CheckPane } from "@/editor/panes/check-pane";
@@ -52,7 +54,8 @@ function EditorBody({ name }: { name: string }) {
   const { score, rules } = useRoomCheck(scene);
   const { fixing, fix } = useFix();
   const [snap, setSnap] = useState<Snap>("half");
-  const [tab, selectedId] = [useEditor((s) => s.tab), useEditor((s) => s.selectedId)];
+  const [tab, selectedId, view] = [useEditor((s) => s.tab), useEditor((s) => s.selectedId), useEditor((s) => s.view)];
+  const Canvas = view === "3d" ? RoomCanvas : PlanCanvas;
   const heights = fitHeights(useWindowDimensions().height, insets.top + 24);
   useEffect(() => setSnap((s) => (selectedId && s === "peek" ? "half" : s)), [selectedId]);
   const pane: Record<EditorTab, () => React.JSX.Element> = { tAsk: () => <AskPane onFix={() => void fix()} />, tAdd: AddPane, tItem: ItemPane, tFin: FinishesPane, check: () => <CheckPane onFix={() => void fix()} fixing={fixing} /> };
@@ -63,9 +66,11 @@ function EditorBody({ name }: { name: string }) {
   };
   return (
     <View style={styles.root}>
-      <PlanCanvas scene={scene} selectedId={selectedId} topInset={insets.top + 98} bottomInset={heights[snap]} onSelect={useEditor.getState().select} onPlace={place} />
+      <Canvas scene={scene} selectedId={selectedId} topInset={insets.top + 98} bottomInset={heights[snap]} onSelect={useEditor.getState().select} onPlace={place} />
       <View style={[styles.top, { top: insets.top - 4 }]}><EditorHeader name={name} /></View>
-      <View style={[styles.chips, { top: insets.top + 46 }]}><RoomCheckChip score={score} rules={rules} onPress={() => useEditor.getState().setTab("check")} /></View>
+      <View style={[styles.chips, { top: insets.top + 46 }]}><RoomCheckChip score={score} rules={rules} onPress={() => useEditor.getState().setTab("check")} />
+        <Segmented floating options={[{ key: "3d", label: t("v3d") }, { key: "plan", label: t("vplan") }]} value={view} onChange={useEditor.getState().setView} />
+      </View>
       <Toast top={insets.top + 100} />
       <Sheet snap={snap} onSnapChange={setSnap}>
         <SheetTabs tabs={TAB_KEYS.map((key) => ({ key, label: t(key) }))} value={tab} onChange={useEditor.getState().setTab} />
