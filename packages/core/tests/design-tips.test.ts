@@ -1,6 +1,7 @@
 import { describe, expect, test } from "vitest";
 import { createScene, objectFromCatalogId } from "../src/scene";
 import { designTips, DESIGN_RULES } from "../src/rules/design-tips";
+import { makeOpening } from "../src/room";
 import { rectangularRoom } from "../src/templates";
 import type { Scene } from "../src/types";
 
@@ -113,4 +114,13 @@ test("improve moves a coffee table jammed against the sofa into the comfortable 
   const { improveLayout } = await import("../src/layout/improve");
   const r = improveLayout(sofaAndTable(1 + 0.45 + 0.1 + 0.3), { budgetMs: 2000 });
   expect(tip(r.scene, "coffee_table_gap")!.ok).toBe(true);
+});
+
+describe("desk and window", () => {
+  const windowed = () => createScene(rectangularRoom({ name: "Study", width: 6, length: 6, height: 2.6, openings: [makeOpening("window", 0, 2.5, 1)] }));
+  test("a desk facing the window or backed onto it is flagged; one beside it is fine", () => {
+    expect(tip(put(windowed(), "desk", 3, 1.2, 0), "desk_window")!.ok).toBe(false);
+    expect(tip(put(windowed(), "desk", 3, 1.2, 90), "desk_window")!.ok).toBe(true);
+  });
+  test("with no window nearby there is nothing to say", () => expect(tip(put(empty(), "desk", 3, 1.2, 0), "desk_window")).toBeUndefined());
 });

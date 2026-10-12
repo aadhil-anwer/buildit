@@ -9,7 +9,7 @@ import { openingZone } from "../room";
 import { objectObb } from "../scene";
 import type { Scene, SceneObject } from "../types";
 
-export type TipId = "coffee_table_gap" | "tv_distance" | "conversation_distance" | "rug_under_seating" | "dining_pullout" | "bed_foot" | "headboard_window" | "bed_pair";
+export type TipId = "coffee_table_gap" | "tv_distance" | "conversation_distance" | "rug_under_seating" | "dining_pullout" | "bed_foot" | "headboard_window" | "bed_pair" | "desk_window";
 
 export interface DesignRule {
   id: TipId;
@@ -28,6 +28,7 @@ export const DESIGN_RULES: Record<TipId, DesignRule> = {
   bed_foot: { id: "bed_foot", range: [0.6, 0.9], source: "common practice: at least 60 cm (ideally 90) clear at the foot of a bed to pass" },
   headboard_window: { id: "headboard_window", range: [0, 0], source: "common practice: a bed's headboard is better against solid wall than under a window (draught, light, privacy)" },
   bed_pair: { id: "bed_pair", range: [0, 0], source: "common practice: a nightstand on both sides of a double bed so both sleepers have one" },
+  desk_window: { id: "desk_window", range: [0, 0], source: "common practice: a desk sits beside a window, not facing it (glare on the screen) or with it directly behind (backlit screen)" },
 };
 
 export interface DesignTip {
@@ -129,7 +130,17 @@ function bedPair(scene: Scene): DesignTip[] {
   });
 }
 
+function deskWindow(scene: Scene): DesignTip[] {
+  const windows = scene.room.openings.filter((o) => o.type === "window").map((w) => openingZone(scene.room, w).c);
+  return scene.objects.filter((o) => o.type === "desk").flatMap((d) => {
+    const near = windows.filter((c) => Math.hypot(c.x - d.x, c.z - d.z) < 2.5);
+    if (!near.length) return [];
+    const straight = near.some((c) => Math.abs(dot(frontDir(d.rotation), norm(sub(c, { x: d.x, z: d.z })))) > 0.7);
+    return [{ id: "desk_window" as const, ok: !straight, objectIds: [d.id] }];
+  });
+}
+
 /** The tips that apply to this room: one per rule that has something to measure, passing or not. */
 export function designTips(scene: Scene): DesignTip[] {
-  return [...coffeeTableGap(scene), ...tvDistance(scene), ...conversationDistance(scene), ...rugUnderSeating(scene), ...diningPullout(scene), ...bedFoot(scene), ...headboardWindow(scene), ...bedPair(scene)];
+  return [...coffeeTableGap(scene), ...tvDistance(scene), ...conversationDistance(scene), ...rugUnderSeating(scene), ...diningPullout(scene), ...bedFoot(scene), ...headboardWindow(scene), ...bedPair(scene), ...deskWindow(scene)];
 }

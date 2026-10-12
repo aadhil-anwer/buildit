@@ -17,6 +17,8 @@ export const tips = {
     tipHeadWinNo: "The bed sits under a window; a solid wall behind the headboard is warmer and more private",
     tipPairOk: "Both sides of the bed have a nightstand",
     tipPairNo: "Only one side of the bed has a nightstand; a second one gives both sleepers a place for a lamp",
+    tipDeskWinOk: "The desk sits beside the window, so the screen is free of glare",
+    tipDeskWinNo: "The desk faces the window or has it right behind; turning it so the window is at its side avoids glare",
   },
   ar: {
     tipCoffeeOk: "طاولة القهوة على بُعد {0} سم من الأريكة، يسهل الوصول إليها",
@@ -35,5 +37,7 @@ export const tips = {
     tipHeadWinNo: "السرير تحت نافذة؛ جدار صلب خلف رأس السرير أدفأ وأكثر خصوصية",
     tipPairOk: "على جانبي السرير طاولة جانبية",
     tipPairNo: "طاولة جانبية واحدة فقط بجانب السرير؛ الثانية تتيح لكل نائم مكانًا لمصباح",
+    tipDeskWinOk: "المكتب بجانب النافذة، فلا يوجد وهج على الشاشة",
+    tipDeskWinNo: "المكتب يواجه النافذة أو النافذة خلفه مباشرة؛ تدويره لتصبح النافذة إلى جانبه يتجنب الوهج",
   },
 } as const;

@@ -14,6 +14,7 @@ const WORDS: Record<TipId, (v: number, lo: number, hi: number) => [ok: string, n
   bed_foot: () => [t("tipBedFootOk"), t("tipBedFootNo")],
   headboard_window: () => [t("tipHeadWinOk"), t("tipHeadWinNo")],
   bed_pair: () => [t("tipPairOk"), t("tipPairNo")],
+  desk_window: () => [t("tipDeskWinOk"), t("tipDeskWinNo")],
 };
 
 /** One design tip in a sentence, with the engine's own measured numbers. */
