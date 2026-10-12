@@ -2,8 +2,9 @@ import type { Rule } from "@buildit/core";
 import { Pressable, StyleSheet, View } from "react-native";
 import Svg, { Circle, Text as SvgText } from "react-native-svg";
 import { Text } from "@/components/text";
-import { formatNumber, t } from "@/i18n";
+import { formatNumber, isArabic, t } from "@/i18n";
 import { color, rust, withAlpha } from "@/theme";
+import { textStyle } from "@/theme/typography";
 import { ruleText, topIssue } from "./check-copy";
 
 const CIRC = 94.25; // 2π × radius 15
@@ -16,7 +17,7 @@ export function RoomCheckChip({ score, rules, onPress }: { score: number; rules:
       <Svg width={34} height={34} viewBox="0 0 36 36">
         <Circle cx={18} cy={18} r={15} fill="none" stroke={withAlpha(color.text, 0.14)} strokeWidth={2.5} />
         <Circle cx={18} cy={18} r={15} fill="none" stroke={color.accent} strokeWidth={2.5} strokeLinecap="round" strokeDasharray={`${(score / 100) * CIRC} ${CIRC}`} transform="rotate(-90 18 18)" />
-        <SvgText x={18} y={22.5} textAnchor="middle" fontSize={12} fontWeight="600" fill={color.text}>{formatNumber(score)}</SvgText>
+        <SvgText x={18} y={22.5} textAnchor="middle" fontSize={12} fontFamily={textStyle("label", isArabic()).fontFamily} fill={color.text}>{formatNumber(score)}</SvgText>
       </Svg>
       <View>
         <Text variant="chipTitle">{t("check")}</Text>

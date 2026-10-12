@@ -25,7 +25,7 @@ import { typeName } from "@/rooms/names";
 import { useRooms } from "@/rooms/store";
 import { RoomGone } from "./room-gone";
 
-const TABS = (["tAsk", "tAdd", "tItem", "tFin"] as const).map((key) => ({ key, label: t(key) }));
+const TAB_KEYS = ["tAsk", "tAdd", "tItem", "tFin"] as const;
 
 /** Runs the layout fixer, and says what came of it. */
 function useFix() {
@@ -63,12 +63,12 @@ function EditorBody({ name }: { name: string }) {
   };
   return (
     <View style={styles.root}>
-      <PlanCanvas scene={scene} selectedId={selectedId} topInset={insets.top + 110} bottomInset={heights[snap]} onSelect={useEditor.getState().select} onPlace={place} />
-      <View style={[styles.top, { top: insets.top + 9 }]}><EditorHeader name={name} /></View>
-      <View style={[styles.chips, { top: insets.top + 59 }]}><RoomCheckChip score={score} rules={rules} onPress={() => useEditor.getState().setTab("check")} /></View>
-      <Toast top={insets.top + 113} />
+      <PlanCanvas scene={scene} selectedId={selectedId} topInset={insets.top + 98} bottomInset={heights[snap]} onSelect={useEditor.getState().select} onPlace={place} />
+      <View style={[styles.top, { top: insets.top - 4 }]}><EditorHeader name={name} /></View>
+      <View style={[styles.chips, { top: insets.top + 46 }]}><RoomCheckChip score={score} rules={rules} onPress={() => useEditor.getState().setTab("check")} /></View>
+      <Toast top={insets.top + 100} />
       <Sheet snap={snap} onSnapChange={setSnap}>
-        <SheetTabs tabs={TABS} value={tab} onChange={useEditor.getState().setTab} />
+        <SheetTabs tabs={TAB_KEYS.map((key) => ({ key, label: t(key) }))} value={tab} onChange={useEditor.getState().setTab} />
         <ScrollView contentContainerStyle={styles.pane}><Pane /></ScrollView>
       </Sheet>
     </View>
@@ -77,13 +77,17 @@ function EditorBody({ name }: { name: string }) {
 
 /** The room editor: the room on a plan, the design's header and room-check chip, and the sheet with its tabs. */
 export function Editor() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, tab, select } = useLocalSearchParams<{ id: string; tab?: string; select?: string }>();
   const room = useRooms((s) => s.rooms.find((r) => r.id === id));
   const open = useEditor((s) => s.roomId === id && !!s.history);
   useEffect(() => {
     const found = useRooms.getState().rooms.find((r) => r.id === id);
-    if (found && !(useEditor.getState().roomId === id && useEditor.getState().history)) useEditor.getState().open(found.id, found.scene);
-  }, [id]);
+    const editor = useEditor.getState();
+    if (found && !(editor.roomId === id && editor.history)) editor.open(found.id, found.scene);
+    // Deep links (and the design comparison) can open on a given tab with a piece selected.
+    if (tab === "check" || (TAB_KEYS as readonly string[]).includes(tab ?? "")) editor.setTab(tab as EditorTab);
+    if (select) editor.select(select);
+  }, [id, tab, select]);
   if (!room) return <RoomGone />;
   return open ? <EditorBody name={room.name} /> : null;
 }

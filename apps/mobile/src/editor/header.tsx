@@ -14,7 +14,7 @@ export function EditorHeader({ name }: { name: string }) {
   return (
     <View style={styles.bar}>
       <IconButton icon="back" label={t("back")} quiet onPress={() => router.back()} />
-      <Text variant="paneTitle" numberOfLines={1} style={styles.name}>{name}</Text>
+      <Text variant="roomName" numberOfLines={1} style={styles.name}>{name}</Text>
       <IconButton icon="undo" label={t("undoB")} quiet disabled={!canUndo} onPress={undo} />
       <IconButton icon="redo" label={t("redoB")} quiet disabled={!canRedo} onPress={redo} />
     </View>

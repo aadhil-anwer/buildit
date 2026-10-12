@@ -18,7 +18,8 @@ export const RAMP = {
   heading: ["heading", 600, 18, 1.1],
   tab: ["heading", 600, 17, 1.2], // prototype: sheet tabs
   chip: ["heading", 600, 15, 1.2], // prototype: restyle and ask chips
-  paneTitle: ["heading", 400, 22, 1], // prototype: sheet pane headings
+  roomName: ["heading", 400, 22, 1], // prototype: the editor header's room name
+  paneTitle: ["heading", 400, 22, 1.2], // prototype: sheet pane headings
   chipTitle: ["heading", 600, 15, 1.15], // prototype: room check chip title
   chipNote: ["body", 400, 11, 1.15], // prototype: room check chip finding
   brand: ["heading", 400, 26, 1], // prototype: Welcome logotype
@@ -50,7 +51,7 @@ export const RAMP = {
 } as const;
 export type Variant = keyof typeof RAMP;
 
-const TRACKED = new Set<Variant>(["brand", "display", "hero", "title", "section", "heading", "page"]);
+const TRACKED = new Set<Variant>(["brand", "display", "hero", "title", "section", "heading", "page", "roomName"]);
 const PARAGRAPH = new Set<Variant>(["body", "bodySm", "small"]);
 
 export function textStyle(variant: Variant, arabic: boolean) {
