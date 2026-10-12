@@ -108,3 +108,9 @@ describe("bed pair", () => {
 describe("headboard under a window", () => {
   test("no window, no tip", () => expect(tip(put(empty(), "bed_double", 3, 2, 180), "headboard_window")).toBeUndefined());
 });
+
+test("improve moves a coffee table jammed against the sofa into the comfortable gap", async () => {
+  const { improveLayout } = await import("../src/layout/improve");
+  const r = improveLayout(sofaAndTable(1 + 0.45 + 0.1 + 0.3), { budgetMs: 2000 });
+  expect(tip(r.scene, "coffee_table_gap")!.ok).toBe(true);
+});

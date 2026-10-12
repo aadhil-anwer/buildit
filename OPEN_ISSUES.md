@@ -54,7 +54,7 @@ What is planned but not done, in build order. Done phases are in `git log`; deta
 
 Today the engine has 8 advisory design rules (`DESIGN_RULES`: coffee-table gap, TV distance, conversation distance, rug under sofa, dining chair pull-out, bed foot, headboard under a window, nightstand pair) plus the room check (walkway, doors, bed sides, storage reach, window light). They are commonly cited rules of thumb, **not reviewed by a designer**, and they only produce tips; they do not yet feed `improve`'s cost function or the score. This is a good checker, not a replacement for a designer. To get closer:
 - [ ] A designer (ideally one who knows GCC homes) reviews every threshold in `DESIGN_RULES` and the Arabic tip strings. Owner to arrange.
-- [ ] Wire tips into `improve`/score so the optimizer and the AI chase the same rules.
+- [x] Tips feed `improve`'s cost. [ ] Still not in the room-check score; decide after designer review of the thresholds.
 - [ ] More rules: focal point (seating faces a TV/window/feature wall), desk beside not facing a window, wardrobe/door clash, 60-30-10 colour split, balance and symmetry, majlis layout and door-sightline privacy (needs a local reviewer).
 - [ ] Run the evals against the real model (needs the Anthropic key) and have a designer score about 20 outputs against a plain chatbot's answers on the same rooms.
 - [ ] Scan accuracy (LiDAR) bounds everything above; unverified until a LiDAR device is tested.

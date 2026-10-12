@@ -1,5 +1,6 @@
 import { typeInfo } from "../catalog";
 import { COMPASS_DIR, add, dist, normDeg, round2, scale } from "../geometry";
+import { designTips } from "../rules/design-tips";
 import { cloneScene, getObject } from "../scene";
 import type { Pose, Scene, SceneObject } from "../types";
 import { analyzeClearance } from "./clearance";
@@ -53,6 +54,8 @@ function score(scene: Scene, original: Map<string, Pose>, target: number): Layou
       tightestObject = a.objectId;
     }
   }
+  // Design rules of thumb nudge the search, far less than a blocked door or a tight walkway.
+  cost += designTips(scene).filter((t) => !t.ok).length * 0.4;
   for (const o of scene.objects) {
     const p = original.get(o.id);
     if (p) cost += dist(p, o) * 0.15;
