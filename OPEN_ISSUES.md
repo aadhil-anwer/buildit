@@ -83,7 +83,7 @@ What is planned but not done, in build order. Done phases are in `git log`; deta
 
 **Wrong or weak, to fix**
 - The Check rule sentences say "it needs 90" even when the walkway preference is 75 cm (the design's strings carry the number).
-- Fix searches for 1.5 s; the budget says 300 ms in 8 ms slices. Not measured on a phone.
+- Fix now searches for at most 300 ms, the STACK.md budget, in 8 ms slices. On a laptop a room it cannot fix uses the whole budget and does not improve at 150 to 1500 ms, so the budget is not what limits it; a fixable room has not been tried on a phone.
 - Versions are **not synced**: they live in the room's local record and survive restarts, but a second phone does not see them and deleting the app loses them (the room itself syncs).
 - `design:compare` needs `CHROMIUM_PATH` and `UNPKG_DIR` in this cloud container (see HANDOFF.md).
 
