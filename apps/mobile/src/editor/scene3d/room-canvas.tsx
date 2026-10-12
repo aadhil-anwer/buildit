@@ -1,4 +1,4 @@
-import { placeObject, typeInfo, type OpResult, type Scene } from "@buildit/core";
+import { placeObject, typeInfo, type ClearanceReport, type OpResult, type Scene } from "@buildit/core";
 import { Canvas, useFrame, useThree, type RootState } from "@react-three/fiber";
 import { useRef, type RefObject } from "react";
 import { StyleSheet, useWindowDimensions, View } from "react-native";
@@ -8,6 +8,7 @@ import { color } from "@/theme";
 import { draggedTo, floorPoint, pickPiece, type Drag } from "./interaction";
 import { PerfProbe } from "./perf-probe";
 import { Piece } from "./piece";
+import { WalkFloor } from "./walk-floor";
 import { RoomShell } from "./room-shell";
 import { cameraOffset, clampElevation, clampZoom, fitView, START } from "./view";
 
@@ -22,6 +23,8 @@ interface Props {
   selectedId: string | null;
   topInset: number;
   bottomInset: number;
+  /** Where it is walkable, when the walking-space overlay is on. */
+  walk: ClearanceReport | null;
   onSelect: (id: string | null) => void;
   onPlace: (id: string, result: OpResult) => void;
 }
@@ -120,7 +123,7 @@ function useRoomGestures(scene: Scene, state: RefObject<RootState | null>, view:
 }
 
 /** The room in 3D, between the header and the sheet. */
-export function RoomCanvas({ scene, selectedId, topInset, bottomInset, onSelect, onPlace }: Props) {
+export function RoomCanvas({ scene, selectedId, topInset, bottomInset, walk, onSelect, onPlace }: Props) {
   const { height: screen } = useWindowDimensions();
   const height = Math.max(160, screen - topInset - bottomInset);
   const view = useRef<View3D>({ ...START });
@@ -135,6 +138,7 @@ export function RoomCanvas({ scene, selectedId, topInset, bottomInset, onSelect,
           <Rig scene={scene} view={view} />
           <Lights scene={scene} />
           <RoomShell room={scene.room} view={view} />
+          {walk ? <WalkFloor report={walk} /> : null}
           <group name="pieces">
             {scene.objects.map((o) => <Piece key={o.id} piece={o} selected={o.id === selectedId} floorLevel={!!typeInfo(o.type).floorLevel} />)}
           </group>

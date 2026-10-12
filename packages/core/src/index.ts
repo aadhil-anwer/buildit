@@ -4,6 +4,7 @@ export * from "./check";
 export { design } from "./design.generated";
 export * from "./importers/roomplan";
 export * from "./layout/free-space";
+export { analyzeClearance, type ClearanceReport } from "./layout/clearance";
 export * from "./layout/improve";
 export type { Placement } from "./layout/placement";
 export * from "./ops";

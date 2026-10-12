@@ -13,6 +13,8 @@ interface State {
   history: H.History | null;
   selectedId: string | null;
   view: EditorView;
+  /** Show where a person can walk (gold) and where it is too tight (rust). */
+  walk: boolean;
   tab: EditorTab;
   /** Open a room: a fresh history and nothing selected. */
   open: (roomId: string, scene: Scene) => void;
@@ -24,6 +26,7 @@ interface State {
   redo: () => void;
   select: (id: string | null) => void;
   setView: (view: EditorView) => void;
+  setWalk: (walk: boolean) => void;
   setTab: (tab: EditorTab) => void;
 }
 
@@ -39,8 +42,9 @@ export const useEditor = create<State>()((set) => ({
   history: null,
   selectedId: null,
   view: "3d",
+  walk: false,
   tab: "tAsk",
-  open: (roomId, scene) => set({ roomId, history: H.start(scene), selectedId: null, view: "3d", tab: "tAsk" }),
+  open: (roomId, scene) => set({ roomId, history: H.start(scene), selectedId: null, view: "3d", walk: false, tab: "tAsk" }),
   commit: (result) => {
     if (result.ok) set((s) => (s.history ? saved(s, H.push(s.history, result.scene)) : s));
     return result.ok;
@@ -50,6 +54,7 @@ export const useEditor = create<State>()((set) => ({
   redo: () => set((s) => (s.history ? saved(s, H.redo(s.history)) : s)),
   select: (selectedId) => set((s) => ({ selectedId, tab: selectedId ? "tItem" : s.tab })),
   setView: (view) => set({ view }),
+  setWalk: (walk) => set({ walk }),
   setTab: (tab) => set({ tab }),
 }));
 

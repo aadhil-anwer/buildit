@@ -16,7 +16,7 @@ const tab = async (key: Parameters<typeof t>[0]) => await fireEvent.press(await 
 
 beforeEach(() => {
   mockId = "r1";
-  useEditor.setState({ roomId: null, history: null, selectedId: null, view: "3d", tab: "tAsk" });
+  useEditor.setState({ roomId: null, history: null, selectedId: null, view: "3d", walk: false, tab: "tAsk" });
   useRooms.setState({ rooms: [{ id: "r1", name: "Bedroom", scene: sampleBedroom(), updatedAt: 0, dirty: false }] });
 });
 
@@ -93,6 +93,18 @@ test("the versions button opens this room's versions, and a change offers saving
   await press(t("tAsk")).catch(() => undefined);
   await fireEvent.press(await screen.findByRole("button", { name: t("nx3") }));
   expect(useRooms.getState().rooms[0].versions).toHaveLength(1);
+});
+
+test("the walk button shows the walkable floor on the plan, and the suggested step turns it on", async () => {
+  await render(<Editor />);
+  await press(t("vplan"));
+  expect(useEditor.getState().walk).toBe(false);
+  await fireEvent.press(await screen.findByRole("button", { name: t("nx2") }));
+  expect(useEditor.getState().walk).toBe(true);
+  expect((screen.getByRole("button", { name: t("walkToggle") }).props as { accessibilityState: { selected: boolean } }).accessibilityState.selected).toBe(true);
+  expect(screen.queryByRole("button", { name: t("nx2") })).toBeNull(); // already on, so it is no longer suggested
+  await press(t("walkToggle"));
+  expect(useEditor.getState().walk).toBe(false);
 });
 
 test("a room that is gone says so and offers the way back", async () => {

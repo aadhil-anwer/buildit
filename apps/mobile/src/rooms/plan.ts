@@ -14,7 +14,7 @@ export function planGeometry(scene: Scene, width: number, height: number, pad = 
     flat: !!typeInfo(o.type).floorLevel,
   }));
   const corners = scene.room.corners.map((c) => ({ x: px(c.x), y: pz(c.z) }));
-  return { scale, corners, wall: corners.map((c) => `${c.x},${c.y}`).join(" "), items: [...items.filter((i) => i.flat), ...items.filter((i) => !i.flat)] };
+  return { scale, at: (x: number, z: number) => ({ x: px(x), y: pz(z) }), corners, wall: corners.map((c) => `${c.x},${c.y}`).join(" "), items: [...items.filter((i) => i.flat), ...items.filter((i) => !i.flat)] };
 }
 
 /** Where to put each wall's label: beside the middle of the wall, on the outside, `offset` away from it. */

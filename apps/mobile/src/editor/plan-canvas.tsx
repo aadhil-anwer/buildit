@@ -1,4 +1,4 @@
-import { placeObject, type OpResult, type Scene } from "@buildit/core";
+import { placeObject, type ClearanceReport, type OpResult, type Scene } from "@buildit/core";
 import { useMemo, useState } from "react";
 import { StyleSheet, useWindowDimensions, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
@@ -7,6 +7,7 @@ import { PlanView } from "@/components/plan-view";
 import { planGeometry } from "@/rooms/plan";
 import { color } from "@/theme";
 import { draggedPose, GRID, hitItem } from "./plan-edit";
+import { overlayRuns } from "./walk-overlay";
 
 interface Props {
   scene: Scene;
@@ -14,6 +15,8 @@ interface Props {
   /** Space the header above and the sheet below take up, so the room is drawn in what is left. */
   topInset: number;
   bottomInset: number;
+  /** Where it is walkable, when the walking-space overlay is on. */
+  walk: ClearanceReport | null;
   onSelect: (id: string | null) => void;
   /** A drag ended with the engine's answer. A refused move leaves the scene alone, so the piece goes back. */
   onPlace: (id: string, result: OpResult) => void;
@@ -57,7 +60,7 @@ function useEditGestures(scene: Scene, plan: Plan, { onSelect, onPlace }: Pick<P
 }
 
 /** The room from above, fitted to the space between the header and the sheet. */
-export function PlanCanvas({ scene, selectedId, topInset, bottomInset, onSelect, onPlace }: Props) {
+export function PlanCanvas({ scene, selectedId, topInset, bottomInset, walk, onSelect, onPlace }: Props) {
   const { width, height: screen } = useWindowDimensions();
   const height = Math.max(160, screen - topInset - bottomInset);
   const plan = useMemo(() => planGeometry(scene, width, height, 24), [scene, width, height]);
@@ -67,7 +70,7 @@ export function PlanCanvas({ scene, selectedId, topInset, bottomInset, onSelect,
   return (
     <GestureDetector gesture={gesture}>
       <View testID="plan-canvas" style={[styles.canvas, { top: topInset, height }]}>
-        <PlanView scene={scene} width={width} height={height} pad={24} selectedId={selectedId} hiddenId={dragId} />
+        <PlanView scene={scene} width={width} height={height} pad={24} selectedId={selectedId} hiddenId={dragId} walk={walk ? overlayRuns(walk) : undefined} />
         {/* eslint-disable-next-line no-restricted-syntax -- the plan is drawn in world space (north up), which never mirrors under RTL */}
         {grabbed ? <Animated.View pointerEvents="none" style={[styles.piece, { left: grabbed.cx - grabbed.w / 2, top: grabbed.cy - grabbed.d / 2, width: grabbed.w, height: grabbed.d, backgroundColor: grabbed.color }, style]} /> : null}
       </View>

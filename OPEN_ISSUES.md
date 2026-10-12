@@ -52,7 +52,7 @@ What is planned but not done, in build order. Done phases are in `git log`; deta
 
 ## Editor (Phase 4, in progress)
 
-**Built:** `Sheet` (196 / 404 / 640 pt, drag or tap the grabber, Reanimated height) with the Ask / Add / Item / Finishes tabs and the Check pane; header (back, room name, undo, redo, versions); room-check chip; 3D view (React Three Fiber, orthographic 33 degree view, hidden camera-facing walls, tap to select, drag a piece in 5 cm steps, drag floor to orbit, pinch to zoom); Plan view (tap, drag, same 5 cm steps); every change is one undoable step (50 deep) saved to the room at once; Fix (time-sliced layout improver); restyle; versions (save, list, restore) on this phone.
+**Built:** walking-space overlay (walk button and the "Check the walking space" suggestion; gold where a person can walk, rust where it is too tight, from the engine's clearance grid; checked in the browser in 3D and plan, not compared with the prototype); `Sheet` (196 / 404 / 640 pt, drag or tap the grabber, Reanimated height) with the Ask / Add / Item / Finishes tabs and the Check pane; header (back, room name, undo, redo, versions); room-check chip; 3D view (React Three Fiber, orthographic 33 degree view, hidden camera-facing walls, tap to select, drag a piece in 5 cm steps, drag floor to orbit, pinch to zoom); Plan view (tap, drag, same 5 cm steps); every change is one undoable step (50 deep) saved to the room at once; Fix (time-sliced layout improver); restyle; versions (save, list, restore) on this phone.
 
 **What was checked, and on what**
 - 424 unit tests (`npm run verify` green), including the engine ops the editor calls, history, picking and drag maths, wall cut-outs, furniture parts, versions and every pane.
@@ -62,11 +62,11 @@ What is planned but not done, in build order. Done phases are in `git log`; deta
 - 3D cannot be compared pixel by pixel with the prototype: the prototype's own 3D draws nothing in headless Chromium. The look (lights, tone mapping, camera angle) follows `room3d.js`; furniture shapes, floor and wall colours are not matched side by side.
 
 **Not built yet (each one is a visible gap or a missing control)**
-- Walking-space overlay and the walk button; wall-length labels on the walls in 3D and the plan (the dimension pills the prototype shows); wall snap while dragging; rotating a piece by gesture (Item pane turns 90 degrees only).
+- Wall-length labels on the walls in 3D and the plan (the dimension pills the prototype shows); wall snap while dragging; rotating a piece by gesture (Item pane turns 90 degrees only).
 - Plank floor and contact-shadow PNG assets (the floor is one flat colour), door-swing arcs, window frames.
 - Quality tiers from the device (`expo-device` was dropped until then), pausing the canvas when the app is in the background or the editor is not focused, dropping to the low tier when frames are slow.
 - Header **Share** button (Phase 8: needs the GL snapshot and the share sheet). Room thumbnails are still plan drawings, not 3D snapshots.
-- Ask tab: the request box, "N of 20 requests left" and the four ask chips wait for the AI designer (Phase 5). The tab shows Suggested next and Restyle, which work without it. "Check the walking space" is not offered until the overlay exists.
+- Ask tab: the request box, "N of 20 requests left" and the four ask chips wait for the AI designer (Phase 5). The tab shows Suggested next and Restyle, which work without it.
 - Undo history lives in memory: closing the editor starts a new one (the room itself is saved).
 - Sheet size changes re-fit the room instantly; they do not glide with the sheet.
 - Dragging a **locked** piece in 3D orbits the view without saying why (in the plan it is refused with a message).

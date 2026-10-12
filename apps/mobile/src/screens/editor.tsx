@@ -1,8 +1,7 @@
-import type { OpResult } from "@buildit/core";
+import { analyzeClearance, type OpResult } from "@buildit/core";
 import { useLocalSearchParams } from "expo-router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
-import { Segmented } from "@/components/segmented";
 import { Sheet } from "@/components/sheet";
 import { fitHeights, type Snap } from "@/components/sheet-snap";
 import { SheetTabs } from "@/components/sheet-tabs";
@@ -20,9 +19,8 @@ import { AskPane } from "@/editor/panes/ask-pane";
 import { CheckPane } from "@/editor/panes/check-pane";
 import { FinishesPane } from "@/editor/panes/finishes-pane";
 import { ItemPane } from "@/editor/panes/item-pane";
-import { RoomCheckChip } from "@/editor/room-check-chip";
+import { ChipsRow } from "@/editor/chips-row";
 import { useEditor, useScene, type EditorTab } from "@/editor/store";
-import { useRoomCheck } from "@/editor/use-room-check";
 import { typeName } from "@/rooms/names";
 import { useRooms } from "@/rooms/store";
 import { RoomGone } from "./room-gone";
@@ -51,10 +49,10 @@ function useFix() {
 function EditorBody({ name }: { name: string }) {
   const insets = useScreenInsets();
   const scene = useScene();
-  const { score, rules } = useRoomCheck(scene);
   const { fixing, fix } = useFix();
   const [snap, setSnap] = useState<Snap>("half");
-  const [tab, selectedId, view] = [useEditor((s) => s.tab), useEditor((s) => s.selectedId), useEditor((s) => s.view)];
+  const [tab, selectedId, view, walkOn] = [useEditor((s) => s.tab), useEditor((s) => s.selectedId), useEditor((s) => s.view), useEditor((s) => s.walk)];
+  const walk = useMemo(() => (walkOn ? analyzeClearance(scene, { cell: 0.05, overlay: true }) : null), [scene, walkOn]);
   const Canvas = view === "3d" ? RoomCanvas : PlanCanvas;
   const heights = fitHeights(useWindowDimensions().height, insets.top + 24);
   useEffect(() => setSnap((s) => (selectedId && s === "peek" ? "half" : s)), [selectedId]);
@@ -66,11 +64,9 @@ function EditorBody({ name }: { name: string }) {
   };
   return (
     <View style={styles.root}>
-      <Canvas scene={scene} selectedId={selectedId} topInset={insets.top + 98} bottomInset={heights[snap]} onSelect={useEditor.getState().select} onPlace={place} />
+      <Canvas scene={scene} selectedId={selectedId} topInset={insets.top + 98} bottomInset={heights[snap]} walk={walk} onSelect={useEditor.getState().select} onPlace={place} />
       <View style={[styles.top, { top: insets.top - 4 }]}><EditorHeader name={name} /></View>
-      <View style={[styles.chips, { top: insets.top + 46 }]}><RoomCheckChip score={score} rules={rules} onPress={() => useEditor.getState().setTab("check")} />
-        <Segmented floating options={[{ key: "3d", label: t("v3d") }, { key: "plan", label: t("vplan") }]} value={view} onChange={useEditor.getState().setView} />
-      </View>
+      <View style={[styles.chips, { top: insets.top + 46 }]}><ChipsRow /></View>
       <Toast top={insets.top + 100} />
       <Sheet snap={snap} onSnapChange={setSnap}>
         <SheetTabs tabs={TAB_KEYS.map((key) => ({ key, label: t(key) }))} value={tab} onChange={useEditor.getState().setTab} />
@@ -100,6 +96,6 @@ export function Editor() {
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: "transparent" },
   top: { position: "absolute", start: 12, end: 12, zIndex: 20 },
-  chips: { position: "absolute", start: 14, end: 14, zIndex: 15, flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" },
+  chips: { position: "absolute", start: 14, end: 14, zIndex: 15 },
   pane: { paddingTop: 16, paddingHorizontal: 20, paddingBottom: 30 },
 });
