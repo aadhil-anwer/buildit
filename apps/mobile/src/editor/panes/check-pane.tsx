@@ -14,9 +14,11 @@ const CIRC = 94.25;
 
 function ruleLine(rule: Rule, itemName: string): string {
   const ok = rule.status === "pass";
-  const keys: Record<Rule["id"], [StringKey, StringKey]> = { walkway: ["rWalkOk", "rWalk"], door: ["rDoorOk", "rDoor"], bed: ["rSideOk", "rSide"], storage: ["rStorOk", "rStor"], light: ["rLightOk", "rLight"] };
+  // The walkway's number follows the person's setting (90 or 75 cm); the others are fixed by the engine at 60.
+  if (rule.id === "walkway") return ok ? t("rWalkOkN", rule.need ?? 0) : t("rWalkNeed", rule.cm ?? 0, rule.need ?? 0);
+  const keys: Record<Exclude<Rule["id"], "walkway">, [StringKey, StringKey]> = { door: ["rDoorOk", "rDoor"], bed: ["rSideOk", "rSide"], storage: ["rStorOk", "rStor"], light: ["rLightOk", "rLight"] };
   const key = keys[rule.id][ok ? 0 : 1];
-  return rule.id === "door" ? t(key as "rDoor", itemName) : t(key as "rWalk", rule.cm ?? 0);
+  return rule.id === "door" ? t(key as "rDoor", itemName) : t(key as "rSide", rule.cm ?? 0);
 }
 
 /** The score and each rule behind it in a sentence, with a Fix on any that is not passing. */

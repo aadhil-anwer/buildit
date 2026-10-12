@@ -67,6 +67,8 @@ test("the room check chip opens the check with each rule in words", async () => 
   await render(<Editor />);
   await fireEvent.press(await screen.findByRole("button", { name: new RegExp(`^${t("check")}\\.`) }));
   expect(await screen.findByText(t("rDoorOk"))).toBeTruthy();
+  const need = Math.round(scene().constraints.minWalkway * 100); // the scene's own walkway width, not a fixed 90
+  expect(screen.getByText(new RegExp(`needs ${need}$`))).toBeTruthy();
 });
 
 test("a restyle changes the room's colours", async () => {
