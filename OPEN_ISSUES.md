@@ -42,7 +42,7 @@ What is planned but not done, in build order. Done phases are in `git log`; deta
 
 **Phase 8, launch:** share image, privacy policy and terms, in-app account deletion with storage cleanup, store listings, EAS Update channels, monitoring alerts, EAS Observe.
 
-**Engine follow-ups (Phase 1b):** room-type rules from PRODUCT.md (sofa to coffee table, TV distance, dining chair pull-out, rug size, focal point). They need decisions: thresholds and weights the design doc does not give, and a screen size on TV units.
+**Engine follow-ups (Phase 1b), started:** `designTips` (`packages/core/src/rules/design-tips.ts`) measures four advisory rules: sofa to coffee table (30-55 cm, ideal 35-45), TV distance (1.5-2.5 x the screen diagonal; TV units now carry 55/65 inch), seats facing each other within 3.0 m, sofa front legs on the rug. They show as "Design tips" in the Check pane and are handed to the AI with their measured numbers and sources. **They do not change the score and the thresholds are unreviewed rules of thumb, not standards: the owner (ideally with an interior designer) must review `DESIGN_RULES` before they count.** Still to do: dining chair pull-out (75-90 cm), bed foot/headboard, focal point and walkway through the seating group, desk and window glare, balance, colour 60-30-10, GCC rules (majlis, door privacy, orientation customs: need a local reviewer), weights for the score, tips wired into `improve`. The Arabic tip sentences are unreviewed.
 
 **Cross-cutting**
 - [ ] Shrink the 28 legacy lint warnings to zero (clearance, placement, ops, validate, roomplan, summary).

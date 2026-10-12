@@ -68,6 +68,8 @@ export interface CatalogItem {
   seats?: number;
   /** People it serves (tables). */
   capacity?: number;
+  /** Screen diagonal in inches (TV units), for the viewing-distance rule. */
+  screenInches?: number;
   /** Real product from a shop. Generic items have none. */
   product?: ShopProduct;
 }
@@ -98,8 +100,8 @@ const GENERIC: CatalogItem[] = [
   { id: "round_table_4", name: "Round dining table (4)", type: "round_table", w: 1.1, d: 1.1, h: 0.75, color: "#8b6a4f", capacity: 4 },
   { id: "desk", name: "Desk", type: "desk", w: 1.2, d: 0.6, h: 0.75, color: "#d9d2c5" },
   // Storage
-  { id: "tv_unit", name: "TV unit with 55\" TV", type: "tv_unit", w: 1.8, d: 0.45, h: 0.5, color: "#5b4636" },
-  { id: "tv_unit_large", name: "TV unit with 65\" TV", type: "tv_unit", w: 2.2, d: 0.45, h: 0.5, color: "#5b4636" },
+  { id: "tv_unit", name: "TV unit with 55\" TV", type: "tv_unit", w: 1.8, d: 0.45, h: 0.5, color: "#5b4636", screenInches: 55 },
+  { id: "tv_unit_large", name: "TV unit with 65\" TV", type: "tv_unit", w: 2.2, d: 0.45, h: 0.5, color: "#5b4636", screenInches: 65 },
   { id: "sideboard", name: "Sideboard", type: "sideboard", w: 1.6, d: 0.45, h: 0.8, color: "#6b5444" },
   { id: "bookshelf", name: "Bookshelf", type: "bookshelf", w: 0.9, d: 0.35, h: 1.9, color: "#cbbfae" },
   { id: "dresser", name: "Dresser", type: "dresser", w: 1.2, d: 0.5, h: 0.8, color: "#cbbfae" },

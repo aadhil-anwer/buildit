@@ -1,5 +1,5 @@
 import { act, fireEvent, render, screen } from "@testing-library/react-native";
-import { design, sampleBedroom } from "@buildit/core";
+import { design, sampleBedroom, sampleLivingRoom } from "@buildit/core";
 import { t } from "@/i18n";
 import { useEditor } from "@/editor/store";
 import { useRooms } from "@/rooms/store";
@@ -69,6 +69,14 @@ test("the room check chip opens the check with each rule in words", async () => 
   expect(await screen.findByText(t("rDoorOk"))).toBeTruthy();
   const need = Math.round(scene().constraints.minWalkway * 100); // the scene's own walkway width, not a fixed 90
   expect(screen.getByText(new RegExp(`needs ${need}$`))).toBeTruthy();
+});
+
+test("the check also shows design tips when the room has seating and a coffee table, and says they are rules of thumb", async () => {
+  useRooms.setState({ rooms: [{ id: "r1", name: "Majlis", scene: sampleLivingRoom(), updatedAt: 0, dirty: false }] });
+  await render(<Editor />);
+  await fireEvent.press(await screen.findByRole("button", { name: new RegExp(`^${t("check")}\\.`) }));
+  expect(await screen.findByText(t("tipsH"))).toBeTruthy();
+  expect(screen.getByText(t("tipsSub"))).toBeTruthy();
 });
 
 test("a restyle changes the room's colours", async () => {

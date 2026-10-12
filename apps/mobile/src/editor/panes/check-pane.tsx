@@ -7,6 +7,9 @@ import { Text } from "@/components/text";
 import { formatNumber, t, type StringKey } from "@/i18n";
 import { typeName } from "@/rooms/names";
 import { color, rust, withAlpha } from "@/theme";
+import { designTips } from "@buildit/core";
+import { useMemo } from "react";
+import { tipText } from "../tip-copy";
 import { useScene } from "../store";
 import { useRoomCheck } from "../use-room-check";
 
@@ -19,6 +22,25 @@ function ruleLine(rule: Rule, itemName: string): string {
   const keys: Record<Exclude<Rule["id"], "walkway">, [StringKey, StringKey]> = { door: ["rDoorOk", "rDoor"], bed: ["rSideOk", "rSide"], storage: ["rStorOk", "rStor"], light: ["rLightOk", "rLight"] };
   const key = keys[rule.id][ok ? 0 : 1];
   return rule.id === "door" ? t(key as "rDoor", itemName) : t(key as "rSide", rule.cm ?? 0);
+}
+
+/** Advisory design tips for this room (rules of thumb, not part of the score). */
+function TipsList() {
+  const scene = useScene();
+  const tips = useMemo(() => designTips(scene), [scene]);
+  if (!tips.length) return null;
+  return (
+    <View style={styles.tips}>
+      <Text variant="kicker" tone="secondary">{t("tipsH")}</Text>
+      <Text variant="caption" tone="secondary" style={styles.tipsSub}>{t("tipsSub")}</Text>
+      {tips.map((tip) => (
+        <View key={`${tip.id}-${tip.objectIds.join()}`} style={styles.rule}>
+          <Icon name={tip.ok ? "check" : "dot"} size={18} tint={color.accent} />
+          <Text variant="bodySm" style={styles.text}>{tipText(tip)}</Text>
+        </View>
+      ))}
+    </View>
+  );
 }
 
 /** The score and each rule behind it in a sentence, with a Fix on any that is not passing. */
@@ -47,6 +69,7 @@ export function CheckPane({ onFix, fixing }: { onFix: () => void; fixing: boolea
           </View>
         );
       })}
+      <TipsList />
     </View>
   );
 }
@@ -57,4 +80,6 @@ const styles = StyleSheet.create({
   rule: { flexDirection: "row", alignItems: "center", gap: 12, paddingVertical: 11, borderTopWidth: 1, borderTopColor: color.divider },
   text: { flex: 1 },
   fix: { minHeight: 44 },
+  tips: { marginTop: 18 },
+  tipsSub: { marginTop: 2, marginBottom: 6 },
 });

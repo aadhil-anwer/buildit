@@ -10,6 +10,7 @@ export * from "./layout/snap";
 export type { Placement } from "./layout/placement";
 export * from "./ops";
 export * from "./room";
+export * from "./rules/design-tips";
 export * from "./scene";
 export * from "./schema";
 export * from "./styles";

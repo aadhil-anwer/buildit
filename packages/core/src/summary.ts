@@ -3,6 +3,7 @@ import { dot, facingLabel, frontDir, obbCorners, pointSegmentDistance, round2 } 
 import { ACCESS_CAP, analyzeClearance, type ClearanceReport } from "./layout/clearance";
 import { findGeometryIssues, type Issue } from "./layout/validate";
 import { getWalls, roomArea } from "./room";
+import { DESIGN_RULES, designTips } from "./rules/design-tips";
 import { costSummary, objectObb, totalSeats } from "./scene";
 import type { Scene, SceneObject } from "./types";
 
@@ -85,6 +86,15 @@ export function summarizeScene(scene: Scene, report: LayoutReport = layoutReport
       comfortably_walkable_pct: Math.round(report.clearance.walkableRatio * 100),
       ...(cost.pricedCount ? { priced_total: `${cost.total} ${cost.currency ?? ""}`.trim(), unpriced_items: cost.unpricedCount } : {}),
     },
+    // Design advice measured by the engine: the only numbers and rules the AI may quote.
+    design_tips: designTips(scene).map((t) => ({
+      rule: t.id,
+      meets_rule: t.ok,
+      source: DESIGN_RULES[t.id].source,
+      ...(t.value === undefined ? {} : { measured_m: round2(t.value) }),
+      ...(t.ideal ? { comfortable_m: t.ideal.map(round2) } : {}),
+      objects: t.objectIds,
+    })),
     min_walkway_m: scene.constraints.minWalkway,
     issues: report.issues.map((i) => `${i.severity === "error" ? "ERROR" : "warning"}: ${i.message}`),
   };
