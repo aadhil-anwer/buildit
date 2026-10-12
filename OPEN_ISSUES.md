@@ -94,7 +94,7 @@ What is planned but not done, in build order. Done phases are in `git log`; deta
 4. Undo and redo stay mirrored under RTL.
 5. Header Share stays hidden until Phase 8.
 6. Button labels keep the darker gold (AA); ghost buttons stay 44 pt tall.
-7. **AI designer requires an email**: guests can design by hand but must add an email to use AI (enforce on the server in `consume_ai_request`, and say so in the Ask tab). Phase 5.
+7. **AI designer requires an email**: guests can design by hand but must add an email to use AI (`consume_ai_request` now refuses an anonymous login with "email required", pgTAP-tested). **Still to do (Phase 5):** the Ask tab must say so and point a guest to "Add an email", and the Edge Function must treat that error that way.
 8. **Room deletion**: long-press a room card, confirm dialog, deletes on the server too. **Built** (see Sync). Nothing on screen says "press and hold"; it is in the screen reader hint and Delete action only (discoverability to decide).
 9. Performance gate device: **iPhone 13** (newer than the iPhone 11 floor, so it flatters the numbers; mark results "iPhone 13, not floor device" until an iPhone 11 class phone is tried).
 10. Merge to the main branch **after the on-device perf check**; keep pushing the branch daily; never merge without the owner.

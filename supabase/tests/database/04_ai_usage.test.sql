@@ -1,6 +1,6 @@
 -- The daily AI cap is enforced in the database, atomically, from a server-side setting.
 begin;
-select plan(9);
+select plan(11);
 
 insert into auth.users (id, email) values
   ('aaaaaaaa-0000-0000-0000-000000000001', 'a@example.test'),
@@ -29,6 +29,13 @@ select throws_ok($$select * from public.ai_usage_daily$$, '42501', null, 'client
 select throws_ok($$update public.app_settings set value = '9999' where key = 'ai_daily_limit'$$, '42501', null, 'clients cannot change the limit');
 set local role anon;
 select throws_ok($$select public.consume_ai_request()$$, '42501', null, 'signed-out callers cannot use it');
+
+reset role;
+insert into auth.users (id, email, is_anonymous) values ('dddddddd-0000-0000-0000-000000000004', null, true);
+select set_config('role', 'authenticated', true), set_config('request.jwt.claims', json_build_object('sub', 'dddddddd-0000-0000-0000-000000000004', 'role', 'authenticated', 'is_anonymous', true)::text, true);
+select throws_ok($$select public.consume_ai_request()$$, 'P0001', 'email required', 'a guest (anonymous) login is told an email is needed');
+reset role;
+select is((select count(*)::int from public.ai_usage_daily where user_id = 'dddddddd-0000-0000-0000-000000000004'), 0, 'and nothing is counted for it');
 
 select * from finish();
 rollback;
