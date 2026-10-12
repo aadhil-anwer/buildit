@@ -6,7 +6,7 @@ const LEGACY = [
 ].map((f) => `packages/core/src/${f}.ts`).concat(["packages/core/tests/layout.test.ts", "packages/core/tests/roomplan.test.ts"]);
 
 export default tseslint.config(
-  { ignores: ["**/node_modules", "**/.next", "design-docnew", "web", ".claude", "tools/fixtures", "**/*.config.*", "**/*.generated.ts"] },
+  { ignores: ["**/node_modules", "**/.next", "design-docnew", "web", ".claude", "supabase/functions", "tools/fixtures", "**/*.config.*", "**/*.generated.ts"] },
   ...tseslint.configs.recommendedTypeChecked,
   {
     languageOptions: { parserOptions: { projectService: true, tsconfigRootDir: import.meta.dirname } },

@@ -3,7 +3,8 @@
     ".claude/**",
     "design-docnew/**",
     "web/**",
-    "tools/fixtures/**"
+    "tools/fixtures/**",
+    "supabase/functions/**"
   ],
   "workspaces": {
     ".": {

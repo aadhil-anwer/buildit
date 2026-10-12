@@ -13,18 +13,20 @@
     "dup": "jscpd packages --min-lines 8 --min-tokens 60 --threshold 0 --silent --ignore \"**/node_modules/**,**/tests/**\"",
     "dead": "knip",
     "test": "npm test --workspaces --if-present && vitest run tools",
-    "verify": "npm run typecheck && npm run lint && npm run dup && npm run dead && npm test",
-    "test:db": "supabase test db"
+    "verify": "npm run typecheck && npm run lint && npm run dup && npm run dead && npm run agent:bundle && npm test",
+    "test:db": "supabase test db",
+    "agent:bundle": "esbuild packages/core/src/agent/index.ts --bundle --format=esm --platform=neutral --target=es2022 --outfile=supabase/functions/agent/core.js --log-level=warning"
   },
   "devDependencies": {
+    "esbuild": "^0.28.0",
     "eslint": "^9.39.5",
     "jscpd": "^5.4.1",
     "knip": "^6.41.0",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
     "typescript": "~6.0.3",
     "typescript-eslint": "^8.71.1",
-    "vitest": "^5.0.3",
-    "react": "19.2.3",
-    "react-dom": "19.2.3"
+    "vitest": "^5.0.3"
   },
   "engines": {
     "node": ">=22.6"
