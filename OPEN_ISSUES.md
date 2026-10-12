@@ -48,7 +48,7 @@ What is planned but not done, in build order. Done phases are in `git log`; deta
 - [ ] Shrink the 28 legacy lint warnings to zero (clearance, placement, ops, validate, roomplan, summary).
 - [ ] Measure the engine and 3D on a real phone (iPhone 11 class) and fix what misses the budget.
 - [ ] Native-speaker review of every Arabic string we wrote ourselves.
-- [ ] Decisions waiting for you: the dark gold button label (AA contrast) vs the prototype's plain gold, anonymous-account AI abuse, ghost button size (44 vs 40).
+- [x] Decisions on the gold label, anonymous AI abuse and ghost size are answered (see Editor > Owner decisions).
 
 ## Editor (Phase 4, in progress)
 
@@ -82,20 +82,24 @@ What is planned but not done, in build order. Done phases are in `git log`; deta
 - Undo and redo icons are mirrored under RTL; the prototype does not mirror them.
 
 **Wrong or weak, to fix**
-- The Check rule sentences say "it needs 90" even when the walkway preference is 75 cm (the design's strings carry the number).
 - Fix now searches for at most 300 ms, the STACK.md budget, in 8 ms slices. On a laptop a room it cannot fix uses the whole budget and does not improve at 150 to 1500 ms, so the budget is not what limits it; a fixable room has not been tried on a phone.
-- Versions are **not synced**: they live in the room's local record and survive restarts, but a second phone does not see them and deleting the app loses them (the room itself syncs).
+- Versions are **not synced yet** (decided: they will be): they live in the room's local record and survive restarts, but a second phone does not see them and deleting the app loses them.
 - `design:compare` needs `CHROMIUM_PATH` and `UNPKG_DIR` in this cloud container (see HANDOFF.md).
 
 **Native changes in this phase (new development build needed, never publish to `production` without the owner's say-so):** Reanimated, worklets, gesture handler, expo-gl and expo-asset / expo-file-system (peers of React Three Fiber). `app.json` version is **1.2.0**; an OTA update cannot reach older builds.
 
-**Questions for the owner**
-1. Should saved versions sync to the server? The schema supports it (`save_version` with kind `manual` and a label) but it makes Save push the current scene as that version. Today they are local only. Which do you want?
-2. Is "Where you are now" as the top Versions row acceptable, or should it follow the prototype (latest saved = Current)?
-3. Walkway preference 75: should the rule sentences read "needs 75" then? That means new copy in both languages.
-4. Undo and redo mirrored under RTL, or kept pointing the same way as the prototype?
-5. Header Share: do you want it hidden until Phase 8 (current) or visible and explaining "coming soon"?
-6. Device for the performance gate: an iPhone 11 (or similar) with a development build. Who runs it, and when?
+**Owner decisions (answered 2026-10-12)**
+1. Saved versions **sync to the server** (as `manual` versions with their label). To build.
+2. Versions top row stays "Where you are now" (differs from the prototype, accepted).
+3. Check sentences **follow the walkway setting** (75 or 90 cm), new copy in both languages. To build.
+4. Undo and redo stay mirrored under RTL.
+5. Header Share stays hidden until Phase 8.
+6. Button labels keep the darker gold (AA); ghost buttons stay 44 pt tall.
+7. **AI designer requires an email**: guests can design by hand but must add an email to use AI (enforce on the server in `consume_ai_request`, and say so in the Ask tab). Phase 5.
+8. **Room deletion**: long-press a room card, confirm dialog, deletes on the server too (needs sync tombstones). To build.
+9. Performance gate device: **iPhone 13** (newer than the iPhone 11 floor, so it flatters the numbers; mark results "iPhone 13, not floor device" until an iPhone 11 class phone is tried).
+10. Merge to the main branch **after the on-device perf check**; keep pushing the branch daily; never merge without the owner.
+11. Arabic strings written by us ship without native review for now (still flagged below).
 
 ## Sync (Phase 3.7)
 
