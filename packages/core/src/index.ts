@@ -6,6 +6,7 @@ export * from "./importers/roomplan";
 export * from "./layout/free-space";
 export { analyzeClearance, type ClearanceReport } from "./layout/clearance";
 export * from "./layout/improve";
+export * from "./layout/snap";
 export type { Placement } from "./layout/placement";
 export * from "./ops";
 export * from "./room";

@@ -1,4 +1,4 @@
-import { placeObject, type ClearanceReport, type OpResult, type Scene } from "@buildit/core";
+import { placeObject, snapToWalls, type ClearanceReport, type OpResult, type Scene } from "@buildit/core";
 import { useMemo, useState } from "react";
 import { StyleSheet, useWindowDimensions, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
@@ -34,7 +34,7 @@ function useEditGestures(scene: Scene, plan: Plan, { onSelect, onPlace }: Pick<P
   };
   const finish = (id: string, dx: number, dy: number) => {
     const piece = scene.objects.find((o) => o.id === id);
-    if (piece && (dx || dy)) onPlace(id, placeObject(scene, id, draggedPose(piece, dx, dy, plan.scale)));
+    if (piece && (dx || dy)) onPlace(id, placeObject(scene, id, snapToWalls(scene.room, piece, draggedPose(piece, dx, dy, plan.scale))));
     setDragId(null);
   };
   const tap = Gesture.Tap().onEnd((e) => runOnJS(onSelect)(hitItem(plan.items, e.x, e.y)));

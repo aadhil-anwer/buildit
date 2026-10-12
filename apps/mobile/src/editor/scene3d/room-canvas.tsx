@@ -1,9 +1,11 @@
-import { placeObject, typeInfo, type ClearanceReport, type OpResult, type Scene } from "@buildit/core";
+import { placeObject, snapToWalls, typeInfo, type ClearanceReport, type OpResult, type Scene } from "@buildit/core";
 import { Canvas, useFrame, useThree, type RootState } from "@react-three/fiber";
 import { useRef, type RefObject } from "react";
 import { StyleSheet, useWindowDimensions, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import { ACESFilmicToneMapping, PCFSoftShadowMap, Vector3 } from "three";
+import { useToast } from "@/components/toast";
+import { t } from "@/i18n";
 import { color } from "@/theme";
 import { draggedTo, floorPoint, pickPiece, type Drag } from "./interaction";
 import { PerfProbe } from "./perf-probe";
@@ -84,11 +86,9 @@ function useCameraGestures(view: RefObject<View3D>, redraw: () => void) {
   return { orbit, pinch };
 }
 
-/** Tap picks a piece, dragging a piece moves it on the floor in 5 cm steps, dragging bare floor orbits, pinching zooms. */
-function useRoomGestures(scene: Scene, state: RefObject<RootState | null>, view: RefObject<View3D>, { onSelect, onPlace }: Pick<Props, "onSelect" | "onPlace">) {
-  const drag = useRef<Drag | null>(null);
+/** Picking up a piece, where it lands, and putting it down; the piece moves by changing its mesh, not React state. */
+function useDragActions(scene: Scene, state: RefObject<RootState | null>, onPlace: Props["onPlace"]) {
   const redraw = () => state.current?.invalidate();
-  const camera = useCameraGestures(view, redraw);
   const place = (id: string, x: number, z: number) => {
     state.current?.scene.getObjectByName(id)?.position.set(x, 0, z);
     redraw();
@@ -96,15 +96,28 @@ function useRoomGestures(scene: Scene, state: RefObject<RootState | null>, view:
   const grab = (x: number, y: number): Drag | null => {
     const piece = scene.objects.find((o) => o.id === (state.current && pickPiece(state.current, x, y)));
     const at = state.current && floorPoint(state.current, x, y);
+    if (piece?.locked) useToast.getState().show(t("lockedNote"));
     return piece && at && !piece.locked ? { id: piece.id, grab: at, from: { x: piece.x, z: piece.z, rotation: piece.rotation } } : null;
   };
+  const landing = (d: Drag, here: { x: number; z: number }) => {
+    const piece = scene.objects.find((o) => o.id === d.id);
+    const to = draggedTo(d, here);
+    return piece ? snapToWalls(scene.room, piece, to) : to;
+  };
   const end = (d: Drag, here: { x: number; z: number } | null) => {
-    const to = here ? draggedTo(d, here) : d.from;
+    const to = here ? landing(d, here) : d.from;
     if (to.x !== d.from.x || to.z !== d.from.z) onPlace(d.id, placeObject(scene, d.id, to));
     const now = scene.objects.find((o) => o.id === d.id) ?? d.from;
     place(d.id, now.x, now.z); // a refused move goes back where it was
   };
+  return { redraw, place, grab, landing, end };
+}
 
+/** Tap picks a piece, dragging a piece moves it on the floor in 5 cm steps, dragging bare floor orbits, pinching zooms. */
+function useRoomGestures(scene: Scene, state: RefObject<RootState | null>, view: RefObject<View3D>, { onSelect, onPlace }: Pick<Props, "onSelect" | "onPlace">) {
+  const drag = useRef<Drag | null>(null);
+  const { redraw, place, grab, landing, end } = useDragActions(scene, state, onPlace);
+  const camera = useCameraGestures(view, redraw);
   const tap = Gesture.Tap().runOnJS(true).onEnd((e) => state.current && onSelect(pickPiece(state.current, e.x, e.y)));
   const pan = Gesture.Pan().runOnJS(true).minDistance(6)
     .onStart((e) => {
@@ -113,7 +126,10 @@ function useRoomGestures(scene: Scene, state: RefObject<RootState | null>, view:
     })
     .onChange((e) => {
       const here = drag.current && state.current && floorPoint(state.current, e.x, e.y);
-      if (drag.current && here) place(drag.current.id, draggedTo(drag.current, here).x, draggedTo(drag.current, here).z);
+      if (drag.current && here) {
+        const to = landing(drag.current, here);
+        place(drag.current.id, to.x, to.z);
+      }
       if (!drag.current) camera.orbit(e.changeX, e.changeY);
     })
     .onEnd((e) => {
