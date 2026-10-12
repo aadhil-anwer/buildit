@@ -17,6 +17,10 @@ export const RAMP = {
   title: ["heading", 400, 26, 1.1], // README: room name 26
   heading: ["heading", 600, 18, 1.1],
   tab: ["heading", 600, 17, 1.2], // prototype: sheet tabs
+  chip: ["heading", 600, 15, 1.2], // prototype: restyle and ask chips
+  paneTitle: ["heading", 400, 22, 1], // prototype: sheet pane headings
+  chipTitle: ["heading", 600, 15, 1.15], // prototype: room check chip title
+  chipNote: ["body", 400, 11, 1.15], // prototype: room check chip finding
   brand: ["heading", 400, 26, 1], // prototype: Welcome logotype
   button14: ["heading", 600, 14, 1.2], // styles.css .btn
   button15: ["heading", 600, 15, 1.2], // prototype: text buttons ("Try without an account")
@@ -42,6 +46,7 @@ export const RAMP = {
   control: ["body", 600, 14, 1.3], // prototype: language toggle
   label: ["body", 600, 13, 1.3],
   caption: ["body", 400, 12, 1.55],
+  toast: ["body", 400, 13, 1.3], // prototype: the toast pill
 } as const;
 export type Variant = keyof typeof RAMP;
 

@@ -5,10 +5,10 @@ import { Text } from "./text";
 
 // Outlined, never filled (design system). Labels use accent700 so they pass AA.
 const VARIANT = {
-  primary: { border: color.accent, tone: "accent", press: withAlpha(color.accent, 0.22) },
-  secondary: { border: color.divider, tone: "default", press: withAlpha(color.text, 0.14) },
-  ghost: { border: "transparent", tone: "accent", press: withAlpha(color.accent, 0.18) },
-  danger: { border: rust.base, tone: "danger", press: withAlpha(rust.base, 0.14) },
+  primary: { border: color.accent, tone: "accent", icon: color.accent, iconSize: 20, press: withAlpha(color.accent, 0.22) },
+  secondary: { border: color.divider, tone: "default", icon: color.text, iconSize: 18, press: withAlpha(color.text, 0.14) },
+  ghost: { border: "transparent", tone: "accent", icon: color.accent, iconSize: 20, press: withAlpha(color.accent, 0.18) },
+  danger: { border: rust.base, tone: "danger", icon: rust.base, iconSize: 18, press: withAlpha(rust.base, 0.14) },
 } as const;
 
 // Heights are the design's, never below the 44pt tap target.
@@ -21,13 +21,15 @@ type Props = {
   variant?: keyof typeof VARIANT;
   size?: keyof typeof SIZE;
   icon?: IconName;
+  /** Show only the icon; `title` is still its accessibility label. */
+  iconOnly?: boolean;
   disabled?: boolean;
   /** Work in progress: ignores taps and announces itself as busy. No spinner (design rule). */
   busy?: boolean;
   style?: StyleProp<ViewStyle>;
 };
 
-export function Button({ title, onPress, variant = "primary", size = 14, icon, disabled, busy, style }: Props) {
+export function Button({ title, onPress, variant = "primary", size = 14, icon, iconOnly, disabled, busy, style }: Props) {
   const v = VARIANT[variant];
   const inactive = disabled || busy;
   return (
@@ -39,8 +41,8 @@ export function Button({ title, onPress, variant = "primary", size = 14, icon, d
       onPress={onPress}
       style={({ pressed }) => [styles.base, { minHeight: SIZE[size].height, borderColor: v.border, opacity: inactive ? 0.45 : 1 }, pressed && { backgroundColor: v.press }, style]}
     >
-      {icon && <Icon name={icon} size={20} tint={color.accent} />}
-      <Text variant={SIZE[size].text} tone={v.tone}>{title}</Text>
+      {icon && <Icon name={icon} size={v.iconSize} tint={v.icon} />}
+      {iconOnly ? null : <Text variant={SIZE[size].text} tone={v.tone}>{title}</Text>}
     </Pressable>
   );
 }

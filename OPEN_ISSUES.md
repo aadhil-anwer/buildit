@@ -50,6 +50,17 @@ What is planned but not done, in build order. Done phases are in `git log`; deta
 - [ ] Native-speaker review of every Arabic string we wrote ourselves.
 - [ ] Decisions waiting for you: the dark gold button label (AA contrast) vs the prototype's plain gold, anonymous-account AI abuse, ghost button size (44 vs 40).
 
+## Editor (Phase 4, in progress)
+
+Built: `Sheet` (196 / 404 / 640 pt, grabber tap and drag, Reanimated height), `SheetTabs`, both mounted in `src/screens/editor.tsx`. Unit-tested with Reanimated and gesture handler mocked.
+
+- **Not design-compared yet** (EN and AR, every state). Needs the web build and a guest session (local Supabase).
+- **Sheet drag and the 380 ms glide have never run in a real renderer** (jest uses mocks). Check on web, then on a device. Android uses 28 pt corners per the handoff; only the iOS 20 pt is built.
+- **Tab bodies are not built.** Each shows "isn't built yet" (a dead end, temporary).
+- **Adding Reanimated, worklets and gesture handler is a native change**: `app.json` version is now 1.1.0, so a new development build is needed and OTA updates will not reach older builds. Never publish to `production` without the owner's say-so.
+- **Sheet tab strip tap targets** use 4 pt of hit slop above and below an ~38 pt strip (target 46 pt); the grabber is 22 pt plus 11 pt slop each side (44 pt). Unmeasured on a device.
+- **The guest email upgrade is only unit-tested.** It has not been tried against Supabase (the `email_change` flow, `double_confirm_changes`, the code template).
+
 ## Sync (Phase 3.7)
 
 Verified end to end on web against the local stack (email code sign-in, a room created in the UI appears in `rooms` and `room_versions`, a second fresh browser on the same account lists it). Unit-tested: push, pull, conflicts, edits during a sync, rooms deleted elsewhere, unreadable server data, account switch, walkway preference, debounce, retry, foreground.

@@ -7,8 +7,8 @@ export interface SheetTab<K extends string> {
   label: string;
 }
 
-/** The sheet's tab strip: the chosen tab is gold-underlined, the rest sit on a hairline. */
-export function SheetTabs<K extends string>({ tabs, value, onChange }: { tabs: SheetTab<K>[]; value: K; onChange: (key: K) => void }) {
+/** The sheet's tab strip: the chosen tab is gold-underlined, the rest sit on a hairline. `value` may name a pane that is not a tab (none is underlined). */
+export function SheetTabs<K extends string>({ tabs, value, onChange }: { tabs: SheetTab<K>[]; value: string; onChange: (key: K) => void }) {
   return (
     <View accessibilityRole="tablist" style={styles.strip}>
       {tabs.map(({ key, label }) => {

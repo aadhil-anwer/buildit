@@ -1,7 +1,9 @@
 // Usage: npm run design:compare -- <prototype screen> [en|ar] [app route]
 // Needs the app running on the web (npm run web). Writes screenshots and a diff to ./design-compare.
+// UNPKG_DIR=<dir> serves the prototype's unpkg libraries (react, react-dom, @babel/standalone) from <dir>/<pkg>@<version>/... when unpkg is blocked.
+// CHROMIUM_PATH=<binary> uses a browser that is already installed (cloud containers).
 // COMPARE_GUEST=1 signs in as a guest first; COMPARE_SEED=rooms also gives the app the prototype's three rooms.
-import { mkdirSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import pixelmatch from "pixelmatch";
 import { chromium, type Page } from "playwright";
@@ -37,6 +39,15 @@ const COLLECT = `(() => {
   return out;
 })()`;
 
+/** Answers the prototype's unpkg requests from a local folder, for networks that block unpkg. */
+async function serveUnpkgLocally(page: Page, dir: string) {
+  await page.route("https://unpkg.com/**", (route) => {
+    const file = resolve(dir, decodeURIComponent(new URL(route.request().url()).pathname.slice(1)));
+    if (existsSync(file)) return route.fulfill({ body: readFileSync(file), contentType: "text/javascript" });
+    return route.continue();
+  });
+}
+
 async function capture(page: Page, url: string, name: string) {
   await page.goto(url, { waitUntil: "networkidle" });
   await page.waitForTimeout(1500); // fonts and entry animations
@@ -64,10 +75,11 @@ async function main() {
   });
   mkdirSync(OUT, { recursive: true });
   const design = await serve(DESIGN);
-  const browser = await chromium.launch();
+  const browser = await chromium.launch({ executablePath: env("CHROMIUM_PATH"), args: ["--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--ignore-gpu-blocklist"] });
   try {
     const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
     const page = await context.newPage();
+    if (env("UNPKG_DIR")) await serveUnpkgLocally(page, env("UNPKG_DIR") as string);
     const proto = await capture(page, `${design.url}/_screen.html?start=${screen}&lang=${lang}`, `${screen}.${lang}.design`);
     await context.addInitScript(`localStorage.setItem("language", "${lang}")`);
     if (env("COMPARE_SEED") === "rooms") await context.addInitScript(`localStorage.setItem("rooms", ${JSON.stringify(seedRooms(lang as "en" | "ar"))})`);
