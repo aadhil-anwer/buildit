@@ -8,6 +8,7 @@ import { ConfirmDialog } from "@/components/confirm-dialog";
 import { Skeleton } from "@/components/skeleton";
 import { Text } from "@/components/text";
 import { t } from "@/i18n";
+import { useHints } from "@/lib/hints";
 import { useScreenInsets } from "@/lib/use-screen-insets";
 import { useEditor } from "@/editor/store";
 import { useRooms, useRoomsReady, type LocalRoom } from "@/rooms/store";
@@ -15,6 +16,31 @@ import { useSyncStatus } from "@/sync/use-sync";
 import { color, withAlpha } from "@/theme";
 import { EmptyState } from "./empty-state";
 import { RoomCard } from "./room-card";
+
+/** Said until the first room is opened or a delete is started, then never again. */
+function DeleteHint() {
+  const seen = useHints((s) => s.seen.roomDelete);
+  return seen ? null : <Text variant="small" tone="secondary" style={styles.count}>{t("hintRoomDelete")}</Text>;
+}
+
+function RoomList({ ready, rooms, onDelete }: { ready: boolean; rooms: LocalRoom[]; onDelete: (room: LocalRoom) => void }) {
+  const router = useRouter();
+  const open = (id: string) => {
+    useHints.getState().see("roomDelete");
+    router.push(`/editor/${id}`);
+  };
+  const del = (room: LocalRoom) => {
+    useHints.getState().see("roomDelete");
+    onDelete(room);
+  };
+  return (
+    <ScrollView contentContainerStyle={rooms.length || !ready ? styles.list : undefined}>
+      {!ready ? [0, 1, 2].map((i) => <Skeleton key={i} label={t("loadingRooms")} style={styles.skeleton} />) : null}
+      {ready && !rooms.length ? <EmptyState /> : null}
+      {ready ? rooms.map((room) => <RoomCard key={room.id} room={room} onOpen={() => open(room.id)} onDelete={() => del(room)} />) : null}
+    </ScrollView>
+  );
+}
 
 /** My rooms: every room as a picture, or an explanation of the three ways in when there are none. */
 export function Rooms() {
@@ -37,15 +63,12 @@ export function Rooms() {
         <View>
           <Text variant="display">{t("rooms")}</Text>
           {ready && rooms.length ? <Text variant="count" tone="secondary" style={styles.count}>{t("nRooms", rooms.length)}</Text> : null}
+          {ready && rooms.length ? <DeleteHint /> : null}
         </View>
         <IconButton icon="sliders" label={t("setH")} onPress={() => router.push("/settings")} />
       </View>
       {syncFailed ? <Text variant="small" tone="secondary" accessibilityRole="alert" style={styles.sync}>{t("syncFailed")}</Text> : null}
-      <ScrollView contentContainerStyle={rooms.length || !ready ? styles.list : undefined}>
-        {!ready ? [0, 1, 2].map((i) => <Skeleton key={i} label={t("loadingRooms")} style={styles.skeleton} />) : null}
-        {ready && !rooms.length ? <EmptyState /> : null}
-        {ready ? rooms.map((room) => <RoomCard key={room.id} room={room} onOpen={() => router.push(`/editor/${room.id}`)} onDelete={() => setDeleting(room)} />) : null}
-      </ScrollView>
+      <RoomList ready={ready} rooms={rooms} onDelete={setDeleting} />
       <ConfirmDialog visible={!!deleting} title={t("delRoomH")} body={deleting ? t("delRoomP", deleting.name) : ""} cancelLabel={t("cancel")} confirmLabel={t("delConf")} onCancel={() => setDeleting(null)} onConfirm={confirmDelete} />
       <LinearGradient colors={[withAlpha(color.bg, 0), color.bg, color.bg]} locations={[0, 0.34, 1]} style={[styles.bar, { paddingBottom: insets.bottom }]}>
         <Button title={t("scan")} icon="scan" size={17} onPress={() => router.push("/capture")} style={styles.scan} />

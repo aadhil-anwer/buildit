@@ -21,6 +21,7 @@ import { CheckPane } from "@/editor/panes/check-pane";
 import { FinishesPane } from "@/editor/panes/finishes-pane";
 import { ItemPane } from "@/editor/panes/item-pane";
 import { ChipsRow } from "@/editor/chips-row";
+import { useFirstHint } from "@/editor/use-first-hint";
 import { useEditor, useScene, type EditorTab } from "@/editor/store";
 import { typeName } from "@/rooms/names";
 import { useRooms } from "@/rooms/store";
@@ -51,6 +52,7 @@ function EditorBody({ name }: { name: string }) {
   const insets = useScreenInsets();
   const scene = useScene();
   const { fixing, fix } = useFix();
+  useFirstHint();
   const [snap, setSnap] = useState<Snap>("half");
   const [tab, selectedId, view, walkOn] = [useEditor((s) => s.tab), useEditor((s) => s.selectedId), useEditor((s) => s.view), useEditor((s) => s.walk)];
   const walk = useMemo(() => (walkOn ? analyzeClearance(scene, { cell: 0.05, overlay: true }) : null), [scene, walkOn]);

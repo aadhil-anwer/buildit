@@ -119,7 +119,7 @@ Today the engine has 9 advisory design rules (`DESIGN_RULES`: coffee-table gap, 
 5. Header Share stays hidden until Phase 8.
 6. Button labels keep the darker gold (AA); ghost buttons stay 44 pt tall.
 7. **AI designer requires an email**: guests can design by hand but must add an email to use AI (`consume_ai_request` now refuses an anonymous login with "email required", pgTAP-tested). **Still to do (Phase 5):** the Ask tab must say so and point a guest to "Add an email", and the Edge Function must treat that error that way.
-8. **Room deletion**: long-press a room card, confirm dialog, deletes on the server too. **Built** (see Sync). Nothing on screen says "press and hold"; it is in the screen reader hint and Delete action only (discoverability to decide).
+8. **Room deletion**: long-press a room card, confirm dialog, deletes on the server too. **Built** (see Sync). A one-line hint under the room count now says "Press and hold a room to delete it" until the first room is opened or a delete is started (not in the prototype, not screenshotted; Arabic unreviewed). The editor says once, on first open, "Drag a piece to move it. Drag the floor to turn the room." (same status).
 9. Performance gate device: **iPhone 13** (newer than the iPhone 11 floor, so it flatters the numbers; mark results "iPhone 13, not floor device" until an iPhone 11 class phone is tried).
 10. Merge to the main branch **after the on-device perf check**; keep pushing the branch daily; never merge without the owner.
 11. Arabic strings written by us ship without native review for now (still flagged below).
