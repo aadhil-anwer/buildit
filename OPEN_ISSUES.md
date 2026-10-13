@@ -50,12 +50,18 @@ What is planned but not done, in build order. Done phases are in `git log`; deta
 - [ ] Native-speaker review of every Arabic string we wrote ourselves.
 - [x] Decisions on the gold label, anonymous AI abuse and ghost size are answered (see Editor > Owner decisions).
 
+## Future plan (after the MVP; owner said "add to future plan")
+
+- **DIY and repairs (plan approved in principle, not started).** Tiers: green (paint, small patch, caulk, shelves, flooring) gets full guides; yellow (tiling, carpentry, shed from a kit) gets guides with stop points and "check local rules"; red (mains electrical, gas, load-bearing, roofing at height) never gets steps, only "hire a licensed pro". Order: (1) materials and shopping list from the room's own measurements (paint litres, flooring boxes, tiles; pure engine maths with sourced coverage/waste table), (2) 15 to 20 green guides reviewed by a qualified tradesperson, EN and AR, the AI only routes to a guide and fills in quantities, (3) shed planner as a separate "yard" scene with clearance checks and a cut list, no country legal claims. Needs: a reviewer, a lawyer's look at liability wording, and evidence from about 20 users on which jobs they want.
+- **Selling:** per-room one-time pass first (about $19 to $29 local price), subscription only if many buy a second room within about 60 days; a website and web checkout (the app can't point to it outside the US storefront under Apple 3.1.1(a); Google's policy page could not be read here, check it); the free taste is the Room Check diagnosis plus one redesign and one watermarked render. Saudi Arabia first, then UAE. All figures are unverified estimates.
+- **Photoreal render**, **richer 3D furniture**, **designer review tier**: see Premium feel and Design quality above.
+
 ## Premium feel (owner asked for a $500M-product feel)
 
 Plan: `~/.claude/plans/how-do-we-plan-enumerated-wozniak.md` (A furniture, B haptics, C motion, D first-run coach, E honest trust, F device gate).
 - [x] A (started): softer, more detailed furniture (rounded cushions, sofa seat and back cushions, bed duvet), same part cap (8) so draw calls stay in budget. Looked at in a browser on the bedroom only; not compared per piece, not measured again for draw calls on a device.
 - [x] While the AI designer works, the 3D room shows a gold scan band sweeping the floor, pieces glide to their new places as each step arrives, and pieces it has changed so far are outlined. Driven by the real steps (not a canned animation); turns off with the phone's Reduce Motion setting. **Not yet seen running**: my local function/stand-in model setup fell over while I tried to screenshot it, so this is unit-tested (which pieces count as changed) and type-checked only. Frame rate during the animation on a phone is unmeasured.
-- [ ] B haptics, C motion tokens and screen transitions, D first-run coach, E "Why" sheet on tips, F iPhone 13 run.
+- [ ] B haptics (none exist yet; the earlier note that the sheet and suggestion card use them was wrong), C motion tokens and screen transitions, D first-run coach, E "Why" sheet on tips, F iPhone 13 run.
 - [ ] **Photoreal mood render (owner said yes; "very realistic").** Blocked on owner: (1) which image provider (Anthropic has no image generator; options are an OpenAI, Google or similar image model), (2) its API key as a server secret, (3) cost per image and a daily cap separate from the 20 AI requests. Constraints I will hold to: shown only as a labelled "illustration, sizes may differ", never as the plan of record; layout and measurements stay the engine's; the image is generated from the 3D room's own snapshot plus the engine's list of pieces (so furniture matches) but an image model cannot guarantee exact sizes or placement; a new Edge Function means a new external call site, checked with you first. Not started.
 
 ## Design quality: the road to "interior-designer level" (honest status)
