@@ -8,6 +8,9 @@ import { useToast } from "@/components/toast";
 import { t } from "@/i18n";
 import { color } from "@/theme";
 import { draggedTo, floorPoint, pickPiece, type Drag } from "./interaction";
+import { useDrafting } from "@/ai/use-drafting";
+import { useReduceMotion } from "@/lib/reduce-motion";
+import { Drafting } from "./drafting";
 import { PerfProbe } from "./perf-probe";
 import { useCanvasActive } from "./use-canvas-active";
 import { DoorSwings } from "./door-swings";
@@ -148,6 +151,8 @@ export function RoomCanvas({ scene, selectedId, topInset, bottomInset, walk, onS
   const state = useRef<RootState | null>(null);
   const gesture = useRoomGestures(scene, state, view, { onSelect, onPlace });
   const active = useCanvasActive();
+  const drafting = useDrafting();
+  const calm = useReduceMotion();
   return (
     <GestureDetector gesture={gesture}>
       <View testID="room-canvas" style={[styles.canvas, { top: topInset, height }]}>
@@ -158,9 +163,10 @@ export function RoomCanvas({ scene, selectedId, topInset, bottomInset, walk, onS
           <Lights scene={scene} />
           <RoomShell room={scene.room} view={view} />
           <DoorSwings room={scene.room} />
+          {drafting.on && !calm ? <Drafting scene={scene} /> : null}
           {walk ? <WalkFloor report={walk} /> : null}
           <group name="pieces">
-            {scene.objects.map((o) => <Piece key={o.id} piece={o} selected={o.id === selectedId} floorLevel={!!typeInfo(o.type).floorLevel} />)}
+            {scene.objects.map((o) => <Piece key={o.id} piece={o} selected={o.id === selectedId} floorLevel={!!typeInfo(o.type).floorLevel} glide={drafting.on && !calm} marked={drafting.touched.includes(o.id)} />)}
           </group>
         </Canvas>
       </View>

@@ -50,6 +50,14 @@ What is planned but not done, in build order. Done phases are in `git log`; deta
 - [ ] Native-speaker review of every Arabic string we wrote ourselves.
 - [x] Decisions on the gold label, anonymous AI abuse and ghost size are answered (see Editor > Owner decisions).
 
+## Premium feel (owner asked for a $500M-product feel)
+
+Plan: `~/.claude/plans/how-do-we-plan-enumerated-wozniak.md` (A furniture, B haptics, C motion, D first-run coach, E honest trust, F device gate).
+- [x] A (started): softer, more detailed furniture (rounded cushions, sofa seat and back cushions, bed duvet), same part cap (8) so draw calls stay in budget. Looked at in a browser on the bedroom only; not compared per piece, not measured again for draw calls on a device.
+- [x] While the AI designer works, the 3D room shows a gold scan band sweeping the floor, pieces glide to their new places as each step arrives, and pieces it has changed so far are outlined. Driven by the real steps (not a canned animation); turns off with the phone's Reduce Motion setting. **Not yet seen running**: my local function/stand-in model setup fell over while I tried to screenshot it, so this is unit-tested (which pieces count as changed) and type-checked only. Frame rate during the animation on a phone is unmeasured.
+- [ ] B haptics, C motion tokens and screen transitions, D first-run coach, E "Why" sheet on tips, F iPhone 13 run.
+- [ ] **Photoreal mood render (owner said yes; "very realistic").** Blocked on owner: (1) which image provider (Anthropic has no image generator; options are an OpenAI, Google or similar image model), (2) its API key as a server secret, (3) cost per image and a daily cap separate from the 20 AI requests. Constraints I will hold to: shown only as a labelled "illustration, sizes may differ", never as the plan of record; layout and measurements stay the engine's; the image is generated from the 3D room's own snapshot plus the engine's list of pieces (so furniture matches) but an image model cannot guarantee exact sizes or placement; a new Edge Function means a new external call site, checked with you first. Not started.
+
 ## Design quality: the road to "interior-designer level" (honest status)
 
 Today the engine has 9 advisory design rules (`DESIGN_RULES`: coffee-table gap, TV distance, conversation distance, rug under sofa, dining chair pull-out, bed foot, headboard under a window, nightstand pair, desk and window glare) plus the room check (walkway, doors, bed sides, storage reach, window light). They are commonly cited rules of thumb, **not reviewed by a designer**, and they show as tips and nudge `improve` (0.4 cost per unmet rule, far below a blocked door); they are not in the room-check score. This is a good checker, not a replacement for a designer. To get closer:

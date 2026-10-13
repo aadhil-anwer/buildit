@@ -1,6 +1,7 @@
 import { design, type SceneObject } from "@buildit/core";
-import { useEffect, useMemo } from "react";
-import { BoxGeometry, CylinderGeometry, EdgesGeometry, MeshStandardMaterial } from "three";
+import { useFrame } from "@react-three/fiber";
+import { useEffect, useMemo, useRef } from "react";
+import { BoxGeometry, CylinderGeometry, EdgesGeometry, MathUtils, MeshStandardMaterial, type Group } from "three";
 import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
 import { color } from "@/theme";
 import { partsFor, type Part, type Tone } from "./parts";
@@ -18,7 +19,8 @@ const materialFor = (hex: string) => {
 };
 
 const BEVEL = 0.012;
-const geometryFor = (p: Part) => (p.shape === "cyl" ? new CylinderGeometry(p.w / 2, p.w / 2, p.h, 20) : p.h < 0.03 || p.d < 0.03 || p.w < 0.03 ? new BoxGeometry(p.w, p.h, p.d) : new RoundedBoxGeometry(p.w, p.h, p.d, 2, Math.min(BEVEL, p.h / 3, p.w / 3, p.d / 3)));
+const radiusOf = (p: Part) => Math.min(p.r ?? BEVEL, p.h / 3, p.w / 3, p.d / 3);
+const geometryFor = (p: Part) => (p.shape === "cyl" ? new CylinderGeometry(p.w / 2, p.w / 2, p.h, 20) : p.h < 0.03 || p.d < 0.03 || p.w < 0.03 ? new BoxGeometry(p.w, p.h, p.d) : new RoundedBoxGeometry(p.w, p.h, p.d, 3, radiusOf(p)));
 
 function PartMesh({ part, main, floorLevel }: { part: Part; main: string; floorLevel: boolean }) {
   const geometry = useMemo(() => geometryFor(part), [part]);
@@ -33,13 +35,39 @@ function Outline({ w, d }: { w: number; d: number }) {
   return <lineSegments geometry={edges} position={[0, 0.012, 0]}><lineBasicMaterial color={color.accent} /></lineSegments>;
 }
 
-/** One piece of furniture, named by its id so the canvas can find it when it is tapped or dragged. */
-export function Piece({ piece, selected, floorLevel }: { piece: SceneObject; selected: boolean; floorLevel: boolean }) {
+const GLIDE_RATE = 7; // per second: a move of 1 m takes about half a second to settle
+
+/** Moves the piece's group to where the scene says it stands; with `glide` it eases there instead of jumping. Dragging moves the group directly and is left alone: only a changed target moves it. */
+function useStandAt(group: React.RefObject<Group | null>, x: number, z: number, glide: boolean) {
+  const goal = useRef({ x, z, fresh: true });
+  if (goal.current.x !== x || goal.current.z !== z) goal.current = { x, z, fresh: true };
+  useFrame(({ invalidate }, dt) => {
+    const g = group.current;
+    if (!g) return;
+    const to = goal.current;
+    if (to.fresh && !glide) {
+      g.position.set(x, 0, z);
+      to.fresh = false;
+      return;
+    }
+    if (!to.fresh) return;
+    g.position.x = MathUtils.damp(g.position.x, x, GLIDE_RATE, dt);
+    g.position.z = MathUtils.damp(g.position.z, z, GLIDE_RATE, dt);
+    if (Math.hypot(g.position.x - x, g.position.z - z) > 0.002) return invalidate();
+    g.position.set(x, 0, z);
+    to.fresh = false;
+  });
+}
+
+/** One piece of furniture, named by its id so the canvas can find it when it is tapped or dragged. `glide` eases it to a new place (while the designer works); `marked` outlines it. */
+export function Piece({ piece, selected, floorLevel, glide = false, marked = false }: { piece: SceneObject; selected: boolean; floorLevel: boolean; glide?: boolean; marked?: boolean }) {
   const parts = useMemo(() => partsFor(piece), [piece.type, piece.w, piece.d, piece.h]); // the parts depend only on the piece's kind and size, not where it stands
+  const group = useRef<Group>(null);
+  useStandAt(group, piece.x, piece.z, glide);
   return (
-    <group name={piece.id} position={[piece.x, 0, piece.z]} rotation={[0, (piece.rotation * Math.PI) / 180, 0]}>
+    <group ref={group} name={piece.id} rotation={[0, (piece.rotation * Math.PI) / 180, 0]}>
       {parts.map((part, i) => <PartMesh key={i} part={part} main={piece.color} floorLevel={floorLevel} />)}
-      {selected ? <Outline w={piece.w} d={piece.d} /> : null}
+      {selected || marked ? <Outline w={piece.w} d={piece.d} /> : null}
     </group>
   );
 }
