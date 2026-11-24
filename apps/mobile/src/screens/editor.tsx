@@ -4,7 +4,6 @@ import { useEffect, useMemo, useState } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 import { Sheet } from "@/components/sheet";
 import { fitHeights, type Snap } from "@/components/sheet-snap";
-import { SheetTabs } from "@/components/sheet-tabs";
 import { Toast, useToast } from "@/components/toast";
 import { t } from "@/i18n";
 import { useScreenInsets } from "@/lib/use-screen-insets";
@@ -13,6 +12,7 @@ import { useFail } from "@/lib/use-fail";
 import { EditorHeader } from "@/editor/header";
 import { fixLayout } from "@/editor/fix";
 import { PlanCanvas } from "@/editor/plan-canvas";
+import { SelectionBar } from "@/editor/selection-bar";
 import { SuggestionCard } from "@/editor/suggestion-card";
 import { RoomCanvas } from "@/editor/scene3d/room-canvas";
 import { AddPane } from "@/editor/panes/add-pane";
@@ -21,6 +21,7 @@ import { CheckPane } from "@/editor/panes/check-pane";
 import { FinishesPane } from "@/editor/panes/finishes-pane";
 import { ItemPane } from "@/editor/panes/item-pane";
 import { ChipsRow } from "@/editor/chips-row";
+import { DOCK_HEIGHT, Dock } from "@/editor/dock";
 import { useFirstHint } from "@/editor/use-first-hint";
 import { useEditor, useScene, type EditorTab } from "@/editor/store";
 import { typeName } from "@/rooms/names";
@@ -48,34 +49,64 @@ function useFix() {
   return { fixing, fix };
 }
 
-function EditorBody({ name }: { name: string }) {
-  const insets = useScreenInsets();
-  const scene = useScene();
-  const { fixing, fix } = useFix();
-  useFirstHint();
+/** The sheet is closed until a dock button opens it; dragging it below half closes it again. */
+function useSheet() {
+  const [open, setOpen] = useState(false);
   const [snap, setSnap] = useState<Snap>("half");
-  const [tab, selectedId, view, walkOn] = [useEditor((s) => s.tab), useEditor((s) => s.selectedId), useEditor((s) => s.view), useEditor((s) => s.walk)];
+  const tab = useEditor((s) => s.tab);
+  useEffect(() => void (tab === "check" && setOpen(true)), [tab]); // the room-check chip opens the check
+  const onDock = (key: EditorTab) => {
+    const same = open && useEditor.getState().tab === key;
+    useEditor.getState().setTab(key);
+    setOpen(!same);
+    setSnap("half");
+  };
+  const onSnapChange = (next: Snap) => (next === "peek" ? setOpen(false) : setSnap(next));
+  return { open, snap, tab, onDock, onSnapChange, close: () => setOpen(false) };
+}
+
+/** The room in 3D or on a plan. The 3D canvas keeps its size under the sheet (native GL does not resize cleanly); the plan shrinks to what is left. */
+function EditorCanvas({ top, dock, covered, onDeselect }: { top: number; dock: number; covered: number; onDeselect: () => void }) {
+  const scene = useScene();
+  const [selectedId, view, walkOn] = [useEditor((s) => s.selectedId), useEditor((s) => s.view), useEditor((s) => s.walk)];
   const walk = useMemo(() => (walkOn ? analyzeClearance(scene, { cell: 0.05, overlay: true }) : null), [scene, walkOn]);
-  const Canvas = view === "3d" ? RoomCanvas : PlanCanvas;
-  const heights = fitHeights(useWindowDimensions().height, insets.top + 24);
-  useEffect(() => setSnap((s) => (selectedId && s === "peek" ? "half" : s)), [selectedId]);
-  const pane: Record<EditorTab, () => React.JSX.Element> = { tAsk: () => <AskPane onFix={() => void fix()} />, tAdd: AddPane, tItem: ItemPane, tFin: FinishesPane, check: () => <CheckPane onFix={() => void fix()} fixing={fixing} /> };
-  const Pane = pane[tab];
   const place = (id: string, result: OpResult) => {
     const piece = scene.objects.find((o) => o.id === id);
     if (!useEditor.getState().commit(result) && piece) useToast.getState().show(t("itemRefused", typeName(piece.type)));
   };
+  const select = (id: string | null) => {
+    useEditor.getState().select(id);
+    if (!id) onDeselect(); // a tap on bare floor gives the whole room back
+  };
+  const common = { scene, selectedId, topInset: top, walk, onSelect: select, onPlace: place };
+  return view === "3d" ? <RoomCanvas {...common} bottomInset={dock} sheet={covered - dock} /> : <PlanCanvas {...common} bottomInset={covered} />;
+}
+
+function EditorBody({ name }: { name: string }) {
+  const insets = useScreenInsets();
+  const { fixing, fix } = useFix();
+  useFirstHint();
+  const sheet = useSheet();
+  const selectedId = useEditor((s) => s.selectedId);
+  const dock = DOCK_HEIGHT + insets.bottom;
+  const heights = fitHeights(useWindowDimensions().height - dock, insets.top + 24);
+  const covered = dock + (sheet.open ? heights[sheet.snap] : 0);
+  const pane: Record<EditorTab, () => React.JSX.Element> = { tAsk: () => <AskPane onFix={() => void fix()} />, tAdd: AddPane, tItem: ItemPane, tFin: FinishesPane, check: () => <CheckPane onFix={() => void fix()} fixing={fixing} /> };
+  const Pane = pane[sheet.tab];
   return (
     <View style={styles.root}>
-      <Canvas scene={scene} selectedId={selectedId} topInset={insets.top + 98} bottomInset={heights[snap]} walk={walk} onSelect={useEditor.getState().select} onPlace={place} />
+      <EditorCanvas top={insets.top + 98} dock={dock} covered={covered} onDeselect={sheet.close} />
       <View style={[styles.top, { top: insets.top - 4 }]}><EditorHeader name={name} /></View>
       <View style={[styles.chips, { top: insets.top + 46 }]}><ChipsRow /></View>
-      <SuggestionCard top={insets.top + 98} />
+      {sheet.open ? null : <SelectionBar bottom={covered + 10} />}
+      {sheet.open ? null : <SuggestionCard bottom={covered + (selectedId ? 70 : 10)} />}
       <Toast top={insets.top + 100} />
-      <Sheet snap={snap} onSnapChange={setSnap}>
-        <SheetTabs tabs={TAB_KEYS.map((key) => ({ key, label: t(key) }))} value={tab} onChange={useEditor.getState().setTab} />
-        <ScrollView contentContainerStyle={styles.pane}><Pane /></ScrollView>
-      </Sheet>
+      {sheet.open ? (
+        <Sheet snap={sheet.snap} onSnapChange={sheet.onSnapChange} bottom={dock}>
+          <ScrollView contentContainerStyle={styles.pane}><Pane /></ScrollView>
+        </Sheet>
+      ) : null}
+      <Dock open={sheet.open ? sheet.tab : null} onPress={sheet.onDock} inset={insets.bottom} />
     </View>
   );
 }
@@ -101,5 +132,5 @@ const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: "transparent" },
   top: { position: "absolute", start: 12, end: 12, zIndex: 20 },
   chips: { position: "absolute", start: 14, end: 14, zIndex: 15 },
-  pane: { paddingTop: 16, paddingHorizontal: 20, paddingBottom: 30 },
+  pane: { paddingTop: 8, paddingHorizontal: 20, paddingBottom: 30 },
 });

@@ -60,9 +60,9 @@ describe("suggested next (the Ask tab)", () => {
     expect(nextSteps(bare, roomCheck(bare), { walkOn: true, unsaved: false, styled: false }).map((n) => n.id)).toEqual(["fix", "rug", "style"]);
   });
 
-  test("a finished room has nothing left to suggest", () => {
+  test("an empty room has nothing left to suggest: the rug is only offered under a bed", () => {
     const calm = roomCheck({ ...bedroom, objects: [] });
-    expect(nextSteps({ ...bedroom, objects: [] }, calm, { walkOn: true, unsaved: false, styled: true }).map((n) => n.id)).toEqual(["rug"]);
+    expect(nextSteps({ ...bedroom, objects: [] }, calm, { walkOn: true, unsaved: false, styled: true }).map((n) => n.id)).toEqual([]);
   });
 });
 
@@ -72,4 +72,10 @@ test("the rug suggestion offers the 220 × 150 cm rug its words promise", () => 
   expect(rug?.change.op).toBe("add");
   const item = getCatalogItem((rug!.change as { catalogId: string }).catalogId)!;
   expect([item.w, item.d]).toEqual([2.2, 1.5]);
+});
+
+test("no bed, no rug suggestion: its words promise a rug under the bed", () => {
+  const s = sampleBedroom();
+  const noBed = { ...s, objects: s.objects.filter((o) => o.type !== "rug" && o.type !== "bed") };
+  expect(suggestions(noBed, []).map((x) => x.id)).not.toContain("rug");
 });

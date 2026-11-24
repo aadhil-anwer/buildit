@@ -1,5 +1,5 @@
 import { getWalls, type Room } from "@buildit/core";
-import { useFrame } from "@react-three/fiber";
+import { useFrame } from "./r3f";
 import { useEffect, useMemo, type RefObject } from "react";
 import { DoubleSide, ExtrudeGeometry, Group, Shape, ShapeGeometry } from "three";
 import { color } from "@/theme";

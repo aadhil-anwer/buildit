@@ -47,7 +47,7 @@ const isSeat = (o: SceneObject) => SEATING.has(o.type);
 const centreDist = (a: SceneObject, b: SceneObject) => Math.hypot(a.x - b.x, a.z - b.z);
 const gap = (a: SceneObject, b: SceneObject) => obbDistance(objectObb(a), objectObb(b));
 const faces = (from: SceneObject, to: SceneObject, minDot = 0.5) => dot(frontDir(from.rotation), norm(sub({ x: to.x, z: to.z }, { x: from.x, z: from.z }))) > minDot;
-const nearest = <T extends SceneObject>(of: SceneObject, list: T[], by: (a: SceneObject, b: SceneObject) => number) => list.toSorted((a, b) => by(of, a) - by(of, b))[0];
+const nearest = <T extends SceneObject>(of: SceneObject, list: T[], by: (a: SceneObject, b: SceneObject) => number) => [...list].sort((a, b) => by(of, a) - by(of, b))[0];
 
 function coffeeTableGap(scene: Scene): DesignTip[] {
   const seats = scene.objects.filter(isSeat);
@@ -79,7 +79,7 @@ function conversationDistance(scene: Scene): DesignTip[] {
   const seats = scene.objects.filter(isSeat);
   const pairs = seats.flatMap((a, i) => seats.slice(i + 1).filter((b) => faces(a, b) && faces(b, a)).map((b) => ({ a, b, value: gap(a, b) })));
   if (!pairs.length) return [];
-  const worst = pairs.toSorted((x, y) => y.value - x.value)[0];
+  const worst = [...pairs].sort((x, y) => y.value - x.value)[0];
   const [, hi] = DESIGN_RULES.conversation_distance.range;
   return [{ id: "conversation_distance", ok: worst.value <= hi, value: worst.value, ideal: [0, hi], objectIds: [worst.a.id, worst.b.id] }];
 }

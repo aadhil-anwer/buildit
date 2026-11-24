@@ -10,6 +10,8 @@ import RotateCw from "lucide-react-native/icons/rotate-cw";
 import Trash from "lucide-react-native/icons/trash";
 import Undo2 from "lucide-react-native/icons/undo-2";
 import X from "lucide-react-native/icons/x";
+import Palette from "lucide-react-native/icons/palette";
+import Sparkles from "lucide-react-native/icons/sparkles";
 import Check from "lucide-react-native/icons/check";
 import Minus from "lucide-react-native/icons/minus";
 import Plus from "lucide-react-native/icons/plus";
@@ -23,6 +25,7 @@ import { color } from "@/theme";
 
 /** Icons are named for what they mean; `mirror` flips directional ones under RTL. */
 const ICONS = {
+  ask: { Glyph: Sparkles, mirror: false },
   back: { Glyph: ChevronLeft, mirror: true },
   check: { Glyph: Check, mirror: false },
   clock: { Glyph: Clock, mirror: false },
@@ -40,6 +43,7 @@ const ICONS = {
   walk: { Glyph: ArrowLeftRight, mirror: false },
   logout: { Glyph: LogOut, mirror: true },
   minus: { Glyph: Minus, mirror: false },
+  palette: { Glyph: Palette, mirror: false },
   plus: { Glyph: Plus, mirror: false },
   scan: { Glyph: ScanLine, mirror: false },
   sliders: { Glyph: SlidersHorizontal, mirror: false },

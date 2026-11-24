@@ -5,6 +5,9 @@ const LEGACY = [
   "layout/validate", "ops", "summary",
 ].map((f) => `packages/core/src/${f}.ts`).concat(["packages/core/tests/layout.test.ts", "packages/core/tests/roomplan.test.ts"]);
 
+// Hermes (the phone's JS engine) lacks ES2023 array copies; Node and the web build have them, so tests pass and phones crash.
+const HERMES = { selector: "CallExpression > MemberExpression.callee[property.name=/^(toSorted|toReversed|toSpliced|findLast|findLastIndex)$/]", message: "Hermes has no ES2023 array copies: use [...xs].sort() etc." };
+
 export default tseslint.config(
   { ignores: ["**/node_modules", "**/.next", "design-docnew", "web", ".claude", "supabase/functions", "tools/fixtures", "**/*.config.*", "**/*.generated.ts"] },
   ...tseslint.configs.recommendedTypeChecked,
@@ -26,6 +29,12 @@ export default tseslint.config(
           ],
         },
       ],
+    },
+  },
+  {
+    files: ["apps/mobile/src/**/*.{ts,tsx}", "packages/core/src/**/*.ts"],
+    rules: {
+      "no-restricted-syntax": ["error", HERMES],
     },
   },
   // Structural i18n/RTL rules for app code (tests are exempt).

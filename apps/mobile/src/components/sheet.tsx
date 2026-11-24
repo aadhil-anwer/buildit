@@ -14,11 +14,13 @@ const GLIDE = { duration: 380, easing: Easing.bezier(0.2, 0.8, 0.2, 1) };
 interface Props {
   snap: Snap;
   onSnapChange: (snap: Snap) => void;
+  /** Space below the sheet (the editor's dock). */
+  bottom?: number;
   children: ReactNode;
 }
 
 /** The editor's bottom panel at 196 / 404 / 640 pt. Drag the grabber or tap it to cycle; the height runs on the UI thread. */
-export function Sheet({ snap, onSnapChange, children }: Props) {
+export function Sheet({ snap, onSnapChange, bottom = 0, children }: Props) {
   const heights = fitHeights(useWindowDimensions().height, useScreenInsets().top + 24);
   const height = useSharedValue(heights[snap]);
   const start = useSharedValue(0);
@@ -38,7 +40,7 @@ export function Sheet({ snap, onSnapChange, children }: Props) {
   const style = useAnimatedStyle(() => ({ height: height.value }));
 
   return (
-    <Animated.View testID="sheet" style={[styles.sheet, style]}>
+    <Animated.View testID="sheet" style={[styles.sheet, { bottom }, style]}>
       <GestureDetector gesture={Gesture.Race(pan, tap)}>
         <View accessible accessibilityRole="button" accessibilityLabel={t("sheetResize")} onAccessibilityTap={() => onSnapChange(nextSnap(snap))} hitSlop={{ top: 11, bottom: 11 }} style={styles.grabber}>
           <View style={styles.bar} />
@@ -50,7 +52,7 @@ export function Sheet({ snap, onSnapChange, children }: Props) {
 }
 
 const styles = StyleSheet.create({
-  sheet: { position: "absolute", start: 0, end: 0, bottom: 0, borderTopStartRadius: CORNER, borderTopEndRadius: CORNER, borderTopWidth: 1, borderColor: color.divider, backgroundColor: color.bg, boxShadow: `0 -6px 28px ${withAlpha(color.text, 0.14)}` },
+  sheet: { position: "absolute", start: 0, end: 0, borderTopStartRadius: CORNER, borderTopEndRadius: CORNER, borderTopWidth: 1, borderColor: color.divider, backgroundColor: color.bg, boxShadow: `0 -6px 28px ${withAlpha(color.text, 0.14)}` },
   grabber: { height: 22, alignItems: "center", justifyContent: "center" },
   bar: { width: 38, height: 4, borderRadius: 2, backgroundColor: color.neutral300 },
 });

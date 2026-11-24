@@ -1,17 +1,24 @@
 import { StyleSheet, View } from "react-native";
+import { captureSupport } from "@/capture/support";
 import { Text } from "@/components/text";
 import { formatNumber, t } from "@/i18n";
 import { color } from "@/theme";
 
-const WAYS = [["way1t", "way1d"], ["way2t", "way2d"], ["way3t", "way3d"]] as const;
+const WAYS = [
+  ["lidar", "way1t", "way1d"],
+  ["guided", "way2t", "way2d"],
+  ["dimensions", "way3t", "way3d"],
+] as const;
 
-/** First launch: what the app does and the three ways to get a room in. */
+/** First launch: what the app does and the ways to get a room in that this build can run. */
 export function EmptyState() {
+  const support = captureSupport();
+  const ways = WAYS.filter(([id]) => id === "dimensions" || support[id]).map(([, title, detail]) => [title, detail] as const);
   return (
     <View style={styles.root}>
       <Text variant="section" style={styles.heading}>{t("emptyH")}</Text>
-      <Text variant="bodySm" tone="secondary" style={styles.intro}>{t("emptyP")}</Text>
-      {WAYS.map(([title, detail], i) => (
+      <Text variant="bodySm" tone="secondary" style={styles.intro}>{t(ways.length > 1 ? "emptyP" : "emptyPTyped")}</Text>
+      {ways.map(([title, detail], i) => (
         <View key={title} style={styles.way}>
           <Text variant="numeral" style={styles.numeral}>{formatNumber(i + 1)}</Text>
           <View style={styles.copy}>

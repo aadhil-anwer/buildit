@@ -1,5 +1,5 @@
 import { design, type SceneObject } from "@buildit/core";
-import { useFrame } from "@react-three/fiber";
+import { useFrame, useThree } from "./r3f";
 import { useEffect, useMemo, useRef } from "react";
 import { BoxGeometry, CylinderGeometry, EdgesGeometry, MathUtils, MeshStandardMaterial, type Group } from "three";
 import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
@@ -41,6 +41,8 @@ const GLIDE_RATE = 7; // per second: a move of 1 m takes about half a second to 
 function useStandAt(group: React.RefObject<Group | null>, x: number, z: number, glide: boolean) {
   const goal = useRef({ x, z, fresh: true });
   if (goal.current.x !== x || goal.current.z !== z) goal.current = { x, z, fresh: true };
+  const invalidate = useThree((s) => s.invalidate);
+  useEffect(() => invalidate(), [x, z, invalidate]); // the canvas draws on demand: a new place needs a frame to show
   useFrame(({ invalidate }, dt) => {
     const g = group.current;
     if (!g) return;

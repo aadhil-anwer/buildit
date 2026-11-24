@@ -22,11 +22,11 @@ export const applyChange = (scene: Scene, c: Change): OpResult =>
 export function suggestions(scene: Scene, dismissed: string[]): Suggestion[] {
   const find = (type: string) => scene.objects.find((o) => o.type === type);
   const [desk, bed] = [find("desk"), find("bed")];
-  const rugTarget = bed ?? find("coffee_table") ?? find("sofa");
   const { wall, furniture } = design.materials;
   const all: (Suggestion | false | undefined)[] = [
     desk && !find("floor_lamp") && { id: "lamp", change: { op: "add", catalogId: "floor_lamp", placement: { type: "near", target: desk.id } } },
-    rugTarget && !find("rug") && { id: "rug", change: { op: "add", catalogId: "rug_bedroom", placement: { type: "next_to", target: rugTarget.id, side: "under" } } },
+    // The words say "under the bed" and the rug is the bedroom size, so only a room with a bed gets it.
+    bed && !find("rug") && { id: "rug", change: { op: "add", catalogId: "rug_bedroom", placement: { type: "next_to", target: bed.id, side: "under" } } },
     scene.room.wallColor === wall.chalk && { id: "wall", change: { op: "finish", wall: wall.sand } },
     bed?.color === furniture.sage && { id: "headboard", change: { op: "color", ids: [bed.id], color: furniture.clay } },
   ];
@@ -40,7 +40,7 @@ export function nextSteps(scene: Scene, check: { rules: Rule[] }, ui: { walkOn: 
   const failing = check.rules.find((r) => r.status !== "pass");
   const all: (NextStep | false | undefined)[] = [
     failing && { id: "fix", ruleId: failing.id },
-    !scene.objects.some((o) => o.type === "rug") && { id: "rug" },
+    scene.objects.some((o) => o.type === "bed") && !scene.objects.some((o) => o.type === "rug") && { id: "rug" },
     !ui.walkOn && { id: "walk" },
     ui.unsaved && { id: "save" },
     !ui.styled && { id: "style" },

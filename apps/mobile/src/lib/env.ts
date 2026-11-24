@@ -13,13 +13,15 @@ const isSecret = (v: string) => v.startsWith("sk-") || v.startsWith("sb_secret_"
 export function parseEnv(raw: Record<string, string | undefined>, { production = false } = {}) {
   const leaked = Object.entries(raw).find(([, v]) => v && isSecret(v));
   if (leaked) throw new Error(`${leaked[0]} looks like a secret and must never ship in the app`);
+  // An empty value (e.g. a blank line copied from .env.example) means "not set".
+  const set = Object.fromEntries(Object.entries(raw).map(([k, v]) => [k, v === "" ? undefined : v]));
   return z
     .object({
       SUPABASE_URL: z.url(),
       SUPABASE_ANON_KEY: z.string().min(1),
       SENTRY_DSN: production ? z.url() : z.url().optional(),
     })
-    .parse(raw);
+    .parse(set);
 }
 
 // Expo only inlines static `process.env.EXPO_PUBLIC_*` references, so list each one.

@@ -1,4 +1,4 @@
-import { useThree } from "@react-three/fiber";
+import { useThree } from "./r3f";
 import { useEffect } from "react";
 
 /** What the last drawn frame cost, for the performance gate (STACK.md budgets). Read it as `globalThis.__builditPerf`. */

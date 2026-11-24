@@ -11,7 +11,7 @@ import { color, shadow, withAlpha } from "@/theme";
 import { useAsk } from "@/ai/ask-store";
 import { useEditor, useScene } from "./store";
 
-const WORDS: Record<Suggestion["id"], [StringKey, StringKey]> = { lamp: ["sLamp", "sLampWhy"], rug: ["sRug", "sRugWhy"], wall: ["sWall", "sWallWhy"], headboard: ["sHead", "sHeadWhy"] };
+const WORDS: Record<Suggestion["id"], StringKey> = { lamp: "sLamp", rug: "sRug", wall: "sWall", headboard: "sHead" };
 
 /** How long the room sits quiet before a suggestion appears, and before the next one after one is dismissed. */
 const FIRST = 2600;
@@ -34,40 +34,36 @@ function useSuggestion() {
   return shown && next?.id === shown ? next : null;
 }
 
-/** A small card offering one change ("Try a floor lamp beside the desk"). Try it applies it as one undoable step; either button retires it. */
-export function SuggestionCard({ top }: { top: number }) {
+/** A slim card docked just above the sheet offering one change ("Try a floor lamp beside the desk"), so it never covers the room. Try it applies it as one undoable step; either button retires it. */
+export function SuggestionCard({ bottom }: { bottom: number }) {
   const scene = useScene();
   const suggestion = useSuggestion();
   const enter = useSharedValue(0);
   useEffect(() => void (enter.value = suggestion ? withTiming(1, { duration: 400, easing: Easing.bezier(0.2, 0.8, 0.2, 1) }) : 0), [suggestion, enter]);
-  const style = useAnimatedStyle(() => ({ opacity: enter.value, transform: [{ translateY: (1 - enter.value) * -8 }, { scale: 0.97 + 0.03 * enter.value }] }));
+  const style = useAnimatedStyle(() => ({ opacity: enter.value, transform: [{ translateY: (1 - enter.value) * 8 }] }));
   if (!suggestion) return null;
-  const [title, why] = WORDS[suggestion.id];
+  const title = WORDS[suggestion.id];
   const retire = () => useEditor.getState().dismiss(suggestion.id);
   const tryIt = () => {
     if (!useEditor.getState().commit(applyChange(scene, suggestion.change))) useToast.getState().show(t("sugNoFit"));
     retire();
   };
   return (
-    <Animated.View style={[styles.card, { top }, style]}>
-      <View style={styles.head}>
-        <View style={styles.dot} />
-        <Text variant="kicker" tone="accent" style={styles.kicker}>{t("sugH")}</Text>
-        <Pressable accessibilityRole="button" accessibilityLabel={t("dismiss")} hitSlop={11} onPress={retire} style={styles.close}><Icon name="close" size={14} /></Pressable>
+    <Animated.View style={[styles.card, { bottom }, style]}>
+      <View style={styles.dot} />
+      <View style={styles.words}>
+        <Text variant="kicker" tone="accent">{t("sugH")}</Text>
+        <Text variant="bodySm" numberOfLines={2}>{t(title)}</Text>
       </View>
-      <Text variant="heading" style={styles.title}>{t(title)}</Text>
-      <Text variant="caption" tone="secondary" style={styles.why}>{t(why)}</Text>
       <Button title={t("tryIt")} size={14} onPress={tryIt} />
+      <Pressable accessibilityRole="button" accessibilityLabel={t("dismiss")} hitSlop={11} onPress={retire} style={styles.close}><Icon name="close" size={16} /></Pressable>
     </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
-  card: { position: "absolute", end: 14, width: 216, zIndex: 22, paddingTop: 12, paddingHorizontal: 14, paddingBottom: 12, borderWidth: 1, borderColor: color.divider, borderRadius: 4, backgroundColor: withAlpha(color.bg, 0.97), boxShadow: shadow.md },
-  head: { flexDirection: "row", alignItems: "center", gap: 7, marginBottom: 2, marginTop: -4 },
+  card: { position: "absolute", start: 12, end: 12, zIndex: 22, flexDirection: "row", alignItems: "center", gap: 10, paddingVertical: 8, paddingStart: 12, paddingEnd: 6, borderWidth: 1, borderColor: color.divider, borderRadius: 4, backgroundColor: withAlpha(color.bg, 0.97), boxShadow: shadow.md },
   dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: color.accent },
-  kicker: { flex: 1 },
-  close: { width: 22, height: 22, alignItems: "center", justifyContent: "center", marginEnd: -6 },
-  title: { marginBottom: 4 },
-  why: { marginBottom: 10 },
+  words: { flex: 1 },
+  close: { width: 32, height: 44, alignItems: "center", justifyContent: "center" },
 });

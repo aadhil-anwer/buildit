@@ -22,14 +22,15 @@ test("while rooms load it shows skeletons, not a spinner and not the empty state
   expect(screen.queryByText(t("emptyH"))).toBeNull();
 });
 
-test("with no rooms it explains the three ways in, and still offers to scan", async () => {
+test("with no rooms and no scanner in this build it offers only typing dimensions, and still the add button", async () => {
   await render(<Rooms />);
   expect(screen.getByText(t("emptyH"))).toBeTruthy();
-  expect(screen.getByText(t("emptyP"))).toBeTruthy();
-  for (const key of ["way1t", "way2t", "way3t", "way1d", "way2d", "way3d"] as const) expect(screen.getByText(t(key))).toBeTruthy();
+  expect(screen.getByText(t("emptyPTyped"))).toBeTruthy();
+  for (const key of ["way3t", "way3d"] as const) expect(screen.getByText(t(key))).toBeTruthy();
+  for (const key of ["way1t", "way2t"] as const) expect(screen.queryByText(t(key))).toBeNull();
   expect(screen.queryByText(t("nRooms", 0))).toBeNull();
-  await fireEvent.press(screen.getByRole("button", { name: t("scan") }));
-  expect(mockPush).toHaveBeenCalledWith("/capture");
+  await fireEvent.press(screen.getByRole("button", { name: t("addRoom") }));
+  expect(mockPush).toHaveBeenCalledWith("/capture/dimensions");
 });
 
 test("lists rooms newest edit first with their size and when they were edited, and counts them", async () => {
@@ -44,10 +45,11 @@ test("lists rooms newest edit first with their size and when they were edited, a
 test("opening a room, the scan button and settings navigate", async () => {
   seed(["Bedroom", sampleBedroom(), Date.now()]);
   await render(<Rooms />);
+  expect(screen.getByText(t("nRoom1"))).toBeTruthy(); // "1 room", not "1 rooms"
   await fireEvent.press(screen.getByRole("button", { name: /Bedroom/ }));
   expect(mockPush).toHaveBeenCalledWith("/editor/r0");
-  await fireEvent.press(screen.getByRole("button", { name: t("scan") }));
-  expect(mockPush).toHaveBeenCalledWith("/capture");
+  await fireEvent.press(screen.getByRole("button", { name: t("addRoom") }));
+  expect(mockPush).toHaveBeenCalledWith("/capture/dimensions");
   await fireEvent.press(screen.getByRole("button", { name: t("setH") }));
   expect(mockPush).toHaveBeenCalledWith("/settings");
 });

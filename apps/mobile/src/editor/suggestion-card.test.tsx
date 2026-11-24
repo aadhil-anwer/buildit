@@ -16,7 +16,7 @@ beforeEach(() => {
 afterEach(() => jest.useRealTimers());
 
 test("a suggestion appears after the room has been left alone a moment, not before", async () => {
-  await render(<SuggestionCard top={100} />);
+  await render(<SuggestionCard bottom={100} />);
   expect(screen.queryByText(t("sugH"))).toBeNull();
   await wait(2700);
   expect(screen.getByText(t("sugH"))).toBeTruthy();
@@ -24,13 +24,13 @@ test("a suggestion appears after the room has been left alone a moment, not befo
 
 test("it stays away while a piece is selected or the check is open", async () => {
   useEditor.getState().select(sampleBedroom().objects[0].id);
-  await render(<SuggestionCard top={100} />);
+  await render(<SuggestionCard bottom={100} />);
   await wait(10_000);
   expect(screen.queryByText(t("sugH"))).toBeNull();
 });
 
 test("Try it applies the change as one undoable step and retires the suggestion", async () => {
-  await render(<SuggestionCard top={100} />);
+  await render(<SuggestionCard bottom={100} />);
   await wait(2700);
   const before = useEditor.getState().history!.present.objects.length;
   await fireEvent.press(screen.getByRole("button", { name: t("tryIt") }));
@@ -40,7 +40,7 @@ test("Try it applies the change as one undoable step and retires the suggestion"
 });
 
 test("dismissing changes nothing in the room, and the next suggestion comes later", async () => {
-  await render(<SuggestionCard top={100} />);
+  await render(<SuggestionCard bottom={100} />);
   await wait(2700);
   const first = screen.getByText(t("sugH"));
   expect(first).toBeTruthy();

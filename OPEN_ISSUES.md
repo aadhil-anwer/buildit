@@ -76,6 +76,30 @@ Today the engine has 9 advisory design rules (`DESIGN_RULES`: coffee-table gap, 
 
 ## Editor (Phase 4, in progress)
 
+**Owner-requested usability rework (2026-11-24), intended differences from the design doc.** The owner rated the editor 1/10: the sheet covered half the room, and dragging furniture "didn't work". Changed, in the doc's style (hairlines, outlined buttons, gold for the live state):
+- The sheet is **closed by default**. A bottom **dock** (Ask / Add / Item / Finishes, Lucide icon + label, 60 pt + safe area) replaces the tab strip inside the sheet. Tapping a dock button opens its panel at half; tapping it again, dragging the sheet below half, or tapping bare floor closes it. The room-check chip still opens the Check panel. `SheetTabs` was deleted.
+- Peek snap is now 132 pt (it was 196 pt in the doc); it's only used as "closed" when a drag settles there.
+- Selecting a piece no longer grows the sheet. This was the main drag bug: selection opened the sheet mid-drag, which resized the canvas under the finger. A **selection bar** docked above the sheet/dock now gives rotate 90°, lock and delete without opening anything.
+- **Drop to nearest free spot** (`dropObject` in core): a piece let go on top of another slides to the nearest free spot within 1 m, keeping its turn, instead of bouncing back with "Couldn't change the Bed". Before this, moving the sample bed 30 cm sideways was refused because it overlapped a nightstand.
+- Picking forgives a fingertip: if the ray misses every mesh, the piece whose footprint (+18 cm) holds the touch point is picked, so small chairs can be grabbed.
+- The suggestion card is a slim row docked above the dock (it was a 216 pt card over the room) and hides while a panel is open; its "why" line was dropped.
+- Not compared value by value with the prototype, because the prototype has no dock. Checked on the web build at 390×844 (EN only) and in the Android emulator (Pixel-class "Medium Phone", API 37, dev build). Arabic and iOS are not checked yet.
+
+**First run on a phone (Android emulator, 2026-11-24): the editor had never worked natively.** Fixed:
+- `room-canvas.tsx` imported React Three Fiber's web entry. R3F values now come from `editor/scene3d/r3f.ts`, which re-exports `@react-three/fiber/native` on phones (`r3f.native.ts`).
+- three 0.186's CommonJS entry (`three.cjs`) calls `process.emitWarning`, which React Native lacks. `apps/mobile/metro.config.js` resolves `three` to `three.module.js`.
+- `Array.prototype.toSorted` is missing in Hermes, which crashed My rooms and design tips. It's replaced with copy-then-sort, and a lint rule (`HERMES` in `eslint.config.js`) bans the ES2023 array copies.
+- R3F's native canvas has its own touch responder that cancelled our drags. The gestures now sit on a transparent layer above the canvas.
+- The canvas draws on demand, and a moved piece never asked for a frame, so it stayed in place on screen while the engine had moved it. `Piece` now invalidates when its place changes.
+- The native GL canvas doesn't resize its drawing buffer, so the room stretched after the sheet opened. The 3D canvas now keeps its size, and the camera centres the room in the part the sheet leaves uncovered.
+- `PCFSoftShadowMap` was removed in three 0.186; it now uses `PCFShadowMap`.
+
+Seen working in the emulator: welcome → guest → type dimensions → review → editor; add an armchair and coffee table; tap to select (quick bar); drag a piece (drops on the nearest free spot); rotate; orbit by dragging bare floor; open and close the Add panel, with the room re-centred. **Not yet tried on Android:** pinch zoom, Plan view drag, Ask / Finishes / Check panes, versions, Arabic/RTL, frame rate on a mid-range phone.
+
+**Local Android build recipe (Windows):** Android Studio's bundled JDK 25 breaks the C++ prefab step ("A restricted method in java.lang.System has been called"). Use a JDK 21 (`~/.jdks/jdk-21…`) as `JAVA_HOME`, and set `toolchainVersion=21` in `apps/mobile/android/gradle/gradle-daemon-jvm.properties` (that folder is generated and gitignored, so re-apply after a prebuild). Then run `npx expo run:android`. A web-only dev server (`npm run web`) stalls on Android bundles: run a native one (`npx expo start --dev-client`).
+
+**Also fixed:** "1 rooms" now reads "1 room". While no scanner exists, the Rooms button says "Add a room" and goes straight to typing dimensions. The rug suggestion (card and Suggested next) is only offered when there is a bed, because its words say "under the bed". The Arabic for the two new strings (`nRoom1`, `addRoom`) is unreviewed.
+
 **Built:** wall snap (a dragged piece within 8 cm of a wall jumps flush; the drag preview does not show the snap, the landing does; unit-tested, not tried by hand), suggestion card (appears 2.6 s after the room is left alone, 6 s after a dismissal; Try it applies the change as one undoable step), door swings, walking-space overlay (walk button and the "Check the walking space" suggestion; gold where a person can walk, rust where it is too tight, from the engine's clearance grid; checked in the browser in 3D and plan, not compared with the prototype); `Sheet` (196 / 404 / 640 pt, drag or tap the grabber, Reanimated height) with the Ask / Add / Item / Finishes tabs and the Check pane; header (back, room name, undo, redo, versions); room-check chip; 3D view (React Three Fiber, orthographic 33 degree view, hidden camera-facing walls, tap to select, drag a piece in 5 cm steps, drag floor to orbit, pinch to zoom); Plan view (tap, drag, same 5 cm steps); every change is one undoable step (50 deep) saved to the room at once; Fix (time-sliced layout improver); restyle; versions (save, list, restore) on this phone.
 
 **What was checked, and on what**

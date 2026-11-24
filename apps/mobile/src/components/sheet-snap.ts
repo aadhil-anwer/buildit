@@ -1,8 +1,8 @@
 const SNAPS = ["peek", "half", "full"] as const;
 export type Snap = (typeof SNAPS)[number];
 
-/** The design's sheet heights in points: 196 / 404 / 640. */
-export const SNAP_HEIGHT: Record<Snap, number> = { peek: 196, half: 404, full: 640 };
+/** Sheet heights in points. Peek is just the tabs and a row, so the room keeps most of the screen; half and full are the design's. */
+export const SNAP_HEIGHT: Record<Snap, number> = { peek: 132, half: 404, full: 640 };
 
 /** The grabber cycles peek, half, full, then back to peek. */
 export const nextSnap = (snap: Snap): Snap => SNAPS[(SNAPS.indexOf(snap) + 1) % SNAPS.length];

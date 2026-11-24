@@ -1,5 +1,5 @@
 import { roomBounds, type Scene } from "@buildit/core";
-import { useFrame } from "@react-three/fiber";
+import { useFrame } from "./r3f";
 import { useRef } from "react";
 import type { Mesh } from "three";
 import { color } from "@/theme";

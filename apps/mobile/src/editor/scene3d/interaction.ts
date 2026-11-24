@@ -1,4 +1,5 @@
 import { Plane, Raycaster, Vector2, Vector3, type Object3D } from "three";
+import type { SceneObject } from "@buildit/core";
 import type { RootState } from "@react-three/fiber";
 import { GRID } from "../plan-edit";
 
@@ -24,6 +25,21 @@ export function pickPiece(state: RootState, x: number, y: number): string | null
 export function floorPoint(state: RootState, x: number, y: number): { x: number; z: number } | null {
   const hit = aim(state, x, y).ray.intersectPlane(floor, new Vector3());
   return hit && { x: hit.x, z: hit.z };
+}
+
+/** Slack round a piece's footprint, in metres, so a small chair can be grabbed with a fingertip. */
+const REACH = 0.18;
+
+/** The piece whose footprint (grown by a fingertip) holds a floor point; the one whose centre is nearest wins. Used when the ray misses every mesh. */
+export function pieceAtFloor(pieces: readonly SceneObject[], at: { x: number; z: number }): string | null {
+  let best: [string | null, number] = [null, Infinity];
+  for (const o of pieces) {
+    const [dx, dz, a] = [at.x - o.x, at.z - o.z, (o.rotation * Math.PI) / 180];
+    const [lx, lz] = [dx * Math.cos(a) - dz * Math.sin(a), dx * Math.sin(a) + dz * Math.cos(a)];
+    const dist = Math.hypot(dx, dz);
+    if (Math.abs(lx) <= o.w / 2 + REACH && Math.abs(lz) <= o.d / 2 + REACH && dist < best[1]) best = [o.id, dist];
+  }
+  return best[0];
 }
 
 /** A piece being dragged: where it started, and the floor point the finger first touched. */

@@ -22,11 +22,20 @@ beforeEach(() => {
   useRooms.setState({ rooms: [{ id: "r1", name: "Bedroom", scene: sampleBedroom(), updatedAt: 0, dirty: false }] });
 });
 
-test("shows the room's name, the room check chip and the design's four tabs", async () => {
+test("shows the room's name, the room check chip and the four dock buttons, with the panel closed so the room has the screen", async () => {
   await render(<Editor />);
   expect(await screen.findByText("Bedroom")).toBeTruthy();
   expect(screen.getByRole("button", { name: new RegExp(`^${t("check")}\\.`) })).toBeTruthy();
   for (const key of ["tAsk", "tAdd", "tItem", "tFin"] as const) expect(screen.getByRole("tab", { name: t(key) })).toBeTruthy();
+  expect(screen.queryByTestId("sheet")).toBeNull();
+});
+
+test("a dock button opens its panel, and pressing it again closes it", async () => {
+  await render(<Editor />);
+  await tab("tAdd");
+  expect(screen.getByTestId("sheet")).toBeTruthy();
+  await tab("tAdd");
+  expect(screen.queryByTestId("sheet")).toBeNull();
 });
 
 test("adding a piece puts it in the room, saves it, and undo takes it back", async () => {
@@ -83,6 +92,7 @@ test("the check also shows design tips when the room has seating and a coffee ta
 
 test("a restyle changes the room's colours", async () => {
   await render(<Editor />);
+  await tab("tAsk");
   await press(t("stJapan"));
   expect(scene().room.wallColor).toBe(design.styles.japan.wall);
 });
@@ -101,8 +111,8 @@ test("the versions button opens this room's versions, and a change offers saving
   await render(<Editor />);
   await press(t("verH"));
   expect(mockPush).toHaveBeenCalledWith("/versions/r1");
+  await tab("tAsk");
   await press(t("stJapan"));
-  await press(t("tAsk")).catch(() => undefined);
   await fireEvent.press(await screen.findByRole("button", { name: t("nx3") }));
   expect(useRooms.getState().rooms[0].versions).toHaveLength(1);
 });
@@ -111,6 +121,7 @@ test("the walk button shows the walkable floor on the plan, and the suggested st
   await render(<Editor />);
   await press(t("vplan"));
   expect(useEditor.getState().walk).toBe(false);
+  await tab("tAsk");
   await fireEvent.press(await screen.findByRole("button", { name: t("nx2") }));
   expect(useEditor.getState().walk).toBe(true);
   expect((screen.getByRole("button", { name: t("walkToggle") }).props as { accessibilityState: { selected: boolean } }).accessibilityState.selected).toBe(true);

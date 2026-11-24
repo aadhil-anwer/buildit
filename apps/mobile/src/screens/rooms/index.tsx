@@ -1,8 +1,9 @@
 import { useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import { useState } from "react";
-import { ScrollView, StyleSheet, View } from "react-native";
+import { ScrollView, StyleSheet, View, type StyleProp, type ViewStyle } from "react-native";
 import { Button } from "@/components/button";
+import { captureSupport } from "@/capture/support";
 import { IconButton } from "@/components/icon-button";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { Skeleton } from "@/components/skeleton";
@@ -43,12 +44,21 @@ function RoomList({ ready, rooms, onDelete }: { ready: boolean; rooms: LocalRoom
 }
 
 /** My rooms: every room as a picture, or an explanation of the three ways in when there are none. */
+/** Scan a room when this phone can; until then, go straight to typing dimensions (a chooser with one choice is a wasted tap). */
+function AddRoomButton({ style }: { style: StyleProp<ViewStyle> }) {
+  const router = useRouter();
+  const { lidar, guided } = captureSupport();
+  return lidar || guided
+    ? <Button title={t("scan")} icon="scan" size={17} onPress={() => router.push("/capture")} style={style} />
+    : <Button title={t("addRoom")} icon="plus" size={17} onPress={() => router.push("/capture/dimensions")} style={style} />;
+}
+
 export function Rooms() {
   const router = useRouter();
   const insets = useScreenInsets();
   const ready = useRoomsReady();
   const syncFailed = useSyncStatus((s) => s.failed);
-  const rooms = useRooms((s) => s.rooms).toSorted((a, b) => b.updatedAt - a.updatedAt);
+  const rooms = [...useRooms((s) => s.rooms)].sort((a, b) => b.updatedAt - a.updatedAt);
   const [deleting, setDeleting] = useState<LocalRoom | null>(null);
   const confirmDelete = () => {
     if (deleting) {
@@ -62,7 +72,7 @@ export function Rooms() {
       <View style={styles.header}>
         <View>
           <Text variant="display">{t("rooms")}</Text>
-          {ready && rooms.length ? <Text variant="count" tone="secondary" style={styles.count}>{t("nRooms", rooms.length)}</Text> : null}
+          {ready && rooms.length ? <Text variant="count" tone="secondary" style={styles.count}>{rooms.length === 1 ? t("nRoom1") : t("nRooms", rooms.length)}</Text> : null}
           {ready && rooms.length ? <DeleteHint /> : null}
         </View>
         <IconButton icon="sliders" label={t("setH")} onPress={() => router.push("/settings")} />
@@ -71,7 +81,7 @@ export function Rooms() {
       <RoomList ready={ready} rooms={rooms} onDelete={setDeleting} />
       <ConfirmDialog visible={!!deleting} title={t("delRoomH")} body={deleting ? t("delRoomP", deleting.name) : ""} cancelLabel={t("cancel")} confirmLabel={t("delConf")} onCancel={() => setDeleting(null)} onConfirm={confirmDelete} />
       <LinearGradient colors={[withAlpha(color.bg, 0), color.bg, color.bg]} locations={[0, 0.34, 1]} style={[styles.bar, { paddingBottom: insets.bottom }]}>
-        <Button title={t("scan")} icon="scan" size={17} onPress={() => router.push("/capture")} style={styles.scan} />
+        <AddRoomButton style={styles.scan} />
       </LinearGradient>
     </View>
   );

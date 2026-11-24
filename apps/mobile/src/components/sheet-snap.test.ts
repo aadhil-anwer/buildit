@@ -8,18 +8,18 @@ test("the grabber cycles peek, half, full and back", () => {
 
 test("heights are the design's on a tall phone and fit a short one", () => {
   expect(fitHeights(844, 70)).toEqual(SNAP_HEIGHT);
-  expect(fitHeights(600, 70)).toEqual({ peek: 196, half: 404, full: 530 });
+  expect(fitHeights(600, 70)).toEqual({ peek: 132, half: 404, full: 530 });
   expect(fitHeights(300, 70).full).toBe(230);
-  expect(fitHeights(200, 70)).toEqual({ peek: 196, half: 196, full: 196 });
+  expect(fitHeights(200, 70)).toEqual({ peek: 132, half: 132, full: 132 });
 });
 
 test.each([
-  [300, 0, "peek"], // the exact midpoint goes to the lower size
-  [301, 0, "half"],
+  [268, 0, "peek"], // the exact midpoint goes to the lower size
+  [269, 0, "half"],
   [330, 0, "half"],
   [500, 0, "half"],
   [530, 0, "full"],
-  [250, 0, "peek"],
+  [200, 0, "peek"],
   [250, 800, "half"], // a fast flick up carries it further
   [404, -2500, "peek"], // a fast flick down
   [640, 3000, "full"], // cannot overshoot the tallest

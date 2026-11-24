@@ -1,13 +1,14 @@
-import { placeObject, snapToWalls, typeInfo, type ClearanceReport, type OpResult, type Scene } from "@buildit/core";
-import { Canvas, useFrame, useThree, type RootState } from "@react-three/fiber";
-import { useRef, type RefObject } from "react";
+import { dropObject, snapToWalls, typeInfo, type ClearanceReport, type OpResult, type Scene } from "@buildit/core";
+import type { RootState } from "@react-three/fiber";
+import { Canvas, useFrame, useThree } from "./r3f";
+import { useEffect, useRef, type RefObject } from "react";
 import { StyleSheet, useWindowDimensions, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
-import { ACESFilmicToneMapping, PCFSoftShadowMap, Vector3 } from "three";
+import { ACESFilmicToneMapping, PCFShadowMap, Vector3 } from "three";
 import { useToast } from "@/components/toast";
 import { t } from "@/i18n";
 import { color } from "@/theme";
-import { draggedTo, floorPoint, pickPiece, type Drag } from "./interaction";
+import { draggedTo, floorPoint, pickPiece, pieceAtFloor, type Drag } from "./interaction";
 import { useDrafting } from "@/ai/use-drafting";
 import { useReduceMotion } from "@/lib/reduce-motion";
 import { Drafting } from "./drafting";
@@ -30,6 +31,8 @@ interface Props {
   selectedId: string | null;
   topInset: number;
   bottomInset: number;
+  /** Height of the open sheet over the bottom of the canvas. The canvas keeps its size (a native GL canvas does not resize cleanly); the camera centres the room in what is left. */
+  sheet: number;
   /** Where it is walkable, when the walking-space overlay is on. */
   walk: ClearanceReport | null;
   onSelect: (id: string | null) => void;
@@ -44,13 +47,16 @@ const centreOf = (scene: Scene) => {
 };
 
 /** Places the orthographic camera from the view angles each frame, fitted to the room. Draws only when something asks for a frame. */
-function Rig({ scene, view }: { scene: Scene; view: RefObject<View3D> }) {
+function Rig({ scene, view, sheet }: { scene: Scene; view: RefObject<View3D>; sheet: number }) {
+  const invalidate = useThree((s) => s.invalidate);
+  useEffect(() => invalidate(), [sheet, invalidate]);
   useFrame(({ camera, size }) => {
     const { az, el, zoom } = view.current;
-    const fit = fitView(roomPoints(scene), az, el, size.width, size.height, 14);
+    const fit = fitView(roomPoints(scene), az, el, size.width, Math.max(120, size.height - sheet), 14);
     camera.position.copy(fit.target).add(cameraOffset(az, el, 30));
     camera.lookAt(fit.target);
     camera.zoom = fit.zoom * zoom;
+    camera.translateY(-sheet / 2 / camera.zoom); // the room sits in the middle of the part the sheet leaves uncovered
     camera.updateProjectionMatrix();
   });
   return null;
@@ -96,9 +102,13 @@ function useDragActions(scene: Scene, state: RefObject<RootState | null>, onPlac
     state.current?.scene.getObjectByName(id)?.position.set(x, 0, z);
     redraw();
   };
-  const grab = (x: number, y: number): Drag | null => {
-    const piece = scene.objects.find((o) => o.id === (state.current && pickPiece(state.current, x, y)));
+  const pick = (x: number, y: number) => {
     const at = state.current && floorPoint(state.current, x, y);
+    return { at, id: (state.current && pickPiece(state.current, x, y)) ?? (at ? pieceAtFloor(scene.objects, at) : null) };
+  };
+  const grab = (x: number, y: number): Drag | null => {
+    const { at, id } = pick(x, y);
+    const piece = scene.objects.find((o) => o.id === id);
     if (piece?.locked) useToast.getState().show(t("lockedNote"));
     return piece && at && !piece.locked ? { id: piece.id, grab: at, from: { x: piece.x, z: piece.z, rotation: piece.rotation } } : null;
   };
@@ -109,19 +119,19 @@ function useDragActions(scene: Scene, state: RefObject<RootState | null>, onPlac
   };
   const end = (d: Drag, here: { x: number; z: number } | null) => {
     const to = here ? landing(d, here) : d.from;
-    if (to.x !== d.from.x || to.z !== d.from.z) onPlace(d.id, placeObject(scene, d.id, to));
+    if (to.x !== d.from.x || to.z !== d.from.z) onPlace(d.id, dropObject(scene, d.id, to));
     const now = scene.objects.find((o) => o.id === d.id) ?? d.from;
     place(d.id, now.x, now.z); // a refused move goes back where it was
   };
-  return { redraw, place, grab, landing, end };
+  return { redraw, place, pick, grab, landing, end };
 }
 
 /** Tap picks a piece, dragging a piece moves it on the floor in 5 cm steps, dragging bare floor orbits, pinching zooms. */
 function useRoomGestures(scene: Scene, state: RefObject<RootState | null>, view: RefObject<View3D>, { onSelect, onPlace }: Pick<Props, "onSelect" | "onPlace">) {
   const drag = useRef<Drag | null>(null);
-  const { redraw, place, grab, landing, end } = useDragActions(scene, state, onPlace);
+  const { redraw, place, pick, grab, landing, end } = useDragActions(scene, state, onPlace);
   const camera = useCameraGestures(view, redraw);
-  const tap = Gesture.Tap().runOnJS(true).onEnd((e) => state.current && onSelect(pickPiece(state.current, e.x, e.y)));
+  const tap = Gesture.Tap().runOnJS(true).onEnd((e) => onSelect(pick(e.x, e.y).id));
   const pan = Gesture.Pan().runOnJS(true).minDistance(6)
     .onStart((e) => {
       drag.current = grab(e.x - e.translationX, e.y - e.translationY);
@@ -144,7 +154,7 @@ function useRoomGestures(scene: Scene, state: RefObject<RootState | null>, view:
 }
 
 /** The room in 3D, between the header and the sheet. */
-export function RoomCanvas({ scene, selectedId, topInset, bottomInset, walk, onSelect, onPlace }: Props) {
+export function RoomCanvas({ scene, selectedId, topInset, bottomInset, sheet, walk, onSelect, onPlace }: Props) {
   const { height: screen } = useWindowDimensions();
   const height = Math.max(160, screen - topInset - bottomInset);
   const view = useRef<View3D>({ ...START });
@@ -154,23 +164,23 @@ export function RoomCanvas({ scene, selectedId, topInset, bottomInset, walk, onS
   const drafting = useDrafting();
   const calm = useReduceMotion();
   return (
-    <GestureDetector gesture={gesture}>
-      <View testID="room-canvas" style={[styles.canvas, { top: topInset, height }]}>
-        <Canvas orthographic frameloop={active ? "demand" : "never"} dpr={[1, 2]} shadows={{ type: PCFSoftShadowMap }} gl={{ toneMapping: ACESFilmicToneMapping, toneMappingExposure: 0.92 }} camera={{ near: -50, far: 100, zoom: 60 }}>
-          <Probe into={state} />
-          <PerfProbe />
-          <Rig scene={scene} view={view} />
-          <Lights scene={scene} />
-          <RoomShell room={scene.room} view={view} />
-          <DoorSwings room={scene.room} />
-          {drafting.on && !calm ? <Drafting scene={scene} /> : null}
-          {walk ? <WalkFloor report={walk} /> : null}
-          <group name="pieces">
-            {scene.objects.map((o) => <Piece key={o.id} piece={o} selected={o.id === selectedId} floorLevel={!!typeInfo(o.type).floorLevel} glide={drafting.on && !calm} marked={drafting.touched.includes(o.id)} />)}
-          </group>
-        </Canvas>
+    <View testID="room-canvas" style={[styles.canvas, { top: topInset, height }]}>
+      <Canvas orthographic frameloop={active ? "demand" : "never"} dpr={[1, 2]} shadows={{ type: PCFShadowMap }} gl={{ toneMapping: ACESFilmicToneMapping, toneMappingExposure: 0.92 }} camera={{ near: -50, far: 100, zoom: 60 }}>
+        <Probe into={state} />
+        <PerfProbe />
+        <Rig scene={scene} view={view} sheet={sheet} />
+        <Lights scene={scene} />
+        <RoomShell room={scene.room} view={view} />
+        <DoorSwings room={scene.room} />
+        {drafting.on && !calm ? <Drafting scene={scene} /> : null}
+        {walk ? <WalkFloor report={walk} /> : null}
+        <group name="pieces">
+          {scene.objects.map((o) => <Piece key={o.id} piece={o} selected={o.id === selectedId} floorLevel={!!typeInfo(o.type).floorLevel} glide={drafting.on && !calm} marked={drafting.touched.includes(o.id)} />)}
+        </group>
+      </Canvas>
+      {/* Touches land on this layer, not the canvas: R3F's native canvas has its own responder that cancels our drags. */}
+      <GestureDetector gesture={gesture}><View testID="room-touch" style={StyleSheet.absoluteFill} /></GestureDetector>
       </View>
-    </GestureDetector>
   );
 }
 
