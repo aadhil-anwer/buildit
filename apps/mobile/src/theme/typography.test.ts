@@ -18,12 +18,13 @@ test("English matches the design: display 46/1 Cormorant 400, headings tighten b
 });
 
 test("Arabic body uses line-height 1.85 and no letter-spacing; English body 1.55", () => {
-  expect(textStyle("body", true)).toMatchObject({ fontFamily: "NotoNaskhArabic_400Regular", lineHeight: 15 * 1.85, letterSpacing: 0 });
+  expect(textStyle("body", true)).toMatchObject({ fontFamily: "NotoNaskhArabic_400Regular", lineHeight: 15 * 1.85 });
+  expect(textStyle("body", true).letterSpacing).toBeUndefined(); // unset, not 0: Android clips text that sets any letterSpacing
   expect(textStyle("body", false).lineHeight).toBeCloseTo(15 * 1.55);
 });
 
 test("only headings are tightened: buttons use the heading face with no letter-spacing", () => {
-  expect(textStyle("button14", false).letterSpacing).toBe(0);
+  expect(textStyle("button14", false).letterSpacing).toBeUndefined();
   expect(textStyle("heading", false).letterSpacing).toBeLessThan(0);
 });
 
@@ -43,7 +44,7 @@ test("rooms-screen sizes: small 13, empty-state heading 34/1.05, way title 19/1.
 
 test("only the headings the prototype marks are tightened; way titles, numerals and buttons are not", () => {
   for (const v of ["brand", "display", "hero", "title", "section", "heading"] as const) expect(textStyle(v, false).letterSpacing).toBeLessThan(0);
-  for (const v of ["wayTitle", "numeral", "button14", "button17", "body", "caption", "count"] as const) expect(textStyle(v, false).letterSpacing).toBe(0);
+  for (const v of ["wayTitle", "numeral", "button14", "button17", "body", "caption", "count"] as const) expect(textStyle(v, false).letterSpacing).toBeUndefined();
 });
 
 test("Arabic gets the roomy 1.85 line-height on paragraphs only; counts, captions and labels keep 1.55", () => {
@@ -60,7 +61,7 @@ test("capture sizes: card title 24/1 and row title 22/1 semibold, tag 11", () =>
 test("the kicker is a small uppercase, widely spaced label in English and plain in Arabic", () => {
   expect(textStyle("kicker", false)).toMatchObject({ fontSize: 11, textTransform: "uppercase" });
   expect(textStyle("kicker", false).letterSpacing).toBeCloseTo(0.88);
-  expect(textStyle("kicker", true)).toMatchObject({ letterSpacing: 0 });
+  expect(textStyle("kicker", true).letterSpacing).toBeUndefined();
   expect(textStyle("kicker", true)).not.toHaveProperty("textTransform", "uppercase");
   expect(textStyle("kicker", false)).toMatchObject({ fontFamily: "CormorantGaramond_600SemiBold", lineHeight: 11 * 1.12 }); // h6 uses the heading face
 });

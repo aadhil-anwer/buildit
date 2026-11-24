@@ -50,7 +50,7 @@ function useEditGestures(scene: Scene, plan: Plan, { onSelect, onPlace }: Pick<P
       ty.value = Math.round(e.translationY / step) * step;
     })
     .onEnd(() => {
-      if (active.value) runOnJS(finish)(active.value, tx.value / plan.scale, ty.value / plan.scale);
+      if (active.value) runOnJS(finish)(active.value, tx.value, ty.value); // pixels: draggedPose turns them into metres
       active.value = "";
       tx.value = 0;
       ty.value = 0;

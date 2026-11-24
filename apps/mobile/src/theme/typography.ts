@@ -61,7 +61,8 @@ export function textStyle(variant: Variant, arabic: boolean) {
   // Prototype --lh (1.85 in Arabic) is set on paragraphs only; Arabic control labels set no line height at all, so the face decides.
   const lineHeight = arabic && variant === "control" ? undefined : fontSize * (arabic && PARAGRAPH.has(variant) ? 1.85 : lh);
   const letterSpacing = arabic || !TRACKED.has(variant) ? 0 : -0.015 * fontSize; // prototype --ls0, set on these headings only
-  const style = { fontFamily: FAMILY[arabic ? "ar" : "en"][role][weight], fontSize, lineHeight, letterSpacing };
+  // Zero spacing is left unset: on Android any letterSpacing, even 0, mis-measures the text and clips its last word.
+  const style = { fontFamily: FAMILY[arabic ? "ar" : "en"][role][weight], fontSize, lineHeight, ...(letterSpacing ? { letterSpacing } : {}) };
   // Section labels are uppercase and widely spaced in English; Arabic has no capitals and must not be spaced.
   return variant === "kicker" && !arabic ? { ...style, letterSpacing: 0.08 * fontSize, textTransform: "uppercase" as const } : style;
 }

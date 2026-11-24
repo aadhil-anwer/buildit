@@ -2,12 +2,18 @@
   "expo": {
     "name": "BuildIt",
     "slug": "buildit",
-    "version": "1.2.0",
+    "version": "1.2.1",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "CFBundleLocalizations": [
+          "en",
+          "ar"
+        ]
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -15,7 +21,8 @@
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
-      }
+      },
+      "package": "com.anonymous.buildit"
     },
     "web": {
       "bundler": "metro",
@@ -26,7 +33,21 @@
     "plugins": [
       "expo-router",
       "@sentry/react-native",
-      "expo-font",
+      [
+        "expo-font",
+        {
+          "fonts": [
+            "../../node_modules/@expo-google-fonts/cormorant-garamond/400Regular/CormorantGaramond_400Regular.ttf",
+            "../../node_modules/@expo-google-fonts/cormorant-garamond/600SemiBold/CormorantGaramond_600SemiBold.ttf",
+            "../../node_modules/@expo-google-fonts/lora/400Regular/Lora_400Regular.ttf",
+            "../../node_modules/@expo-google-fonts/lora/600SemiBold/Lora_600SemiBold.ttf",
+            "../../node_modules/@expo-google-fonts/amiri/400Regular/Amiri_400Regular.ttf",
+            "../../node_modules/@expo-google-fonts/amiri/700Bold/Amiri_700Bold.ttf",
+            "../../node_modules/@expo-google-fonts/noto-naskh-arabic/400Regular/NotoNaskhArabic_400Regular.ttf",
+            "../../node_modules/@expo-google-fonts/noto-naskh-arabic/600SemiBold/NotoNaskhArabic_600SemiBold.ttf"
+          ]
+        }
+      ],
       "expo-splash-screen",
       [
         "expo-localization",

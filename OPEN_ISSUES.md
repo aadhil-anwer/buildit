@@ -94,7 +94,15 @@ Today the engine has 9 advisory design rules (`DESIGN_RULES`: coffee-table gap, 
 - The native GL canvas doesn't resize its drawing buffer, so the room stretched after the sheet opened. The 3D canvas now keeps its size, and the camera centres the room in the part the sheet leaves uncovered.
 - `PCFSoftShadowMap` was removed in three 0.186; it now uses `PCFShadowMap`.
 
-Seen working in the emulator: welcome → guest → type dimensions → review → editor; add an armchair and coffee table; tap to select (quick bar); drag a piece (drops on the nearest free spot); rotate; orbit by dragging bare floor; open and close the Add panel, with the room re-centred. **Not yet tried on Android:** pinch zoom, Plan view drag, Ask / Finishes / Check panes, versions, Arabic/RTL, frame rate on a mid-range phone.
+Seen working in the emulator: welcome → guest → type dimensions → review → editor; add an armchair and coffee table; tap to select (quick bar); drag a piece (drops on the nearest free spot); rotate; orbit by dragging bare floor; open and close the Add panel, with the room re-centred; Plan view drag; Finishes (wall and floor); Room check pane; Ask pane as a guest (email card, suggested next, restyle); versions (save, list).
+
+Found and fixed in that second pass:
+- **Plan view drag barely moved the piece.** The distance was divided by the pixels-per-metre scale twice (once in the gesture's `onEnd`, again in `draggedPose`), so a 90 cm drag moved 1 cm. This bug predates today. It's only covered by the emulator check, with no unit test yet: the gesture glue runs as worklets.
+- **Button labels lost their last word on Android** ("Add an email to keep your", and earlier "Add a"). Android measured the text with a different face than it drew. The fonts are now built into the app (the `expo-font` config plugin in `app.json`, the same files `useFonts` loads), and a zero `letterSpacing` is left unset. This needed a native rebuild, so `version` is bumped to 1.2.1 per the EAS Update rule.
+
+Arabic on Android was checked on Rooms, the editor header and chips, the selection bar, the dock and the Add pane. RTL mirroring, Arabic digits and "سم" all look right, and "٣D" is the design doc's own string.
+
+**Still not tried on Android:** pinch zoom (two fingers can't be sent from adb, so try it by hand), restoring a version, sign-in with email, frame rate on a mid-range phone. The Check pane's big score draws "100" in Cormorant's old-style figures, so it reads like "IOO". Compare with the prototype before changing it.
 
 **Local Android build recipe (Windows):** Android Studio's bundled JDK 25 breaks the C++ prefab step ("A restricted method in java.lang.System has been called"). Use a JDK 21 (`~/.jdks/jdk-21…`) as `JAVA_HOME`, and set `toolchainVersion=21` in `apps/mobile/android/gradle/gradle-daemon-jvm.properties` (that folder is generated and gitignored, so re-apply after a prebuild). Then run `npx expo run:android`. A web-only dev server (`npm run web`) stalls on Android bundles: run a native one (`npx expo start --dev-client`).
 
