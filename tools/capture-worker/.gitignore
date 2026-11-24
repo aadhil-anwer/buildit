@@ -1,0 +1,5 @@
+# Photos of real homes are private: never commit them.
+rooms/
+.venv/
+__pycache__/
+.pytest_cache/
