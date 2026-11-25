@@ -131,6 +131,9 @@ export function traditionReport(scene: Scene, id: TraditionId, ctx: TraditionCtx
 }
 
 /** How well a room follows a tradition on the rules about these pieces: passes minus fails (rules that don't apply count 0). */
+/** Whether any of a tradition's rules looks at this kind of piece (if none does, where it goes is the practical plan's call). */
+export const traditionJudges = (id: TraditionId, type: FurnitureType) => RULES[id].some((r) => r.types.includes(type));
+
 export function traditionFit(scene: Scene, id: TraditionId, ctx: TraditionCtx, types?: FurnitureType[]): number {
   return RULES[id].filter((r) => !types || r.types.some((t) => types.includes(t))).reduce((sum, r) => {
     const { status } = r.check(scene, ctx);

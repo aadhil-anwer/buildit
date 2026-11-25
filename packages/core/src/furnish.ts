@@ -144,23 +144,30 @@ export interface FurnishResult {
  * How far a room is from "All rules pass": failing rules count their weight, warnings half (0 = every rule passes).
  * Warnings count because the room-check chip shows them in red too; a starter set should look clean.
  */
-const failWeight = (scene: Scene) =>
+export const failWeight = (scene: Scene) =>
   roomCheck(scene).rules.reduce((sum, r) => sum + (r.status === "fail" ? r.weight : r.status === "pass" ? 0 : r.weight / 2), 0);
+
+/** How placeStep adds a piece and scores the room; arrange.ts passes memoised ones (five layouts share most of their work). */
+export interface PlaceOps {
+  add: (scene: Scene, catalogId: string, placement?: Placement) => OpResult;
+  cost: (scene: Scene) => number;
+}
+const PLAIN: PlaceOps = { add: addObject, cost: failWeight };
 
 /**
  * The first piece and spot that keep the room passing: every alternative piece in its intended spots first,
  * then each "anywhere it fits". Failing that, the one that hurts the room least. Yields between attempts.
  */
-export function* placeStep(scene: Scene, catalogIds: string[], options: Placement[], anywhereOk: boolean): Generator<null, OpResult | null> {
-  const baseline = failWeight(scene);
+export function* placeStep(scene: Scene, catalogIds: string[], options: Placement[], anywhereOk: boolean, ops: PlaceOps = PLAIN): Generator<null, OpResult | null> {
+  const baseline = ops.cost(scene);
   let best: { res: OpResult; cost: number } | null = null;
   const fallback = anywhereOk || !options.length ? catalogIds.map((id) => [id, undefined] as const) : [];
   const tries = [...catalogIds.flatMap((id) => options.map((p) => [id, p] as const)), ...fallback];
   for (const [catalogId, placement] of tries) {
     yield null;
-    const res = addObject(scene, catalogId, placement);
+    const res = ops.add(scene, catalogId, placement);
     if (!res.ok) continue;
-    const cost = failWeight(res.scene);
+    const cost = ops.cost(res.scene);
     if (cost === 0) return res;
     if (!best || cost < best.cost) best = { res, cost };
   }

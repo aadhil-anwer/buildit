@@ -93,31 +93,44 @@ function obstacleGap(a: Obstacle, b: Obstacle): number {
   return best;
 }
 
-/** Binary max-heap keyed by float priority. */
+/** Binary max-heap keyed by float priority. Swaps through temporaries: this runs thousands of times per room check. */
 class MaxHeap {
   private keys: number[] = [];
   private vals: number[] = [];
   get size() {
     return this.keys.length;
   }
-  push(key: number, val: number) {
+  private swap(a: number, b: number) {
     const k = this.keys;
     const v = this.vals;
+    const tk = k[a];
+    k[a] = k[b];
+    k[b] = tk;
+    const tv = v[a];
+    v[a] = v[b];
+    v[b] = tv;
+  }
+  push(key: number, val: number) {
+    const k = this.keys;
     k.push(key);
-    v.push(val);
+    this.vals.push(val);
     let i = k.length - 1;
     while (i > 0) {
       const p = (i - 1) >> 1;
       if (k[p] >= k[i]) break;
-      [k[p], k[i]] = [k[i], k[p]];
-      [v[p], v[i]] = [v[i], v[p]];
+      this.swap(p, i);
       i = p;
     }
   }
-  pop(): [number, number] {
+  /** The top's key (read before pop). */
+  peekKey(): number {
+    return this.keys[0];
+  }
+  /** Removes the top and returns its value. */
+  pop(): number {
     const k = this.keys;
     const v = this.vals;
-    const top: [number, number] = [k[0], v[0]];
+    const top = v[0];
     const lk = k.pop()!;
     const lv = v.pop()!;
     if (k.length) {
@@ -131,8 +144,7 @@ class MaxHeap {
         if (l < k.length && k[l] > k[m]) m = l;
         if (r < k.length && k[r] > k[m]) m = r;
         if (m === i) break;
-        [k[m], k[i]] = [k[i], k[m]];
-        [v[m], v[i]] = [v[i], v[m]];
+        this.swap(m, i);
         i = m;
       }
     }
@@ -255,8 +267,10 @@ export function analyzeClearance(scene: Scene, opts: { cell?: number; minWalkway
   const clearance = new Float32Array(n).fill(-1);
   let insideCount = 0;
   let freeCount = 0;
+  const p: Vec2 = { x: 0, z: 0 }; // one point reused for every cell (no allocation per cell)
   for (let i = 0; i < n; i++) {
-    const p = center(i);
+    p.x = b.minX + ((i % cols) + 0.5) * cell;
+    p.z = b.minZ + (Math.floor(i / cols) + 0.5) * cell;
     if (!pointInPolygon(p, poly)) continue;
     insideCount++;
     let blocked = false;
@@ -318,7 +332,13 @@ export function analyzeClearance(scene: Scene, opts: { cell?: number; minWalkway
   const pathClear = new Float32Array(n);
   for (let i = 0; i < n; i++) {
     const c = clearance[i];
-    pathClear[i] = c >= 0 && doorZones.some((z) => pointInObb(center(i), z)) ? Math.max(c, REACH) : c;
+    if (c < 0 || !doorZones.length) {
+      pathClear[i] = c;
+      continue;
+    }
+    p.x = b.minX + ((i % cols) + 0.5) * cell;
+    p.z = b.minZ + (Math.floor(i / cols) + 0.5) * cell;
+    pathClear[i] = doorZones.some((z) => pointInObb(p, z)) ? Math.max(c, REACH) : c;
   }
 
   // Widest path from the entries: bottleneck[i] = largest clearance radius
@@ -334,7 +354,8 @@ export function analyzeClearance(scene: Scene, opts: { cell?: number; minWalkway
     }
   }
   while (heap.size) {
-    const [bn, i] = heap.pop();
+    const bn = heap.peekKey();
+    const i = heap.pop();
     if (bn < bottleneck[i]) continue;
     const c = i % cols;
     const r = Math.floor(i / cols);

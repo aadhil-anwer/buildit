@@ -6,13 +6,14 @@
  */
 import { getCatalogItem } from "./catalog";
 import { COMPASS_DIR, dot } from "./geometry";
-import { getWalls } from "./room";
+import { getWalls, roomCenter } from "./room";
+import { objectFromCatalogId, withPose } from "./scene";
 import type { Compass } from "./types";
-import { inferKind, kit, placeStep, stepIds, wallsByFit } from "./furnish";
-import type { Placement } from "./layout/placement";
+import { failWeight, inferKind, kit, placeStep, stepIds, wallsByFit, type PlaceOps } from "./furnish";
+import { resolvePlacement, type Placement } from "./layout/placement";
 import { addObject, type OpResult } from "./ops";
-import { TRADITIONS, traditionFit, type TraditionCtx, type TraditionId } from "./traditions";
-import type { FurnitureType, Scene, SceneObject } from "./types";
+import { TRADITIONS, traditionFit, traditionJudges, type TraditionCtx, type TraditionId } from "./traditions";
+import type { FurnitureType, Room, Scene, SceneObject } from "./types";
 
 export interface Arrangement {
   tradition: TraditionId;
@@ -20,6 +21,38 @@ export interface Arrangement {
   /** Pieces that ended up somewhere else (or turned). */
   moved: string[];
 }
+
+/**
+ * The five layouts of a room share most of their work: each starts from the same room with the same pieces lifted,
+ * and most place them the same way. Adding a piece and scoring a room are pure, so they are remembered per room
+ * (same walls, same pieces, same poses → same answer). A few hundred entries per room; dropped with the room.
+ */
+const MEMO = new WeakMap<Room, Map<string, unknown>>();
+const poses = (s: Scene) => `${s.constraints.minWalkway}|` + s.objects.map((o) => `${o.id},${o.catalogId},${o.w},${o.d},${o.x},${o.z},${o.rotation}`).join(";");
+function remember<T>(s: Scene, k: string, f: () => T): T {
+  let m = MEMO.get(s.room);
+  if (!m || m.size > 4000) MEMO.set(s.room, (m = new Map<string, unknown>()));
+  const full = `${k}#${poses(s)}`;
+  if (!m.has(full)) m.set(full, f());
+  return m.get(full) as T;
+}
+const OPS: PlaceOps = {
+  add: (s, catalogId, p) => remember(s, `add ${catalogId} ${p ? JSON.stringify(p) : "anywhere"}`, () => addObject(s, catalogId, p)),
+  cost: (s) => remember(s, "cost", () => failWeight(s)),
+};
+
+/**
+ * Where a piece would land for a spot, for ranking only: the solver's first valid pose, without its walkway
+ * tie-break among near-equal candidates (up to ten walkway analyses per spot). Which wall, which end and which way
+ * it faces are what the tradition rules read; the piece itself is then placed in full by placeStep.
+ */
+const roughPlace = (scene: Scene, catalogId: string, p: Placement): Scene | null =>
+  remember(scene, `rough ${catalogId} ${JSON.stringify(p)}`, () => {
+    const c = roomCenter(scene.room);
+    const obj = objectFromCatalogId(scene, catalogId, { x: c.x, z: c.z, rotation: 0 });
+    const res = resolvePlacement(scene, obj, p, { clearance: false });
+    return res.ok ? { ...scene, objects: [...scene.objects, withPose(obj, res.pose)] } : null;
+  });
 
 const ENDS: Compass[] = ["north", "south", "east", "west"];
 const key = (p: Placement) => JSON.stringify(p);
@@ -45,14 +78,14 @@ function widen(scene: Scene, options: Placement[]): Placement[] {
 /** A step's spots, best for the tradition first: each tried for this piece alone (stable, so ties keep the kit's order). */
 function* rank(scene: Scene, catalogId: string, kitOptions: Placement[], tradition: TraditionId, ctx: TraditionCtx): Generator<null, Placement[]> {
   const type = getCatalogItem(catalogId)?.type;
-  if (tradition === "practical" || !type) return kitOptions;
+  if (tradition === "practical" || !type || !traditionJudges(tradition, type)) return kitOptions; // no rule about it: the practical spot
   const options = widen(scene, kitOptions);
   if (options.length < 2) return options;
   const scored: { p: Placement; i: number; fit: number }[] = [];
   for (const [i, p] of options.entries()) {
     yield null;
-    const res = addObject(scene, catalogId, p);
-    scored.push({ p, i, fit: res.ok ? traditionFit(res.scene, tradition, ctx, [type]) : -99 });
+    const trial = roughPlace(scene, catalogId, p);
+    scored.push({ p, i, fit: trial ? traditionFit(trial, tradition, ctx, [type]) : -99 });
   }
   return scored.sort((a, b) => b.fit - a.fit || a.i - b.i).map((x) => x.p);
 }
@@ -84,7 +117,7 @@ export function* arrangeSteps(scene: Scene, tradition: TraditionId, ctx: Traditi
   const walls = wallsByFit(working);
   for (const { step, piece } of lifts) {
     const options = yield* rank(working, piece.catalogId, step.place(placed, walls, working), tradition, ctx);
-    const res = yield* placeStep(working, [piece.catalogId], options, true);
+    const res = yield* placeStep(working, [piece.catalogId], options, true, OPS);
     working = res ? asOriginal(res, piece) : { ...working, objects: [...working.objects, piece] }; // nowhere better: it stays put
     placed[piece.type] ??= piece.id;
   }

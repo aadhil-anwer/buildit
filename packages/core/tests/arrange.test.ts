@@ -60,6 +60,18 @@ test.each([
   for (const id of rules) expect(after[id], `after ${id}`).toBe("pass");
 });
 
+test("remembered work gives the same layout as fresh work, and a moved piece is never answered from memory", () => {
+  const room = furnished("living", 5, 4.2);
+  const cold = arrange(structuredClone(room), "arabian")!; // a fresh room object: nothing remembered for it
+  expect(arrange(room, "arabian")!.scene.objects).toEqual(cold.scene.objects);
+  expect(arrange(room, "arabian")!.scene.objects).toEqual(cold.scene.objects); // warm
+  const sofa = room.objects.find((o) => o.type === "sofa")!;
+  const edited = { ...room, objects: room.objects.map((o) => (o === sofa ? { ...o, locked: true, x: o.x + 0.2 } : o)) };
+  const after = arrange(edited, "arabian")!;
+  expect(after.scene.objects.find((o) => o.id === sofa.id)).toMatchObject({ x: sofa.x + 0.2, z: sofa.z }); // locked: stays where it was moved
+  expect(after.scene.objects).toEqual(arrange(structuredClone(edited), "arabian")!.scene.objects);
+});
+
 test("Vastu puts the bed's head to the south or east when a wall allows it", () => {
   // Door on the west wall, so the south and east walls are free for a bed (in typed(), the door's swing blocks the east wall).
   const room = emptyRoom({ name: "Room", width: 4, length: 3.6, height: 2.8, openings: [makeOpening("door", RECT_WALL.west, 0.3, 0.9), makeOpening("window", RECT_WALL.north, 1.3, 1.4)] });
