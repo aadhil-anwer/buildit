@@ -24,7 +24,9 @@ test.each([["disabled"], ["busy"]])("%s does not fire and is announced as such",
 test.each([[14, 44], [15, 44], [16, 46], [17, 50]] as const)("a %ipx button is %i tall (never under the 44pt tap target)", async (size, height) => {
   await render(<Button title="Scan a room" size={size} />);
   expect(StyleSheet.flatten(button().props.style as object)).toMatchObject({ minHeight: height });
-  expect(StyleSheet.flatten(screen.getByText("Scan a room").props.style as object)).toMatchObject({ fontSize: size, letterSpacing: 0 });
+  const label = StyleSheet.flatten(screen.getByText("Scan a room").props.style as object) as { fontSize: number; letterSpacing?: number };
+  expect(label.fontSize).toBe(size);
+  expect(label.letterSpacing).toBeUndefined(); // no tracking; unset rather than 0, which Android mis-measures
 });
 
 test("the danger variant is outlined and labelled in rust", async () => {

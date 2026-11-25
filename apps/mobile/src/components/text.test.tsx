@@ -19,7 +19,8 @@ test("accent text uses the dark accent step, never the plain accent (contrast)",
 test("uses the Arabic faces and no letter-spacing when the language is Arabic", async () => {
   jest.spyOn(i18n, "isArabic").mockReturnValue(true);
   await render(<Text variant="display">Hi</Text>);
-  expect(styleOf()).toMatchObject({ fontFamily: "Amiri_400Regular", letterSpacing: 0 });
+  expect(styleOf()).toMatchObject({ fontFamily: "Amiri_400Regular" });
+  expect((styleOf() as { letterSpacing?: number }).letterSpacing).toBeUndefined();
 });
 
 test("a label can be forced into one script regardless of the app language", async () => {
