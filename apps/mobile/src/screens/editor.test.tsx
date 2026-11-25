@@ -11,13 +11,15 @@ jest.mock("@/settings/use-ai-usage", () => ({ useAiUsage: () => ({ usage: { used
 const mockBack = jest.fn();
 const mockPush = jest.fn();
 let mockId = "r1";
-jest.mock("expo-router", () => ({ useRouter: () => ({ back: mockBack, push: mockPush }), useLocalSearchParams: () => ({ id: mockId }) }));
+let mockFurnish: string | undefined;
+jest.mock("expo-router", () => ({ useRouter: () => ({ back: mockBack, push: mockPush }), useLocalSearchParams: () => ({ id: mockId, furnish: mockFurnish }) }));
 const scene = () => useRooms.getState().rooms[0].scene;
 const press = async (name: string) => await fireEvent.press(await screen.findByRole("button", { name }));
 const tab = async (key: Parameters<typeof t>[0]) => await fireEvent.press(await screen.findByRole("tab", { name: t(key) }));
 
 beforeEach(() => {
   mockId = "r1";
+  mockFurnish = undefined;
   useEditor.setState({ roomId: null, history: null, selectedId: null, view: "3d", walk: false, tab: "tAsk" });
   useRooms.setState({ rooms: [{ id: "r1", name: "Bedroom", scene: sampleBedroom(), updatedAt: 0, dirty: false }] });
 });
@@ -136,4 +138,17 @@ test("a room that is gone says so and offers the way back", async () => {
   expect(screen.getByText(t("roomGone"))).toBeTruthy();
   await fireEvent.press(screen.getByRole("button", { name: t("back") }));
   expect(mockBack).toHaveBeenCalled();
+});
+
+test("a room created as a bedroom furnishes itself after the empty room has been seen for a moment", async () => {
+  jest.useFakeTimers();
+  const empty = { ...sampleBedroom(), objects: [] };
+  useRooms.setState({ rooms: [{ id: "r1", name: "Bedroom", scene: empty, updatedAt: 0, dirty: false }] });
+  mockFurnish = "bedroom";
+  await render(<Editor />);
+  await act(() => jest.advanceTimersByTimeAsync(600));
+  expect(scene().objects).toHaveLength(0); // the empty room is seen first
+  await act(() => jest.runAllTimersAsync());
+  expect(scene().objects.some((o) => o.type === "bed")).toBe(true);
+  jest.useRealTimers();
 });

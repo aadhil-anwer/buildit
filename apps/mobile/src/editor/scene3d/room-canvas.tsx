@@ -171,7 +171,7 @@ export function RoomCanvas({ scene, selectedId, topInset, bottomInset, sheet, wa
         <Rig scene={scene} view={view} sheet={sheet} />
         <Lights scene={scene} />
         <RoomShell room={scene.room} view={view} />
-        <DoorSwings room={scene.room} />
+        <DoorSwings room={scene.room} view={view} />
         {drafting.on && !calm ? <Drafting scene={scene} /> : null}
         {walk ? <WalkFloor report={walk} /> : null}
         <group name="pieces">

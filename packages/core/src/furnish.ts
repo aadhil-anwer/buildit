@@ -113,8 +113,8 @@ function kit(kind: RoomKind, scene: Scene): Step[] {
       { catalogId: "majlis_seat_3m", place: onWalls(0, 1), anchor: true },
       { catalogId: "majlis_seat_2m", place: onWalls(1, 2, 3), anchor: true },
       { catalogId: "majlis_seat_2m", place: onWalls(2, 3, 1), anchor: true },
-      { catalogId: "rug_large", place: anywhere, anchor: true },
       { catalogId: "coffee_table_rect", place: beside("majlis_seat", ["front"], 0.6, "same_as_target") },
+      { catalogId: ["rug_large", "rug_medium"], place: either(beside("coffee_table", ["under"]), anywhere), anchor: true }, // centred under the table
       { catalogId: "side_table", place: beside("majlis_seat", ["right", "left"], 0.1) },
     ],
     office: [

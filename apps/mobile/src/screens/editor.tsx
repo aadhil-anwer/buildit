@@ -1,6 +1,6 @@
-import { analyzeClearance, type OpResult } from "@buildit/core";
+import { analyzeClearance, ROOM_KINDS, type OpResult, type RoomKind } from "@buildit/core";
 import { useLocalSearchParams } from "expo-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 import { Sheet } from "@/components/sheet";
 import { fitHeights, type Snap } from "@/components/sheet-snap";
@@ -13,6 +13,8 @@ import { EditorHeader } from "@/editor/header";
 import { fixLayout } from "@/editor/fix";
 import { PlanCanvas } from "@/editor/plan-canvas";
 import { FurnishCard } from "@/editor/furnish-card";
+import { useFurnish } from "@/editor/furnish-store";
+import { report } from "@/lib/report";
 import { SelectionBar } from "@/editor/selection-bar";
 import { SuggestionCard } from "@/editor/suggestion-card";
 import { RoomCanvas } from "@/editor/scene3d/room-canvas";
@@ -115,9 +117,27 @@ function EditorBody({ name }: { name: string }) {
   );
 }
 
+/** A room created with a kind ("…?furnish=bedroom") furnishes itself once the empty room has been seen for a moment. */
+function useAutoFurnish(open: boolean, kind: string | undefined) {
+  const done = useRef(false);
+  useEffect(() => {
+    if (!open || done.current || !(ROOM_KINDS as readonly string[]).includes(kind ?? "")) return;
+    if (useEditor.getState().history?.present.objects.length) return; // already furnished (came back to it)
+    useFurnish.getState().setPending(true);
+    const timer = setTimeout(() => {
+      done.current = true; // set when it really starts, so a cancelled timer (a re-run) can try again
+      useFurnish.getState().furnish(kind as RoomKind).catch((e: unknown) => report(e, { source: "furnish", kind }));
+    }, 700);
+    return () => {
+      clearTimeout(timer);
+      useFurnish.getState().setPending(false);
+    };
+  }, [open, kind]);
+}
+
 /** The room editor: the room on a plan, the design's header and room-check chip, and the sheet with its tabs. */
 export function Editor() {
-  const { id, tab, select } = useLocalSearchParams<{ id: string; tab?: string; select?: string }>();
+  const { id, tab, select, furnish } = useLocalSearchParams<{ id: string; tab?: string; select?: string; furnish?: string }>();
   const room = useRooms((s) => s.rooms.find((r) => r.id === id));
   const open = useEditor((s) => s.roomId === id && !!s.history);
   useEffect(() => {
@@ -128,6 +148,7 @@ export function Editor() {
     if (tab === "check" || (TAB_KEYS as readonly string[]).includes(tab ?? "")) editor.setTab(tab as EditorTab);
     if (select) editor.select(select);
   }, [id, tab, select]);
+  useAutoFurnish(open, furnish);
   if (!room) return <RoomGone />;
   return open ? <EditorBody name={room.name} /> : null;
 }

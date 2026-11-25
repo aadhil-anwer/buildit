@@ -19,6 +19,8 @@ export const journey = {
     essentialAdd: "+ {0}",
     essentialNoFit: "There's no good spot for a {0} right now. Move something and try again.",
     roomComplete: "Every essential is in. Your room is complete.",
+    kindEmpty: "Empty for now",
+    chipEmpty: "Add furniture to get a score",
   },
   ar: {
     furnishKicker: "ابدأ من هنا",
@@ -38,5 +40,7 @@ export const journey = {
     essentialAdd: "+ {0}",
     essentialNoFit: "لا يوجد مكان مناسب لـ{0} الآن. حرّك شيئًا ثم حاول مجددًا.",
     roomComplete: "كل الأساسيات في مكانها. اكتملت غرفتك.",
+    kindEmpty: "فارغة الآن",
+    chipEmpty: "أضف أثاثًا لتحصل على تقييم",
   },
 } as const;

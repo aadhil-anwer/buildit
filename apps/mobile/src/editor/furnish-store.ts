@@ -32,6 +32,9 @@ interface State {
   phase: Phase;
   /** Set while the furnishing itself commits, so "room complete" isn't announced twice. */
   quiet: boolean;
+  /** A furnishing is about to start by itself (the room was created with a kind): don't ask what the room is. */
+  pending: boolean;
+  setPending: (pending: boolean) => void;
   furnish: (kind: RoomKind) => Promise<void>;
   addEssential: (kind: RoomKind, type: FurnitureType) => Promise<void>;
 }
@@ -55,11 +58,13 @@ function announce(result: FurnishResult) {
 export const useFurnish = create<State>()((set, get) => ({
   phase: { name: "idle" },
   quiet: false,
+  pending: false,
+  setPending: (pending) => set({ pending }),
   furnish: async (kind) => {
     const editor = useEditor.getState();
     if (get().phase.name !== "idle" || !editor.history) return;
     haptic.pick();
-    set({ phase: { name: "placing", placed: 0 } });
+    set({ phase: { name: "placing", placed: 0 }, pending: false });
     try {
       const result = await runSliced(furnishSteps(editor.history.present, kind), (s) => s && set({ phase: { name: "placing", placed: (get().phase as { placed: number }).placed + 1 } }));
       set({ phase: { name: "revealing" } });

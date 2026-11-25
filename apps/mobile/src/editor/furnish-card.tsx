@@ -2,20 +2,20 @@ import { ROOM_KINDS, type RoomKind } from "@buildit/core";
 import { Pressable, StyleSheet, View } from "react-native";
 import { Chip } from "@/components/chip";
 import { Text } from "@/components/text";
-import { formatNumber, t, type StringKey } from "@/i18n";
+import { formatNumber, t } from "@/i18n";
 import { report } from "@/lib/report";
+import { kindName } from "@/rooms/kind";
 import { color, shadow, withAlpha } from "@/theme";
 import { useFurnish } from "./furnish-store";
 import { useEditor, useScene } from "./store";
-
-const KIND_NAME: Record<RoomKind, StringKey> = { bedroom: "kindBedroom", living: "kindLiving", majlis: "kindMajlis", office: "kindOffice" };
 
 /** An empty room's first step: say what the room is, and it is furnished to fit in one tap. */
 export function FurnishCard({ bottom, onOwn }: { bottom: number; onOwn: () => void }) {
   const scene = useScene();
   const phase = useFurnish((s) => s.phase);
   const preview = useEditor((s) => s.preview);
-  if (phase.name === "revealing" || (phase.name === "idle" && (scene.objects.length > 0 || preview))) return null;
+  const pending = useFurnish((s) => s.pending);
+  if (pending || phase.name === "revealing" || (phase.name === "idle" && (scene.objects.length > 0 || preview))) return null;
   const pick = (kind: RoomKind) => void useFurnish.getState().furnish(kind).catch((e: unknown) => report(e, { source: "furnish", kind }));
   return (
     <View style={[styles.card, { bottom }]} accessibilityLiveRegion="polite">
@@ -27,7 +27,7 @@ export function FurnishCard({ bottom, onOwn }: { bottom: number; onOwn: () => vo
         <>
           <Text variant="bodySm" tone="secondary" style={styles.sub}>{t("furnishP")}</Text>
           <View style={styles.kinds}>
-            {ROOM_KINDS.map((k) => <Chip key={k} label={t(KIND_NAME[k])} onPress={() => pick(k)} />)}
+            {ROOM_KINDS.map((k) => <Chip key={k} label={kindName(k)} onPress={() => pick(k)} />)}
           </View>
           <Pressable accessibilityRole="button" hitSlop={10} onPress={onOwn} style={styles.own}>
             <Text variant="label" tone="accent">{t("furnishOwn")}</Text>

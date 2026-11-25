@@ -7,6 +7,7 @@ import { useRooms } from "@/rooms/store";
 import { EssentialsRow } from "./essentials-row";
 import { FurnishCard } from "./furnish-card";
 import { runSliced, useFurnish } from "./furnish-store";
+import { RoomCheckChip } from "./room-check-chip";
 import { ScoreDelta } from "./score-delta";
 import { useEditor } from "./store";
 import { missingCount, useRoomComplete } from "./use-room-complete";
@@ -99,4 +100,11 @@ test("'room complete' is said once, when the person's own change puts the last e
   await act(() => useEditor.getState().set({ ...present(), objects: [...present().objects, lamp] }));
   expect(useToast.getState().message).toBe(t("roomComplete"));
   expect(haptic.win).toHaveBeenCalledTimes(1);
+});
+
+test("an empty room's chip shows no score and says how to get one, instead of a free 100", async () => {
+  await render(<RoomCheckChip score={100} rules={[]} empty onPress={jest.fn()} />);
+  expect(screen.getByText(t("chipEmpty"))).toBeTruthy();
+  expect(screen.queryByText("100")).toBeNull();
+  expect(screen.queryByText(t("allOk"))).toBeNull();
 });

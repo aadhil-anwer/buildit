@@ -96,7 +96,22 @@ The gap: after typing dimensions, people landed in an empty room that scored 100
   - `expo-haptics` needs a native rebuild before it can run on the emulator.
   - The Arabic strings (`journey-strings.ts`) are unreviewed.
   - The kits are rules of thumb; a designer should review them along with `DESIGN_RULES`.
+- [x] **Faster first wow (2026-11-25, seen on the Android emulator in EN):**
+  - The dimensions screen asks "What is this room?" (Bedroom, Living room, Majlis, Office, Empty for now). The choice is pre-selected from the name (`rooms/kind.ts`, EN + AR words). An untouched name follows the kind.
+  - **Create skips the review for typed rooms** and opens the editor, which furnishes the room itself 0.7 s after the empty room appears (`?furnish=<kind>`). This is an intended difference from the design doc's flow: the review only repeated what was just typed. Scanned rooms will still get it.
+  - An empty room's chip says "– Add furniture to get a score" instead of a free 100.
+  - The open door no longer stands as a white slab mid-room: when its wall is hidden (it faces the camera), the leaf lies low like the cut wall.
+  - **Furnishing quality:**
+    - Living: the TV goes against the wall the sofa faces; the coffee table steps down in size; accent pieces go in their place or are skipped.
+    - Majlis: the rug is centred under the coffee table.
+    - Every rule passes; warnings count as failures.
+  - Android fixes found on the way:
+    - Dragging the sheet's grabber crashed the app (`settleSnap` was not a worklet).
+    - The chip flashed a red score mid-reveal.
+    - The chip note was clipped; it's now one line with an ellipsis.
 - **Next ideas, in order:**
+  - "Show me another layout": swipe through real alternatives.
+  - Rooms list cards from 3D snapshots, with score and essentials.
   - A before/after hold-to-compare.
   - Restyle as a swipeable carousel.
   - A shareable before/after card (Phase 8).

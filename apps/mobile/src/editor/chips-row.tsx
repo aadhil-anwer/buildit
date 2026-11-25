@@ -15,14 +15,15 @@ export function ChipsRow() {
   const furnishing = useFurnish((s) => s.phase.name !== "idle");
   const committed = useEditor((s) => s.history!.present);
   const live = useScene();
-  const { score, rules } = useRoomCheck(furnishing ? committed : live);
+  const shown = furnishing ? committed : live;
+  const { score, rules } = useRoomCheck(shown);
   const [view, walk, previewing] = [useEditor((s) => s.view), useEditor((s) => s.walk), useEditor((s) => !!s.preview)];
   const { setTab, setView, setWalk } = useEditor.getState();
   return (
     <View style={styles.row}>
       <View>
-        <RoomCheckChip score={score} rules={rules} onPress={() => setTab("check")} />
-        <ScoreDelta score={score} live={!previewing} />
+        <RoomCheckChip score={score} rules={rules} empty={shown.objects.length === 0} onPress={() => setTab("check")} />
+        <ScoreDelta score={score} live={!previewing && shown.objects.length > 0} />
       </View>
       <View style={styles.controls}>
         <Pressable accessibilityRole="button" accessibilityLabel={t("walkToggle")} accessibilityState={{ selected: walk }} hitSlop={3} onPress={() => setWalk(!walk)} style={[styles.walk, walk && styles.walkOn]}>

@@ -24,7 +24,7 @@ test("asks for the name, the three sizes and where the door and window are", asy
   expect(screen.getAllByRole("button", { name: t("wallS") })).toHaveLength(2); // door row and window row
 });
 
-test("a valid room is saved on the device and opens for review", async () => {
+test("a valid room is saved on the device and opens straight in the editor, furnishing it as the chosen kind", async () => {
   await render(<Dimensions />);
   await fill("dimName", "Guest room");
   await fill("dimWidth", "4,5");
@@ -33,7 +33,31 @@ test("a valid room is saved on the device and opens for review", async () => {
   const [room] = useRooms.getState().rooms;
   expect(room).toMatchObject({ name: "Guest room", dirty: true });
   expect(room.scene.room.openings).toEqual([expect.objectContaining({ type: "door", wall: RECT_WALL.south })]);
-  expect(mockReplace).toHaveBeenCalledWith(`/review/${room.id}`);
+  expect(mockReplace).toHaveBeenCalledWith(`/editor/${room.id}?furnish=bedroom`); // a typed room needs no review
+});
+
+test("the room's kind and name keep in step until the person sets one", async () => {
+  await render(<Dimensions />);
+  expect((screen.getByRole("button", { name: t("kindBedroom") }).props as { accessibilityState: { selected: boolean } }).accessibilityState.selected).toBe(true); // "Bedroom" by default
+  await fireEvent.press(screen.getByRole("button", { name: t("kindLiving") }));
+  expect(field("dimName").props.value).toBe(t("kindLiving")); // an untouched name follows the kind
+  await fill("dimName", "Home office");
+  await fill("dimWidth", "3");
+  await fill("dimLength", "3");
+  await create();
+  // the kind was picked by hand, so typing "office" in the name did not override it
+  expect(mockReplace).toHaveBeenLastCalledWith(`/editor/${useRooms.getState().rooms[0].id}?furnish=living`);
+});
+
+test("typing a name picks the kind it suggests, and 'Empty for now' opens an empty room", async () => {
+  await render(<Dimensions />);
+  await fill("dimName", "مجلس الرجال");
+  expect((screen.getByRole("button", { name: t("kindMajlis") }).props as { accessibilityState: { selected: boolean } }).accessibilityState.selected).toBe(true);
+  await fireEvent.press(screen.getByRole("button", { name: t("kindEmpty") }));
+  await fill("dimWidth", "6");
+  await fill("dimLength", "4");
+  await create();
+  expect(mockReplace).toHaveBeenLastCalledWith(`/editor/${useRooms.getState().rooms[0].id}`);
 });
 
 test("the chosen walls end up in the room", async () => {
