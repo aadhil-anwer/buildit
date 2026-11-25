@@ -110,11 +110,24 @@ The gap: after typing dimensions, people landed in an empty room that scored 100
     - The chip flashed a red score mid-reveal.
     - The chip note was clipped; it's now one line with an ellipsis.
 - **Next ideas, in order:**
-  - Rooms list cards from 3D snapshots, with score and essentials.
   - A before/after hold-to-compare.
   - Restyle as a swipeable carousel.
   - A shareable before/after card (Phase 8).
   - The "Why" sheet on tips.
+
+## Rooms list cards: 3D picture, score, essentials (2026-11-25)
+
+- **Built:**
+  - Each room's card shows a 3D picture of the room instead of the flat plan, once the editor has taken one: 1.2 s after the room settles, with the sheet closed and nothing selected, at the person's viewing angle.
+  - Under the name: "Room check 97 · 4 of 4 essentials". The score is the one worked out when the picture was taken, so the list never runs the room check.
+  - The picture and score show only while the room still looks like that (a fingerprint of the room); otherwise the card falls back to the plan and the essentials.
+  - Pictures live in the app's documents folder; deleting a room deletes its picture.
+- **Verified:** tests (fingerprint, keep/replace/forget files, fresh vs stale card) and the Android emulator, English.
+- **Not done:**
+  - Web keeps the plan (no files there).
+  - No picture until a room has been opened in the editor once, including synced rooms from another phone.
+  - Not checked in Arabic/RTL or on iOS: the snapshot crop is computed from the canvas size and has only been seen on Android.
+  - The design doc shows live 3D in the plates; a still picture is the phone version of that (one live canvas, per STACK.md).
 
 ## Other layouts: Vastu, feng shui, ma, Gulf (owner asked, 2026-11-25)
 

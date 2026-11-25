@@ -1,7 +1,7 @@
 import { dropObject, snapToWalls, typeInfo, type ClearanceReport, type OpResult, type Scene } from "@buildit/core";
 import type { RootState } from "@react-three/fiber";
 import { Canvas, useFrame, useThree } from "./r3f";
-import { useEffect, useRef, type RefObject } from "react";
+import { useEffect, useMemo, useRef, type RefObject } from "react";
 import { StyleSheet, useWindowDimensions, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import { ACESFilmicToneMapping, PCFShadowMap, Vector3 } from "three";
@@ -18,6 +18,8 @@ import { DoorSwings } from "./door-swings";
 import { Piece } from "./piece";
 import { WalkFloor } from "./walk-floor";
 import { RoomShell } from "./room-shell";
+import { Snapshot } from "./snapshot";
+import { useEditor } from "../store";
 import { cameraOffset, clampElevation, clampZoom, fitView, START } from "./view";
 
 interface View3D {
@@ -47,12 +49,12 @@ const centreOf = (scene: Scene) => {
 };
 
 /** Places the orthographic camera from the view angles each frame, fitted to the room. Draws only when something asks for a frame. */
-function Rig({ scene, view, sheet }: { scene: Scene; view: RefObject<View3D>; sheet: number }) {
+function Rig({ points, view, sheet }: { points: Vector3[]; view: RefObject<View3D>; sheet: number }) {
   const invalidate = useThree((s) => s.invalidate);
   useEffect(() => invalidate(), [sheet, invalidate]);
   useFrame(({ camera, size }) => {
     const { az, el, zoom } = view.current;
-    const fit = fitView(roomPoints(scene), az, el, size.width, Math.max(120, size.height - sheet), 14);
+    const fit = fitView(points, az, el, size.width, Math.max(120, size.height - sheet), 14);
     camera.position.copy(fit.target).add(cameraOffset(az, el, 30));
     camera.lookAt(fit.target);
     camera.zoom = fit.zoom * zoom;
@@ -163,12 +165,15 @@ export function RoomCanvas({ scene, selectedId, topInset, bottomInset, sheet, wa
   const active = useCanvasActive();
   const drafting = useDrafting();
   const calm = useReduceMotion();
+  const roomId = useEditor((s) => s.roomId);
+  const points = useMemo(() => roomPoints(scene), [scene]);
   return (
     <View testID="room-canvas" style={[styles.canvas, { top: topInset, height }]}>
       <Canvas orthographic frameloop={active ? "demand" : "never"} dpr={[1, 2]} shadows={{ type: PCFShadowMap }} gl={{ toneMapping: ACESFilmicToneMapping, toneMappingExposure: 0.92 }} camera={{ near: -50, far: 100, zoom: 60 }}>
         <Probe into={state} />
         <PerfProbe />
-        <Rig scene={scene} view={view} sheet={sheet} />
+        <Rig points={points} view={view} sheet={sheet} />
+        <Snapshot roomId={roomId} scene={scene} points={points} view={view} clean={!selectedId && !sheet && !walk && !drafting.on} />
         <Lights scene={scene} />
         <RoomShell room={scene.room} view={view} />
         <DoorSwings room={scene.room} view={view} />

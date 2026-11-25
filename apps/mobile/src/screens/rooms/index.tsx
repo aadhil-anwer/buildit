@@ -12,6 +12,7 @@ import { t } from "@/i18n";
 import { useHints } from "@/lib/hints";
 import { useScreenInsets } from "@/lib/use-screen-insets";
 import { useEditor } from "@/editor/store";
+import { useSnapshots } from "@/rooms/snapshots";
 import { useRooms, useRoomsReady, type LocalRoom } from "@/rooms/store";
 import { useSyncStatus } from "@/sync/use-sync";
 import { color, withAlpha } from "@/theme";
@@ -64,6 +65,7 @@ export function Rooms() {
     if (deleting) {
       if (useEditor.getState().roomId === deleting.id) useEditor.setState({ roomId: null, history: null });
       useRooms.getState().remove(deleting.id);
+      useSnapshots.getState().forget(deleting.id); // its card picture goes with it
     }
     setDeleting(null);
   };
