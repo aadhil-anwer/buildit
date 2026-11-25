@@ -8,6 +8,10 @@ test("accepts a full, valid environment", () => expect(parseEnv(BASE)).toEqual(B
 test("a DSN is optional in development", () => expect(parseEnv({ ...BASE, SENTRY_DSN: undefined }).SENTRY_DSN).toBeUndefined());
 test("requires a DSN in production, so errors are never dropped", () =>
   expect(() => parseEnv({ ...BASE, SENTRY_DSN: undefined }, { production: true })).toThrow(/SENTRY_DSN/));
+test("a preview build (a test APK) may go without a DSN, but only when it says so", () => {
+  expect(parseEnv({ ...BASE, SENTRY_DSN: undefined, BUILD: "preview" }, { production: true }).SENTRY_DSN).toBeUndefined();
+  expect(() => parseEnv({ ...BASE, SENTRY_DSN: undefined, BUILD: "store" }, { production: true })).toThrow();
+});
 test("rejects a malformed DSN", () => expect(() => parseEnv({ ...BASE, SENTRY_DSN: "nope" })).toThrow(/SENTRY_DSN/));
 test.each(["SUPABASE_URL", "SUPABASE_ANON_KEY"])("%s is required, with a message that names it", (name) =>
   expect(() => parseEnv({ ...BASE, [name]: undefined })).toThrow(new RegExp(name)));

@@ -115,6 +115,19 @@ The gap: after typing dimensions, people landed in an empty room that scored 100
   - A shareable before/after card (Phase 8).
   - The "Why" sheet on tips.
 
+## Test APK (preview build, 2026-11-26)
+
+- **Recipe** (from `apps/mobile/android`, JDK 21, `ANDROID_HOME` set):
+  `EXPO_PUBLIC_BUILD=preview SENTRY_DISABLE_AUTO_UPLOAD=true EXPO_PUBLIC_SUPABASE_URL=http://<PC's Wi-Fi IP>:8090/sb ./gradlew.bat app:assembleRelease -PreactNativeArchitectures=arm64-v8a,x86_64`
+- **Temporarily weakened:**
+  - `EXPO_PUBLIC_BUILD=preview` lets a production build start without a Sentry DSN, so crashes in a preview APK are not reported anywhere. It goes once Sentry is set up (owner to-do).
+  - The local `android/app/src/release/AndroidManifest.xml` allows plain http so the APK can reach the PC's Supabase. `android/` is generated and gitignored, so it isn't in the repo, but it's in that APK.
+- **Limits of the test APK:**
+  - It needs the PC on, on the same Wi-Fi, with the local Supabase and the port-8090 proxy (`_scratch/proxy.js`) running. Signing in, guest sign-in and sync go through it.
+  - It's signed with the debug key and has the same app id as the dev build, so installing one replaces the other.
+  - The store build needs the hosted Supabase (https), Sentry, a real app id and an upload key (owner to-dos).
+- **Found:** when a module throws while the app starts (as the missing DSN did), the app shows a blank white screen; the error boundary never mounts. That's a dead end. Fix: catch start-up errors in the entry and show a plain "BuildIt couldn't start" screen.
+
 ## Rooms list cards: 3D picture, score, essentials (2026-11-25)
 
 - **Built:**

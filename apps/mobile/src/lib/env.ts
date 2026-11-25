@@ -10,6 +10,10 @@ const roleOf = (v: string) => {
 };
 const isSecret = (v: string) => v.startsWith("sk-") || v.startsWith("sb_secret_") || roleOf(v) === "service_role";
 
+/**
+ * `production` requires a crash-report DSN: a store build must not fail silently. A preview build
+ * (EXPO_PUBLIC_BUILD=preview: a test APK handed to a few people before Sentry is set up) may go without one, on purpose.
+ */
 export function parseEnv(raw: Record<string, string | undefined>, { production = false } = {}) {
   const leaked = Object.entries(raw).find(([, v]) => v && isSecret(v));
   if (leaked) throw new Error(`${leaked[0]} looks like a secret and must never ship in the app`);
@@ -19,7 +23,8 @@ export function parseEnv(raw: Record<string, string | undefined>, { production =
     .object({
       SUPABASE_URL: z.url(),
       SUPABASE_ANON_KEY: z.string().min(1),
-      SENTRY_DSN: production ? z.url() : z.url().optional(),
+      SENTRY_DSN: production && set.BUILD !== "preview" ? z.url() : z.url().optional(),
+      BUILD: z.enum(["preview"]).optional(),
     })
     .parse(set);
 }
@@ -30,6 +35,7 @@ export const env = parseEnv(
     SUPABASE_URL: process.env.EXPO_PUBLIC_SUPABASE_URL as string | undefined,
     SUPABASE_ANON_KEY: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY as string | undefined,
     SENTRY_DSN: process.env.EXPO_PUBLIC_SENTRY_DSN as string | undefined,
+    BUILD: process.env.EXPO_PUBLIC_BUILD as string | undefined,
   },
   { production: !__DEV__ },
 );
