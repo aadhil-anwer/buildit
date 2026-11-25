@@ -24,7 +24,7 @@ describe.each([
   });
 
   test("leaves the room passing its own check: doors open, walkways wide enough", () => {
-    const failing = roomCheck(result.scene).rules.filter((r) => r.status === "fail").map((r) => `${r.id} ${r.cm}/${r.need}`);
+    const failing = roomCheck(result.scene).rules.filter((r) => r.status !== "pass").map((r) => `${r.id} ${r.status} ${r.cm}/${r.need}`);
     expect(failing).toEqual([]);
   });
 
@@ -63,7 +63,7 @@ test("across many room sizes and door/window walls, furnishing never leaves a fa
         const { scene } = furnishRoom(room, kind);
         rooms++;
         for (const o of scene.objects) expect(checkPose(scene, o, o).ok, `${kind} ${w}x${l} ${o.id}`).toBe(true);
-        expect(roomCheck(scene).rules.filter((r) => r.status === "fail").map((r) => r.id), `${kind} ${w}x${l} door ${doorWall}`).toEqual([]);
+        expect(roomCheck(scene).rules.filter((r) => r.status !== "pass").map((r) => r.id), `${kind} ${w}x${l} door ${doorWall}`).toEqual([]);
       }
   expect(rooms).toBe(60);
   // About 220 ms per room on an idle desktop; this only catches a real slowdown, not a busy machine or a slow CI runner.
@@ -79,5 +79,13 @@ test("a missing essential is placed like the starter set would, and the checklis
   while (!step.done) step = run.next();
   expect(step.value?.ok).toBe(true);
   expect(essentials(step.value!.scene, "bedroom").missing).toEqual([]);
-  expect(roomCheck(step.value!.scene).rules.filter((r) => r.status === "fail")).toEqual([]);
+  expect(roomCheck(step.value!.scene).rules.filter((r) => r.status !== "pass")).toEqual([]);
+});
+
+test("the room the dimensions screen builds (door 30 cm from a corner, centred window, 90 cm walkway) furnishes clean", () => {
+  const base = emptyRoom({ name: "Living room", width: 5, length: 4.2, height: 2.8, openings: [makeOpening("door", RECT_WALL.south, 0.3, 0.9), makeOpening("window", RECT_WALL.north, 1.8, 1.4)] });
+  for (const minWalkway of [0.75, 0.8, 0.9]) {
+    const { scene } = furnishRoom({ ...base, constraints: { ...base.constraints, minWalkway } }, "living");
+    expect(roomCheck(scene).rules.filter((r) => r.status !== "pass").map((r) => `${r.id} ${r.cm}/${r.need}`), `walkway ${minWalkway}`).toEqual([]);
+  }
 });

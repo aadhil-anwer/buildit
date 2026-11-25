@@ -7,6 +7,7 @@ import { roomCheck } from "./check";
 import { getCatalogItem } from "./catalog";
 import { addObject, type OpResult } from "./ops";
 import type { Placement } from "./layout/placement";
+import { frontDir } from "./geometry";
 import { getWalls, roomBounds, type Wall } from "./room";
 import type { FurnitureType, Scene } from "./types";
 
@@ -52,7 +53,13 @@ function wallsByFit(scene: Scene): Wall[] {
 }
 
 /** Where a piece may go, best first. The engine tries each; "anywhere it fits" is always the last resort. */
-type Step = { catalogId: string; place: (ids: Record<string, string>, walls: Wall[]) => Placement[] };
+/** `catalogId` may list alternatives, best first: a smaller piece that fits beats a bigger one that blocks a walkway. */
+type Step = {
+  catalogId: string | string[];
+  place: (ids: Record<string, string>, walls: Wall[], scene: Scene) => Placement[];
+  /** Anchors (bed, sofa, desk...) may go anywhere they fit; an accent piece out of its place (an armchair blocking the TV) is worse than none. */
+  anchor?: true;
+};
 type Side = "left" | "right" | "front" | "under";
 
 const onWalls = (...order: number[]) => (_: Record<string, string>, walls: Wall[]): Placement[] =>
@@ -60,6 +67,20 @@ const onWalls = (...order: number[]) => (_: Record<string, string>, walls: Wall[
 const beside = (target: string, sides: Side[], gap_m?: number, facing?: "toward_target" | "same_as_target") => (ids: Record<string, string>): Placement[] =>
   ids[target] ? sides.map((side) => ({ type: "next_to", target: ids[target], side, gap_m, facing })) : [];
 const anywhere = (): Placement[] => [];
+type Places = Step["place"];
+/** The options of several rules, in order. */
+const either = (...rules: Places[]): Places => (ids, walls, scene) => rules.flatMap((rule) => rule(ids, walls, scene));
+/** Against the wall a piece looks at, lined up with it: a TV opposite the sofa. Then "in front of it" as a fallback. */
+const facing = (target: string, gap_m: number) => (ids: Record<string, string>, walls: Wall[], scene: Scene): Placement[] => {
+  const o = scene.objects.find((x) => x.id === ids[target]);
+  if (!o) return [];
+  const front = frontDir(o.rotation);
+  const opposite = getWalls(scene.room).filter((w) => w.inward.x * front.x + w.inward.z * front.z < -0.9);
+  return [
+    ...opposite.map((w): Placement => ({ type: "against_wall", wall: w.id, align_with: o.id, facing: "into_room" })),
+    { type: "next_to", target: o.id, side: "front", gap_m, facing: "toward_target" },
+  ];
+};
 
 function kit(kind: RoomKind, scene: Scene): Step[] {
   const b = roomBounds(scene.room);
@@ -68,34 +89,34 @@ function kit(kind: RoomKind, scene: Scene): Step[] {
   const sofa = short < 3.2 ? "sofa_2_seat" : "sofa_3_seat";
   const KITS: Record<RoomKind, Step[]> = {
     bedroom: [
-      { catalogId: bed, place: onWalls(0, 1, 2) },
+      { catalogId: bed, place: onWalls(0, 1, 2), anchor: true },
       { catalogId: "nightstand", place: beside("bed", ["left"], 0.05, "same_as_target") },
       { catalogId: "nightstand", place: beside("bed", ["right"], 0.05, "same_as_target") },
       { catalogId: "rug_bedroom", place: beside("bed", ["under"]) },
-      { catalogId: "wardrobe_2", place: onWalls(1, 2, 3, 0) },
+      { catalogId: "wardrobe_2", place: onWalls(1, 2, 3, 0), anchor: true },
       { catalogId: "floor_lamp", place: beside("nightstand", ["left", "right"], 0.05) }, // a reading light by the bed
     ],
     living: [
-      { catalogId: sofa, place: onWalls(0, 1, 2) },
-      { catalogId: "coffee_table_rect", place: beside("sofa", ["front"], 0.4, "same_as_target") },
+      { catalogId: sofa, place: onWalls(0, 1, 2), anchor: true },
+      { catalogId: ["coffee_table_rect", "coffee_table_small", "coffee_table_round"], place: beside("sofa", ["front"], 0.4, "same_as_target") },
       { catalogId: "rug_medium", place: beside("coffee_table", ["under"]) },
-      { catalogId: "tv_unit", place: beside("sofa", ["front"], 2.2, "toward_target") },
-      { catalogId: "armchair", place: beside("coffee_table", ["left", "right"], 0.4, "toward_target") },
-      { catalogId: "floor_lamp", place: beside("sofa", ["right", "left"], 0.1) },
-      { catalogId: "plant", place: anywhere },
+      { catalogId: "tv_unit", place: facing("sofa", 2.2) },
+      { catalogId: ["armchair", "accent_chair"], place: either(beside("coffee_table", ["left", "right"], 0.35, "toward_target"), beside("sofa", ["left", "right"], 0.25, "same_as_target")) },
+      { catalogId: "floor_lamp", place: either(beside("sofa", ["right", "left"], 0.1), beside("armchair", ["left", "right"], 0.1), beside("tv_unit", ["right", "left"], 0.1)) },
+      { catalogId: "plant", place: beside("tv_unit", ["left", "right"], 0.1) },
     ],
     majlis: [
-      { catalogId: "majlis_seat_3m", place: onWalls(0, 1) },
-      { catalogId: "majlis_seat_2m", place: onWalls(1, 2, 3) },
-      { catalogId: "majlis_seat_2m", place: onWalls(2, 3, 1) },
-      { catalogId: "rug_large", place: anywhere },
+      { catalogId: "majlis_seat_3m", place: onWalls(0, 1), anchor: true },
+      { catalogId: "majlis_seat_2m", place: onWalls(1, 2, 3), anchor: true },
+      { catalogId: "majlis_seat_2m", place: onWalls(2, 3, 1), anchor: true },
+      { catalogId: "rug_large", place: anywhere, anchor: true },
       { catalogId: "coffee_table_rect", place: beside("majlis_seat", ["front"], 0.6, "same_as_target") },
       { catalogId: "side_table", place: beside("majlis_seat", ["right", "left"], 0.1) },
     ],
     office: [
-      { catalogId: "desk", place: onWalls(0, 1, 2) },
+      { catalogId: "desk", place: onWalls(0, 1, 2), anchor: true },
       { catalogId: "office_chair", place: beside("desk", ["front"], 0.1, "toward_target") },
-      { catalogId: "bookshelf", place: onWalls(1, 2, 3) },
+      { catalogId: "bookshelf", place: onWalls(1, 2, 3), anchor: true },
       { catalogId: "floor_lamp", place: beside("desk", ["right", "left"], 0.1) },
       { catalogId: "plant", place: anywhere },
     ],
@@ -112,15 +133,23 @@ export interface FurnishResult {
   skipped: string[];
 }
 
-/** How badly a room fails its own check: the summed weight of failing rules (0 = passes). */
+/**
+ * How far a room is from "All rules pass": failing rules count their weight, warnings half (0 = every rule passes).
+ * Warnings count because the room-check chip shows them in red too; a starter set should look clean.
+ */
 const failWeight = (scene: Scene) =>
-  roomCheck(scene).rules.reduce((sum, r) => sum + (r.status === "fail" ? r.weight : 0), 0);
+  roomCheck(scene).rules.reduce((sum, r) => sum + (r.status === "fail" ? r.weight : r.status === "pass" ? 0 : r.weight / 2), 0);
 
-/** The first spot that keeps the room passing; failing that, the one that hurts it least. Yields between attempts. */
-function* placeStep(scene: Scene, catalogId: string, options: Placement[]): Generator<null, OpResult | null> {
+/**
+ * The first piece and spot that keep the room passing: every alternative piece in its intended spots first,
+ * then each "anywhere it fits". Failing that, the one that hurts the room least. Yields between attempts.
+ */
+function* placeStep(scene: Scene, catalogIds: string[], options: Placement[], anywhereOk: boolean): Generator<null, OpResult | null> {
   const baseline = failWeight(scene);
   let best: { res: OpResult; cost: number } | null = null;
-  for (const placement of [...options, undefined]) {
+  const fallback = anywhereOk || !options.length ? catalogIds.map((id) => [id, undefined] as const) : [];
+  const tries = [...catalogIds.flatMap((id) => options.map((p) => [id, p] as const)), ...fallback];
+  for (const [catalogId, placement] of tries) {
     yield null;
     const res = addObject(scene, catalogId, placement);
     if (!res.ok) continue;
@@ -130,6 +159,7 @@ function* placeStep(scene: Scene, catalogId: string, options: Placement[]): Gene
   }
   return best && best.cost <= baseline ? best.res : null; // never make a passing room fail
 }
+const ids = (s: Step) => (Array.isArray(s.catalogId) ? s.catalogId : [s.catalogId]);
 
 /**
  * Furnishes step by step: yields `null` between attempts (so the app can pause for a frame) and the room
@@ -137,21 +167,21 @@ function* placeStep(scene: Scene, catalogId: string, options: Placement[]): Gene
  */
 export function* furnishSteps(scene: Scene, kind: RoomKind): Generator<Scene | null, FurnishResult> {
   const walls = wallsByFit(scene);
-  const ids: Record<string, string> = {};
+  const placed: Record<string, string> = {};
   const frames: Scene[] = [];
   const added: string[] = [];
   const skipped: string[] = [];
   let working = scene;
   for (const step of kit(kind, scene)) {
-    const res = yield* placeStep(working, step.catalogId, step.place(ids, walls));
+    const res = yield* placeStep(working, ids(step), step.place(placed, walls, working), !!step.anchor);
     if (!res) {
-      skipped.push(step.catalogId);
+      skipped.push(ids(step)[0]);
       continue;
     }
     working = res.scene;
     const id = res.changed[0];
     const type = working.objects.find((o) => o.id === id)!.type;
-    ids[type] ??= id; // the first of each kind is what later pieces line up with
+    placed[type] ??= id; // the first of each kind is what later pieces line up with
     added.push(id);
     frames.push(working);
     yield working;
@@ -169,9 +199,9 @@ export function furnishRoom(scene: Scene, kind: RoomKind): FurnishResult {
 
 /** One missing essential, placed the way the starter set would place it (next to the bed, against a wall...). */
 export function* addEssentialSteps(scene: Scene, kind: RoomKind, type: FurnitureType): Generator<null, OpResult | null> {
-  const step = kit(kind, scene).find((s) => getCatalogItem(s.catalogId)?.type === type);
+  const step = kit(kind, scene).find((s) => getCatalogItem(ids(s)[0])?.type === type);
   if (!step) return null;
-  const ids: Record<string, string> = {};
-  for (const o of scene.objects) ids[o.type] ??= o.id;
-  return yield* placeStep(scene, step.catalogId, step.place(ids, wallsByFit(scene)));
+  const placed: Record<string, string> = {};
+  for (const o of scene.objects) placed[o.type] ??= o.id;
+  return yield* placeStep(scene, ids(step), step.place(placed, wallsByFit(scene), scene), !!step.anchor);
 }

@@ -5,13 +5,17 @@ import { t } from "@/i18n";
 import { color, withAlpha } from "@/theme";
 import { RoomCheckChip } from "./room-check-chip";
 import { ScoreDelta } from "./score-delta";
+import { useFurnish } from "./furnish-store";
 import { useEditor, useScene } from "./store";
 import { useRoomCheck } from "./use-room-check";
 
 /** The row over the room: the room-check chip, the walking-space toggle and the 3D / Plan switch. */
 export function ChipsRow() {
-  const scene = useScene();
-  const { score, rules } = useRoomCheck(scene);
+  // While "furnish it for me" plays its reveal, the chip keeps the room as it was: half-placed frames would flash red.
+  const furnishing = useFurnish((s) => s.phase.name !== "idle");
+  const committed = useEditor((s) => s.history!.present);
+  const live = useScene();
+  const { score, rules } = useRoomCheck(furnishing ? committed : live);
   const [view, walk, previewing] = [useEditor((s) => s.view), useEditor((s) => s.walk), useEditor((s) => !!s.preview)];
   const { setTab, setView, setWalk } = useEditor.getState();
   return (
