@@ -110,12 +110,28 @@ The gap: after typing dimensions, people landed in an empty room that scored 100
     - The chip flashed a red score mid-reveal.
     - The chip note was clipped; it's now one line with an ellipsis.
 - **Next ideas, in order:**
-  - "Show me another layout": swipe through real alternatives.
   - Rooms list cards from 3D snapshots, with score and essentials.
   - A before/after hold-to-compare.
   - Restyle as a swipeable carousel.
   - A shareable before/after card (Phase 8).
   - The "Why" sheet on tips.
+
+## Other layouts: Vastu, feng shui, ma, Gulf (owner asked, 2026-11-25)
+
+- **Built:**
+  - The shuffle button opens "Other layouts". The room's own furniture is re-arranged by Practical, Vastu (India), Feng shui (China), Ma (Japanese open space) and Gulf/majlis custom.
+  - Each layout is a card with a small plan, its room-check score, and its tradition's rules with the measured fact (head to the south, 76% open floor, 40° to the door). Tap a card to preview it in 3D; "Use this layout" is one undoable step.
+  - A Compare table scores every layout against every tradition.
+  - The Gulf card asks which wall faces Mecca and remembers it per room on the phone. There's no compass or location, by the owner's choice.
+  - A layout that matches the room, or an earlier card, is said in one line ("no better arrangement than yours was found") instead of a twin card.
+- **Verified:** core tests (legal poses, every room-check rule passing, fit ≥ practical, Vastu bed head, Qibla, locked pieces) and app tests. Android emulator, English: cards, Compare, 3D preview, Use, undo, the sheet closing after Use, and the "same as" lines.
+- **Not done or not verified:**
+  - **The tradition rules are unreviewed rules of thumb.** A Vastu, feng shui and Gulf practitioner should review `packages/core/src/traditions.ts`. "Japanese vastu" isn't a real tradition: Ma stands in, and kasō (the Japanese house-direction tradition) is not modelled.
+  - **The Arabic copy is unreviewed**, and the pane hasn't been screenshotted in Arabic/RTL yet.
+  - **Variety is low for rooms the app furnished itself.** The traditions only re-rank the spots the furnishing kit offers, and the kit already gives the practical plan. So for a freshly furnished bedroom, living room or majlis, Vastu, feng shui and Ma usually match it; Gulf differs in living rooms and majlis. More variety needs more candidate spots per piece (other walls, turned groupings, a bed on another wall).
+  - **Speed:** on the emulator, about 3–5 s per layout (all five in about 20 s), shown one by one as each finishes. Not measured on a floor device (iPhone 11, Galaxy A).
+  - No design-doc comparison: no prototype screen; it reuses the pane, card, chip and segmented-control patterns.
+- **Emulator note:** the AVD had 4 GB, and the system ANR'd ("Process system isn't responding") under a dev build of about 870 MB. Now 8 GB (`hw.ramSize=8192` in the AVD `config.ini`). Once, the VM also stalled (guest clock 11 minutes behind); a cold restart fixed it.
 
 ## Premium feel (owner asked for a $500M-product feel)
 

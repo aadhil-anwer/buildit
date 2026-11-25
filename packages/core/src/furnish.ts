@@ -45,16 +45,18 @@ export function essentials(scene: Scene, kind: RoomKind): Essentials {
 }
 
 /** Walls for big pieces: no door on them, fewer windows first, then the longest. */
-function wallsByFit(scene: Scene): Wall[] {
+export function wallsByFit(scene: Scene): Wall[] {
   const openings = (w: Wall, type: string) => scene.room.openings.filter((o) => o.wall === w.index && o.type === type).length;
   return getWalls(scene.room)
     .filter((w) => openings(w, "door") === 0 && w.length >= 1.6)
     .sort((a, b) => openings(a, "window") - openings(b, "window") || b.length - a.length);
 }
 
-/** Where a piece may go, best first. The engine tries each; "anywhere it fits" is always the last resort. */
-/** `catalogId` may list alternatives, best first: a smaller piece that fits beats a bigger one that blocks a walkway. */
-type Step = {
+/**
+ * Where a piece may go, best first. The engine tries each; "anywhere it fits" is always the last resort.
+ * `catalogId` may list alternatives, best first: a smaller piece that fits beats a bigger one that blocks a walkway.
+ */
+export type Step = {
   catalogId: string | string[];
   place: (ids: Record<string, string>, walls: Wall[], scene: Scene) => Placement[];
   /** Anchors (bed, sofa, desk...) may go anywhere they fit; an accent piece out of its place (an armchair blocking the TV) is worse than none. */
@@ -89,7 +91,8 @@ function sized(scene: Scene) {
   return { bed: short < 2.8 ? "bed_single" : short < 3.4 ? "bed_double" : "bed_queen", sofa: short < 3.2 ? "sofa_2_seat" : "sofa_3_seat" };
 }
 
-function kit(kind: RoomKind, scene: Scene): Step[] {
+/** The starter set for a kind of room, in placing order (also the order arrange.ts re-places a room in). */
+export function kit(kind: RoomKind, scene: Scene): Step[] {
   const { bed, sofa } = sized(scene);
   const KITS: Record<RoomKind, Step[]> = {
     bedroom: [
@@ -148,7 +151,7 @@ const failWeight = (scene: Scene) =>
  * The first piece and spot that keep the room passing: every alternative piece in its intended spots first,
  * then each "anywhere it fits". Failing that, the one that hurts the room least. Yields between attempts.
  */
-function* placeStep(scene: Scene, catalogIds: string[], options: Placement[], anywhereOk: boolean): Generator<null, OpResult | null> {
+export function* placeStep(scene: Scene, catalogIds: string[], options: Placement[], anywhereOk: boolean): Generator<null, OpResult | null> {
   const baseline = failWeight(scene);
   let best: { res: OpResult; cost: number } | null = null;
   const fallback = anywhereOk || !options.length ? catalogIds.map((id) => [id, undefined] as const) : [];
@@ -163,7 +166,7 @@ function* placeStep(scene: Scene, catalogIds: string[], options: Placement[], an
   }
   return best && best.cost <= baseline ? best.res : null; // never make a passing room fail
 }
-const ids = (s: Step) => (Array.isArray(s.catalogId) ? s.catalogId : [s.catalogId]);
+export const stepIds = (s: Step) => (Array.isArray(s.catalogId) ? s.catalogId : [s.catalogId]);
 
 /**
  * Furnishes step by step: yields `null` between attempts (so the app can pause for a frame) and the room
@@ -177,9 +180,9 @@ export function* furnishSteps(scene: Scene, kind: RoomKind): Generator<Scene | n
   const skipped: string[] = [];
   let working = scene;
   for (const step of kit(kind, scene)) {
-    const res = yield* placeStep(working, ids(step), step.place(placed, walls, working), !!step.anchor);
+    const res = yield* placeStep(working, stepIds(step), step.place(placed, walls, working), !!step.anchor);
     if (!res) {
-      skipped.push(ids(step)[0]);
+      skipped.push(stepIds(step)[0]);
       continue;
     }
     working = res.scene;
@@ -203,9 +206,9 @@ export function furnishRoom(scene: Scene, kind: RoomKind): FurnishResult {
 
 /** One missing essential, placed the way the starter set would place it (next to the bed, against a wall...). */
 export function* addEssentialSteps(scene: Scene, kind: RoomKind, type: FurnitureType): Generator<null, OpResult | null> {
-  const step = kit(kind, scene).find((s) => getCatalogItem(ids(s)[0])?.type === type);
+  const step = kit(kind, scene).find((s) => getCatalogItem(stepIds(s)[0])?.type === type);
   if (!step) return null;
   const placed: Record<string, string> = {};
   for (const o of scene.objects) placed[o.type] ??= o.id;
-  return yield* placeStep(scene, ids(step), step.place(placed, wallsByFit(scene), scene), !!step.anchor);
+  return yield* placeStep(scene, stepIds(step), step.place(placed, wallsByFit(scene), scene), !!step.anchor);
 }

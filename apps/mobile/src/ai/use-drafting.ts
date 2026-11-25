@@ -1,6 +1,7 @@
 import type { Scene } from "@buildit/core";
 import { useMemo } from "react";
 import { useFurnish } from "@/editor/furnish-store";
+import { useLayouts } from "@/editor/layouts-store";
 import { useEditor } from "@/editor/store";
 import { useAsk } from "./ask-store";
 
@@ -17,9 +18,10 @@ export function touchedIds(before: Scene, after: Scene): string[] {
 export function useDrafting() {
   const asking = useAsk((s) => s.phase.name === "running");
   const furnishing = useFurnish((s) => s.phase.name === "revealing");
-  const on = asking || furnishing;
+  const browsing = useLayouts((s) => s.active >= 0); // looking at another layout: pieces glide, but nothing is "working"
+  const on = asking || furnishing || browsing;
   const preview = useEditor((s) => s.preview);
   const present = useEditor((s) => s.history?.present);
   const touched = useMemo(() => (on && preview && present ? touchedIds(present, preview) : []), [on, preview, present]);
-  return { on, touched };
+  return { on, touched, band: asking || furnishing };
 }

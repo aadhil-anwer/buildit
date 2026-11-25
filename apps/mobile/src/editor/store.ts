@@ -6,7 +6,7 @@ import * as H from "./history";
 type EditorView = "3d" | "plan";
 
 /** The four tabs, plus the room check, which opens from its chip and is not a tab. */
-export type EditorTab = "tAsk" | "tAdd" | "tItem" | "tFin" | "check";
+export type EditorTab = "tAsk" | "tAdd" | "tItem" | "tFin" | "check" | "layouts";
 
 interface State {
   roomId: string | null;
@@ -20,6 +20,8 @@ interface State {
   /** Suggestions the person has dismissed or tried in this visit, so the card does not offer them again. */
   dismissed: string[];
   tab: EditorTab;
+  /** Bumped on every setTab, so asking for the tab already chosen (the check chip again) still opens the sheet. */
+  tabAsked: number;
   /** Open a room: a fresh history and nothing selected. */
   open: (roomId: string, scene: Scene) => void;
   /** Apply an engine result. A refused one changes nothing and returns false, so the caller can say why. */
@@ -52,6 +54,7 @@ export const useEditor = create<State>()((set) => ({
   preview: null,
   dismissed: [],
   tab: "tAsk",
+  tabAsked: 0,
   open: (roomId, scene) => set({ roomId, history: H.start(scene), selectedId: null, view: "3d", walk: false, preview: null, dismissed: [], tab: "tAsk" }),
   commit: (result) => {
     if (result.ok) set((s) => (s.history ? saved(s, H.push(s.history, result.scene)) : s));
@@ -65,7 +68,7 @@ export const useEditor = create<State>()((set) => ({
   setWalk: (walk) => set({ walk }),
   dismiss: (id) => set((s) => ({ dismissed: [...s.dismissed, id] })),
   setPreview: (preview) => set({ preview }),
-  setTab: (tab) => set({ tab }),
+  setTab: (tab) => set((s) => ({ tab, tabAsked: s.tabAsked + 1 })),
 }));
 
 /** The scene being edited. Only valid while a room is open. */

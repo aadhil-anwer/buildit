@@ -12,6 +12,8 @@ export type { Placement } from "./layout/placement";
 export * from "./ops";
 export * from "./drop";
 export * from "./furnish";
+export * from "./traditions";
+export * from "./arrange";
 export * from "./room";
 export * from "./rules/design-tips";
 export * from "./scene";

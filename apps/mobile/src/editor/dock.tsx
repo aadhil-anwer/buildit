@@ -5,7 +5,7 @@ import { t } from "@/i18n";
 import { color } from "@/theme";
 import type { EditorTab } from "./store";
 
-const ITEMS: { key: Exclude<EditorTab, "check">; icon: IconName }[] = [
+const ITEMS: { key: Exclude<EditorTab, "check" | "layouts">; icon: IconName }[] = [
   { key: "tAsk", icon: "ask" },
   { key: "tAdd", icon: "plus" },
   { key: "tItem", icon: "sliders" },

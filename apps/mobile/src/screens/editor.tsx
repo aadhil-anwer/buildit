@@ -23,6 +23,7 @@ import { AskPane } from "@/editor/panes/ask-pane";
 import { CheckPane } from "@/editor/panes/check-pane";
 import { FinishesPane } from "@/editor/panes/finishes-pane";
 import { ItemPane } from "@/editor/panes/item-pane";
+import { LayoutsPane } from "@/editor/panes/layouts-pane";
 import { ChipsRow } from "@/editor/chips-row";
 import { DOCK_HEIGHT, Dock } from "@/editor/dock";
 import { useFirstHint } from "@/editor/use-first-hint";
@@ -58,7 +59,8 @@ function useSheet() {
   const [open, setOpen] = useState(false);
   const [snap, setSnap] = useState<Snap>("half");
   const tab = useEditor((s) => s.tab);
-  useEffect(() => void (tab === "check" && setOpen(true)), [tab]); // the room-check chip opens the check
+  const asked = useEditor((s) => s.tabAsked);
+  useEffect(() => void ((tab === "check" || tab === "layouts") && setOpen(true)), [tab, asked]); // the check chip and the layouts button open their pane
   const onDock = (key: EditorTab) => {
     const same = open && useEditor.getState().tab === key;
     useEditor.getState().setTab(key);
@@ -96,7 +98,7 @@ function EditorBody({ name }: { name: string }) {
   const dock = DOCK_HEIGHT + insets.bottom;
   const heights = fitHeights(useWindowDimensions().height - dock, insets.top + 24);
   const covered = dock + (sheet.open ? heights[sheet.snap] : 0);
-  const pane: Record<EditorTab, () => React.JSX.Element> = { tAsk: () => <AskPane onFix={() => void fix()} />, tAdd: AddPane, tItem: ItemPane, tFin: FinishesPane, check: () => <CheckPane onFix={() => void fix()} fixing={fixing} /> };
+  const pane: Record<EditorTab, () => React.JSX.Element> = { tAsk: () => <AskPane onFix={() => void fix()} />, tAdd: AddPane, tItem: ItemPane, tFin: FinishesPane, check: () => <CheckPane onFix={() => void fix()} fixing={fixing} />, layouts: LayoutsPane };
   const Pane = pane[sheet.tab];
   return (
     <View style={styles.root}>
@@ -109,7 +111,7 @@ function EditorBody({ name }: { name: string }) {
       <Toast top={insets.top + 100} />
       {sheet.open ? (
         <Sheet snap={sheet.snap} onSnapChange={sheet.onSnapChange} bottom={dock}>
-          <ScrollView contentContainerStyle={styles.pane}><Pane /></ScrollView>
+          <ScrollView contentContainerStyle={styles.pane}>{sheet.tab === "layouts" ? <LayoutsPane onUsed={sheet.close} /> : <Pane />}</ScrollView>
         </Sheet>
       ) : null}
       <Dock open={sheet.open ? sheet.tab : null} onPress={sheet.onDock} inset={insets.bottom} />

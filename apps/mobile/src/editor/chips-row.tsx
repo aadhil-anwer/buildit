@@ -1,3 +1,4 @@
+import { inferKind } from "@buildit/core";
 import { Pressable, StyleSheet, View } from "react-native";
 import { Icon } from "@/components/icon";
 import { Segmented } from "@/components/segmented";
@@ -29,6 +30,11 @@ export function ChipsRow() {
         <Pressable accessibilityRole="button" accessibilityLabel={t("walkToggle")} accessibilityState={{ selected: walk }} hitSlop={3} onPress={() => setWalk(!walk)} style={[styles.walk, walk && styles.walkOn]}>
           <Icon name="walk" tint={walk ? color.accent : color.text} />
         </Pressable>
+        {inferKind(shown) ? (
+          <Pressable accessibilityRole="button" accessibilityLabel={t("layoutsOpen")} hitSlop={3} onPress={() => setTab("layouts")} style={styles.walk}>
+            <Icon name="layouts" />
+          </Pressable>
+        ) : null}
         <Segmented floating options={[{ key: "3d", label: t("v3d") }, { key: "plan", label: t("vplan") }]} value={view} onChange={setView} />
       </View>
     </View>

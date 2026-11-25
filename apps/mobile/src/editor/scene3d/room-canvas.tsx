@@ -172,7 +172,7 @@ export function RoomCanvas({ scene, selectedId, topInset, bottomInset, sheet, wa
         <Lights scene={scene} />
         <RoomShell room={scene.room} view={view} />
         <DoorSwings room={scene.room} view={view} />
-        {drafting.on && !calm ? <Drafting scene={scene} /> : null}
+        {drafting.band && !calm ? <Drafting scene={scene} /> : null}
         {walk ? <WalkFloor report={walk} /> : null}
         <group name="pieces">
           {scene.objects.map((o) => <Piece key={o.id} piece={o} selected={o.id === selectedId} floorLevel={!!typeInfo(o.type).floorLevel} glide={drafting.on && !calm} marked={drafting.touched.includes(o.id)} />)}

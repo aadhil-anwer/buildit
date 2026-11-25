@@ -12,6 +12,7 @@ import Undo2 from "lucide-react-native/icons/undo-2";
 import X from "lucide-react-native/icons/x";
 import Palette from "lucide-react-native/icons/palette";
 import Sparkles from "lucide-react-native/icons/sparkles";
+import Shuffle from "lucide-react-native/icons/shuffle";
 import Check from "lucide-react-native/icons/check";
 import Minus from "lucide-react-native/icons/minus";
 import Plus from "lucide-react-native/icons/plus";
@@ -43,6 +44,7 @@ const ICONS = {
   walk: { Glyph: ArrowLeftRight, mirror: false },
   logout: { Glyph: LogOut, mirror: true },
   minus: { Glyph: Minus, mirror: false },
+  layouts: { Glyph: Shuffle, mirror: false },
   palette: { Glyph: Palette, mirror: false },
   plus: { Glyph: Plus, mirror: false },
   scan: { Glyph: ScanLine, mirror: false },
