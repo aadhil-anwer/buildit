@@ -4,6 +4,7 @@ import { Segmented } from "@/components/segmented";
 import { t } from "@/i18n";
 import { color, withAlpha } from "@/theme";
 import { RoomCheckChip } from "./room-check-chip";
+import { ScoreDelta } from "./score-delta";
 import { useEditor, useScene } from "./store";
 import { useRoomCheck } from "./use-room-check";
 
@@ -11,11 +12,14 @@ import { useRoomCheck } from "./use-room-check";
 export function ChipsRow() {
   const scene = useScene();
   const { score, rules } = useRoomCheck(scene);
-  const [view, walk] = [useEditor((s) => s.view), useEditor((s) => s.walk)];
+  const [view, walk, previewing] = [useEditor((s) => s.view), useEditor((s) => s.walk), useEditor((s) => !!s.preview)];
   const { setTab, setView, setWalk } = useEditor.getState();
   return (
     <View style={styles.row}>
-      <RoomCheckChip score={score} rules={rules} onPress={() => setTab("check")} />
+      <View>
+        <RoomCheckChip score={score} rules={rules} onPress={() => setTab("check")} />
+        <ScoreDelta score={score} live={!previewing} />
+      </View>
       <View style={styles.controls}>
         <Pressable accessibilityRole="button" accessibilityLabel={t("walkToggle")} accessibilityState={{ selected: walk }} hitSlop={3} onPress={() => setWalk(!walk)} style={[styles.walk, walk && styles.walkOn]}>
           <Icon name="walk" tint={walk ? color.accent : color.text} />

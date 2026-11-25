@@ -7,6 +7,7 @@ import { useToast } from "@/components/toast";
 import { formatNumber, t } from "@/i18n";
 import { typeName } from "@/rooms/names";
 import { color, withAlpha } from "@/theme";
+import { EssentialsRow } from "../essentials-row";
 import { useEditor, useScene } from "../store";
 
 // The pieces the design offers; sizes and colours come from the engine's catalog, never retyped here.
@@ -28,6 +29,7 @@ export function AddPane() {
 
   return (
     <View>
+      <EssentialsRow />
       <View style={styles.head}>
         <Text variant="paneTitle">{t("addH")}</Text>
         <Pressable accessibilityRole="checkbox" accessibilityLabel={t("fits")} accessibilityState={{ checked: onlyFits }} hitSlop={{ top: 14, bottom: 14 }} onPress={() => setOnlyFits(!onlyFits)} style={styles.fits}>

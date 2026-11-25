@@ -12,6 +12,7 @@ import { useFail } from "@/lib/use-fail";
 import { EditorHeader } from "@/editor/header";
 import { fixLayout } from "@/editor/fix";
 import { PlanCanvas } from "@/editor/plan-canvas";
+import { FurnishCard } from "@/editor/furnish-card";
 import { SelectionBar } from "@/editor/selection-bar";
 import { SuggestionCard } from "@/editor/suggestion-card";
 import { RoomCanvas } from "@/editor/scene3d/room-canvas";
@@ -23,6 +24,7 @@ import { ItemPane } from "@/editor/panes/item-pane";
 import { ChipsRow } from "@/editor/chips-row";
 import { DOCK_HEIGHT, Dock } from "@/editor/dock";
 import { useFirstHint } from "@/editor/use-first-hint";
+import { useRoomComplete } from "@/editor/use-room-complete";
 import { useEditor, useScene, type EditorTab } from "@/editor/store";
 import { typeName } from "@/rooms/names";
 import { useRooms } from "@/rooms/store";
@@ -86,6 +88,7 @@ function EditorBody({ name }: { name: string }) {
   const insets = useScreenInsets();
   const { fixing, fix } = useFix();
   useFirstHint();
+  useRoomComplete();
   const sheet = useSheet();
   const selectedId = useEditor((s) => s.selectedId);
   const dock = DOCK_HEIGHT + insets.bottom;
@@ -100,6 +103,7 @@ function EditorBody({ name }: { name: string }) {
       <View style={[styles.chips, { top: insets.top + 46 }]}><ChipsRow /></View>
       {sheet.open ? null : <SelectionBar bottom={covered + 10} />}
       {sheet.open ? null : <SuggestionCard bottom={covered + (selectedId ? 70 : 10)} />}
+      {sheet.open ? null : <FurnishCard bottom={covered + 10} onOwn={() => sheet.onDock("tAdd")} />}
       <Toast top={insets.top + 100} />
       {sheet.open ? (
         <Sheet snap={sheet.snap} onSnapChange={sheet.onSnapChange} bottom={dock}>

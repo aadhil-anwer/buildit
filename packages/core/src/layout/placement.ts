@@ -179,9 +179,11 @@ function solve(
     // Keep the shortlist diverse: near-duplicates would all share the same
     // walkway problem.
     if (valid.some((v) => Math.abs(v.pose.rotation - c.pose.rotation) < 1 && Math.hypot(v.pose.x - c.pose.x, v.pose.z - c.pose.z) < 0.25)) continue;
-    const chk = checkPose(scene, obj, c.pose, ignore);
+    // Check the pose that will be returned: rounding after the check pushed a bed flush to a wall 5 mm into it.
+    const pose = roundPose(c.pose);
+    const chk = checkPose(scene, obj, pose, ignore);
     if (chk.ok) {
-      valid.push({ ...c, warnings: chk.warnings });
+      valid.push({ ...c, pose, warnings: chk.warnings });
       if (valid.length >= maxValid) break;
     } else if (!firstReason) {
       firstReason = chk.reasons.join("; ");

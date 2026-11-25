@@ -56,6 +56,52 @@ What is planned but not done, in build order. Done phases are in `git log`; deta
 - **Selling:** per-room one-time pass first (about $19 to $29 local price), subscription only if many buy a second room within about 60 days; a website and web checkout (the app can't point to it outside the US storefront under Apple 3.1.1(a); Google's policy page could not be read here, check it); the free taste is the Room Check diagnosis plus one redesign and one watermarked render. Saudi Arabia first, then UAE. All figures are unverified estimates.
 - **Photoreal render**, **richer 3D furniture**, **designer review tier**: see Premium feel and Design quality above.
 
+## Photo capture: photos from several angles → editable room (owner approved, 2026-11-24)
+
+Plan: `~/.claude/plans/lets-add-converting-photos-mighty-stearns-*.md`. The owner chose an **editable room** (walls, sizes, doors/windows, furniture as pieces), not a photoreal copy, running on a **serverless GPU**. Sizes come from reconstructed 3D points; a detector only names things (PRODUCT.md rule). The user confirms the scale against one tape-measured wall in review.
+
+- [x] **Phase 0 kit built** (`tools/capture-worker/`, commit `047fcd1`):
+  - `layout.py`: points → floor, ceiling, closed walls, doors/windows, furniture boxes. Tested on synthetic rectangle and L-shaped rooms: walls within 4–5 cm.
+  - `reconstruct.py`: MapAnything `facebook/map-anything-apache` (Apache-2.0) + OWLv2.
+  - `modal_app.py`: runs `reconstruct.py` on a rented GPU. `accuracy.py`: the go/no-go table.
+  - A core test shows the output imports through the existing `importRoomPlan` as a closed 4.2 × 3.6 m room.
+- [ ] **Owner:** photos of 5–8 real rooms with tape-measured walls and ceiling (see the worker README; `rooms/` is gitignored), and a Modal account (`modal setup`). This PC has no NVIDIA GPU.
+- [ ] Run the spike. **Gate:** walls close in at least 80% of rooms, worst wall under ~10 cm before the scale check, main furniture found, GPU cost per room known. `reconstruct.py` and `modal_app.py` have only been compiled, never run.
+- [ ] Check the OWLv2 weights licence. **Avoid** non-commercial weights: SpatialLM, VGGT-1B, DUSt3R/MASt3R, MapAnything CC-BY-NC. VGGT-1B-Commercial (custom licence, gated) is the backup.
+- [ ] After the gate:
+  - **Owner decision:** one audited service-role call site to write job results and delete processed photos (CLAUDE.md says ask first).
+  - Then the `capture_jobs` migration, the `capture` Edge Function, and the app screens: guided camera and gallery, narrated processing, failed state, and a one-wall scale check in review via a new `scaleScene`.
+  - `expo-camera` and `expo-image-picker` are a native change: bump the version.
+
+## First-run journey: make redesigning rewarding (owner asked, 2026-11-25)
+
+The gap: after typing dimensions, people landed in an empty room that scored 100, with nothing to do. Rewards here are tied to real progress only: no fake urgency, no streak guilt, no random rewards.
+
+- [x] **Furnish it for me** (`furnishSteps` / `furnishRoom` in `packages/core/src/furnish.ts`):
+  - **Card:** an empty room shows "What is this room?": Bedroom, Living room, Majlis, Office, or "I'll add my own". The kits are defined in `kit()`.
+  - **Placement:** each piece has ranked spots; the first one that keeps the room passing its own check wins. A piece that can't fit is skipped and named, never squeezed in.
+  - **Tests:** 60 room sizes and door/window positions; never a failing room or an illegal pose. About 220 ms per room on a desktop.
+  - **Smooth on phones:** the app computes first in 8 ms slices, narrated as "Measuring and placing piece 3", then replays the pieces arriving every 420 ms. Each piece drops into place (skipped with Reduce Motion), using the AI designer's drafting band and outlines. The result is one undoable step.
+- [x] **Essentials checklist** at the top of the Add panel. For example, "Essentials · 4 of 5", with a gold progress hairline. Missing ones appear as "+ Floor lamp" and are placed like the starter set would place them (`addEssentialSteps`).
+- [x] **Rewards:**
+  - "Every essential is in. Your room is complete." once, when the person's own change completes the room (`useRoomComplete`).
+  - A gold "+N" rises from the room-check chip when a change raises the score, or a rust "−N" when it drops (`ScoreDelta`). It's ignored during previews.
+  - Haptics (`lib/haptics.ts`, new native module `expo-haptics`): a piece lands, a kind is picked, something got better.
+- **Fixed on the way:**
+  - The placement engine checked a pose and then rounded it, which could put a bed flush to a wall 5 mm into it. It now checks the rounded pose.
+  - The `ScoreDelta` hide timer was cancelled by the next score change, leaving "+N" on screen.
+  - Two component tests still expected `letterSpacing: 0` after the Android fix in `08754ec`; that commit left them failing.
+- **Not done or not checked:**
+  - Not yet screenshotted or compared with the design scheme on web or Android in EN/AR, because the dev server was stopped for low memory.
+  - `expo-haptics` needs a native rebuild before it can run on the emulator.
+  - The Arabic strings (`journey-strings.ts`) are unreviewed.
+  - The kits are rules of thumb; a designer should review them along with `DESIGN_RULES`.
+- **Next ideas, in order:**
+  - A before/after hold-to-compare.
+  - Restyle as a swipeable carousel.
+  - A shareable before/after card (Phase 8).
+  - The "Why" sheet on tips.
+
 ## Premium feel (owner asked for a $500M-product feel)
 
 Plan: `~/.claude/plans/how-do-we-plan-enumerated-wozniak.md` (A furniture, B haptics, C motion, D first-run coach, E honest trust, F device gate).

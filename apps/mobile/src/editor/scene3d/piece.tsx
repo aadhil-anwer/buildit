@@ -36,27 +36,42 @@ function Outline({ w, d }: { w: number; d: number }) {
 }
 
 const GLIDE_RATE = 7; // per second: a move of 1 m takes about half a second to settle
+const DROP = 0.6; // metres: a piece arriving during a reveal settles from this high
+const DROP_RATE = 9;
 
-/** Moves the piece's group to where the scene says it stands; with `glide` it eases there instead of jumping. Dragging moves the group directly and is left alone: only a changed target moves it. */
+/**
+ * Moves the piece's group to where the scene says it stands; with `glide` it eases there instead of jumping,
+ * and a piece that first appears while gliding drops gently into place. Dragging moves the group directly and is
+ * left alone: only a changed target moves it.
+ */
 function useStandAt(group: React.RefObject<Group | null>, x: number, z: number, glide: boolean) {
-  const goal = useRef({ x, z, fresh: true });
-  if (goal.current.x !== x || goal.current.z !== z) goal.current = { x, z, fresh: true };
+  const goal = useRef({ x, z, fresh: true, mounted: false });
+  if (goal.current.x !== x || goal.current.z !== z) goal.current = { ...goal.current, x, z, fresh: true };
   const invalidate = useThree((s) => s.invalidate);
   useEffect(() => invalidate(), [x, z, invalidate]); // the canvas draws on demand: a new place needs a frame to show
   useFrame(({ invalidate }, dt) => {
     const g = group.current;
     if (!g) return;
     const to = goal.current;
-    if (to.fresh && !glide) {
+    if (!to.mounted) {
+      g.position.set(x, glide ? DROP : 0, z); // appear where it belongs, never slide in from the room's origin
+      Object.assign(to, { mounted: true, fresh: false });
+    }
+    if (g.position.y > 0.001) {
+      g.position.y = MathUtils.damp(g.position.y, 0, DROP_RATE, dt);
+      if (g.position.y < 0.002) g.position.y = 0;
+      invalidate();
+    }
+    if (!to.fresh) return;
+    if (!glide) {
       g.position.set(x, 0, z);
       to.fresh = false;
       return;
     }
-    if (!to.fresh) return;
     g.position.x = MathUtils.damp(g.position.x, x, GLIDE_RATE, dt);
     g.position.z = MathUtils.damp(g.position.z, z, GLIDE_RATE, dt);
     if (Math.hypot(g.position.x - x, g.position.z - z) > 0.002) return invalidate();
-    g.position.set(x, 0, z);
+    g.position.set(x, g.position.y, z);
     to.fresh = false;
   });
 }

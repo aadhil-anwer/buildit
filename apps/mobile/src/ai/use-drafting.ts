@@ -1,5 +1,6 @@
 import type { Scene } from "@buildit/core";
 import { useMemo } from "react";
+import { useFurnish } from "@/editor/furnish-store";
 import { useEditor } from "@/editor/store";
 import { useAsk } from "./ask-store";
 
@@ -12,9 +13,11 @@ export function touchedIds(before: Scene, after: Scene): string[] {
   }).map((o) => o.id);
 }
 
-/** Whether the AI designer is working, and which pieces it has changed so far (from the steps it has really taken). */
+/** Whether the AI designer (or "furnish it for me") is working, and which pieces it has changed so far (from the steps it has really taken). */
 export function useDrafting() {
-  const on = useAsk((s) => s.phase.name === "running");
+  const asking = useAsk((s) => s.phase.name === "running");
+  const furnishing = useFurnish((s) => s.phase.name === "revealing");
+  const on = asking || furnishing;
   const preview = useEditor((s) => s.preview);
   const present = useEditor((s) => s.history?.present);
   const touched = useMemo(() => (on && preview && present ? touchedIds(present, preview) : []), [on, preview, present]);

@@ -1,5 +1,6 @@
 import { generated } from "./strings.generated";
 import { hints } from "./hints-strings";
+import { journey } from "./journey-strings";
 import { tips } from "./tips-strings";
 
 // Strings the design doc does not have (it only covers the designed screens).
@@ -282,6 +283,6 @@ const extra = {
 } as const;
 
 export const strings = {
-  en: { ...generated.en, ...extra.en, ...tips.en, ...hints.en },
-  ar: { ...generated.ar, ...extra.ar, ...tips.ar, ...hints.ar },
+  en: { ...generated.en, ...extra.en, ...tips.en, ...hints.en, ...journey.en },
+  ar: { ...generated.ar, ...extra.ar, ...tips.ar, ...hints.ar, ...journey.ar },
 } as const;
