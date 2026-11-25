@@ -82,11 +82,15 @@ const facing = (target: string, gap_m: number) => (ids: Record<string, string>, 
   ];
 };
 
-function kit(kind: RoomKind, scene: Scene): Step[] {
+/** A bed and sofa that suit the room's short side. */
+function sized(scene: Scene) {
   const b = roomBounds(scene.room);
   const short = Math.min(b.maxX - b.minX, b.maxZ - b.minZ);
-  const bed = short < 2.8 ? "bed_single" : short < 3.4 ? "bed_double" : "bed_queen";
-  const sofa = short < 3.2 ? "sofa_2_seat" : "sofa_3_seat";
+  return { bed: short < 2.8 ? "bed_single" : short < 3.4 ? "bed_double" : "bed_queen", sofa: short < 3.2 ? "sofa_2_seat" : "sofa_3_seat" };
+}
+
+function kit(kind: RoomKind, scene: Scene): Step[] {
+  const { bed, sofa } = sized(scene);
   const KITS: Record<RoomKind, Step[]> = {
     bedroom: [
       { catalogId: bed, place: onWalls(0, 1, 2), anchor: true },
