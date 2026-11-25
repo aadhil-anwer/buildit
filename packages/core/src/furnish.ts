@@ -73,7 +73,7 @@ function kit(kind: RoomKind, scene: Scene): Step[] {
       { catalogId: "nightstand", place: beside("bed", ["right"], 0.05, "same_as_target") },
       { catalogId: "rug_bedroom", place: beside("bed", ["under"]) },
       { catalogId: "wardrobe_2", place: onWalls(1, 2, 3, 0) },
-      { catalogId: "floor_lamp", place: anywhere },
+      { catalogId: "floor_lamp", place: beside("nightstand", ["left", "right"], 0.05) }, // a reading light by the bed
     ],
     living: [
       { catalogId: sofa, place: onWalls(0, 1, 2) },

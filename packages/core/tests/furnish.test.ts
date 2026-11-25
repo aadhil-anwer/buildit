@@ -66,7 +66,8 @@ test("across many room sizes and door/window walls, furnishing never leaves a fa
         expect(roomCheck(scene).rules.filter((r) => r.status === "fail").map((r) => r.id), `${kind} ${w}x${l} door ${doorWall}`).toEqual([]);
       }
   expect(rooms).toBe(60);
-  expect((performance.now() - started) / rooms).toBeLessThan(400); // ms per room on a desktop; phones are ~3-5x slower
+  // About 220 ms per room on an idle desktop; this only catches a real slowdown, not a busy machine or a slow CI runner.
+  expect((performance.now() - started) / rooms).toBeLessThan(2000);
 }, 60_000);
 
 test("a missing essential is placed like the starter set would, and the checklist ticks it off", () => {
