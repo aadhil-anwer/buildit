@@ -5,7 +5,7 @@ import { furnishRoom, type RoomKind } from "../src/furnish";
 import { checkPose } from "../src/layout/validate";
 import { makeOpening, RECT_WALL } from "../src/room";
 import { emptyRoom } from "../src/templates";
-import { TRADITIONS, traditionFit, traditionReport } from "../src/traditions";
+import { TRADITIONS, traditionFit, traditionReport, type TraditionId } from "../src/traditions";
 
 // The room the dimensions screen builds: door 30 cm from a corner of the south wall, window centred on the north wall.
 const typed = (w: number, l: number) =>
@@ -42,6 +42,22 @@ test("a layout matches another only when every piece sits within a centimetre an
   expect(samePoses(room, nudge(0, Math.PI / 2))).toBe(false);
   expect(samePoses(room, { ...room, objects: room.objects.slice(1) })).toBe(false);
   expect(arrange(room, "practical")!.moved).toEqual([]); // the app's own furnishing is already the practical plan
+});
+
+// Rooms the app furnished (the practical plan) where a tradition's rule fails, and a spot exists that fixes it:
+// corners and door walls the kit never offers are where the traditions find a different room.
+test.each([
+  ["vastu", "bedroom", 4, 3.6, ["vBedHead", "vStorageSW"]],
+  ["vastu", "living", 5, 4.2, ["vFaceNE"]],
+  ["arabian", "living", 5, 4.2, ["aHostFacesDoor", "aPrivacy"]],
+  ["arabian", "majlis", 6, 4.5, ["aHostFacesDoor", "aPrivacy"]],
+  ["fengshui", "office", 3.4, 3, ["fCommand"]],
+] as [TraditionId, RoomKind, number, number, string[]][])("%s fixes the rules the practical %s fails", (tradition, kind, w, l, rules) => {
+  const room = furnished(kind, w, l);
+  const status = (s: typeof room) => Object.fromEntries(traditionReport(s, tradition, {}).map((r) => [r.id, r.status]));
+  for (const id of rules) expect(status(room)[id], `before ${id}`).toBe("fail");
+  const after = status(arrange(room, tradition)!.scene);
+  for (const id of rules) expect(after[id], `after ${id}`).toBe("pass");
 });
 
 test("Vastu puts the bed's head to the south or east when a wall allows it", () => {

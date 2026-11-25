@@ -52,10 +52,16 @@ export function LayoutsPane({ onUsed }: { onUsed?: () => void } = {}) {
   );
 }
 
+const sameLine = ({ tradition, as, follows }: Same) => {
+  const name = traditionName(tradition);
+  if (as) return follows ? t("layoutsFollows", name, traditionName(as)) : t("layoutsSameAs", name, traditionName(as));
+  return follows ? t("layoutsFollowsYours", name) : t("layoutsNoBetter", name);
+};
+
 /** An idea whose best layout is the room as it is, or a card already shown: one line instead of a twin card. */
 const SameLine = ({ same: x }: { same: Same }) => (
   <Text variant="bodySm" tone="secondary" style={styles.same}>
-    {x.as ? t("layoutsSameAs", traditionName(x.tradition), traditionName(x.as)) : t("layoutsNoBetter", traditionName(x.tradition))}
+    {sameLine(x)}
   </Text>
 );
 

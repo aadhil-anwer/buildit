@@ -1,5 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { arrangeSteps, samePoses, TRADITIONS, type Arrangement, type Compass, type TraditionId } from "@buildit/core";
+import { arrangeSteps, samePoses, traditionReport, TRADITIONS, type Arrangement, type Compass, type TraditionId } from "@buildit/core";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import { z } from "zod";
@@ -11,7 +11,12 @@ import { useEditor } from "./store";
 
 type Phase = { name: "idle" } | { name: "arranging"; doing: TraditionId } | { name: "ready" };
 /** A tradition whose layout came out the same as the room now (as: null) or as an earlier card: said in a line, not shown twice. */
-export interface Same { tradition: TraditionId; as: TraditionId | null }
+export interface Same {
+  tradition: TraditionId;
+  as: TraditionId | null;
+  /** Every rule of that tradition that applies here passes (so "already follows it", not just "nothing better found"). */
+  follows: boolean;
+}
 
 interface State {
   phase: Phase;
@@ -40,9 +45,10 @@ const ctxFor = (s: State) => ({ qibla: s.qibla[useEditor.getState().roomId ?? ""
 
 /** Adds a finished layout as a card, or, if it matches the room or a card already there, as a "same as" line. */
 function add(s: State, a: Arrangement): Partial<State> {
-  if (!a.moved.length) return { same: [...s.same, { tradition: a.tradition, as: null }] };
-  const twin = s.layouts.find((b) => samePoses(a.scene, b.scene));
-  return twin ? { same: [...s.same, { tradition: a.tradition, as: twin.tradition }] } : { layouts: [...s.layouts, a] };
+  const twin = a.moved.length ? s.layouts.find((b) => samePoses(a.scene, b.scene)) : undefined;
+  if (a.moved.length && !twin) return { layouts: [...s.layouts, a] };
+  const follows = traditionReport(a.scene, a.tradition, ctxFor(s)).every((r) => r.status === "pass" || r.status === "na");
+  return { same: [...s.same, { tradition: a.tradition, as: twin?.tradition ?? null, follows }] };
 }
 /** A new Gulf layout (after the Qibla wall is picked) replaces the old one; it is the last card, so the others keep their order. */
 const withGulf = (s: State, gulf: Arrangement) => add({ ...s, layouts: s.layouts.filter((a) => a.tradition !== "arabian"), same: s.same.filter((x) => x.tradition !== "arabian") }, gulf);

@@ -5,6 +5,9 @@
  * again stays where it was. Scanned pieces and locked ones are never moved.
  */
 import { getCatalogItem } from "./catalog";
+import { COMPASS_DIR, dot } from "./geometry";
+import { getWalls } from "./room";
+import type { Compass } from "./types";
 import { inferKind, kit, placeStep, stepIds, wallsByFit } from "./furnish";
 import type { Placement } from "./layout/placement";
 import { addObject, type OpResult } from "./ops";
@@ -18,10 +21,33 @@ export interface Arrangement {
   moved: string[];
 }
 
+const ENDS: Compass[] = ["north", "south", "east", "west"];
+const key = (p: Placement) => JSON.stringify(p);
+
+/**
+ * The kit's spots for a piece against a wall, and then the ones it never offers: every wall (door walls too, if the
+ * piece clears the swing) and each end of it, not only the middle. This is where a tradition finds a different room:
+ * the wardrobe in the south-west corner, the bed's head to the east. Kit spots come first, so ties keep its plan.
+ */
+function widen(scene: Scene, options: Placement[]): Placement[] {
+  const walls = getWalls(scene.room).filter((w) => w.length >= 1.2);
+  const extra = options.flatMap((p) => {
+    if (p.type !== "against_wall" || p.align_with) return [];
+    return walls.flatMap((w) => [
+      { ...p, wall: w.id, slide_toward: "center" as const },
+      ...ENDS.filter((c) => Math.abs(dot(w.dir, COMPASS_DIR[c])) > 0.7).map((c) => ({ ...p, wall: w.id, slide_toward: c })),
+    ]);
+  });
+  const seen = new Set<string>();
+  return [...options, ...extra].filter((p) => !seen.has(key(p)) && !!seen.add(key(p)));
+}
+
 /** A step's spots, best for the tradition first: each tried for this piece alone (stable, so ties keep the kit's order). */
-function* rank(scene: Scene, catalogId: string, options: Placement[], tradition: TraditionId, ctx: TraditionCtx): Generator<null, Placement[]> {
+function* rank(scene: Scene, catalogId: string, kitOptions: Placement[], tradition: TraditionId, ctx: TraditionCtx): Generator<null, Placement[]> {
   const type = getCatalogItem(catalogId)?.type;
-  if (tradition === "practical" || !type || options.length < 2) return options;
+  if (tradition === "practical" || !type) return kitOptions;
+  const options = widen(scene, kitOptions);
+  if (options.length < 2) return options;
   const scored: { p: Placement; i: number; fit: number }[] = [];
   for (const [i, p] of options.entries()) {
     yield null;

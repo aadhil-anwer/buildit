@@ -44,12 +44,12 @@ test("every idea is either a card or a line saying which layout it matches, neve
     for (const b of layouts.slice(i + 1)) expect(samePoses(a.scene, b.scene)).toBe(false);
   }
   expect(layouts.map((a) => a.tradition)).toEqual(["practical", "arabian"]);
-  expect(same).toContainEqual({ tradition: "vastu", as: "practical" });
+  expect(same).toContainEqual(expect.objectContaining({ tradition: "vastu", as: "practical" }));
 });
 
 test("an idea that would change nothing is said in a line, not shown as a card", async () => {
   const { layouts, same } = await arranged(room("living")); // the app's own furnishing is already the practical plan
-  expect(same).toContainEqual({ tradition: "practical", as: null });
+  expect(same).toContainEqual({ tradition: "practical", as: null, follows: true });
   expect(layouts.map((a) => a.tradition)).not.toContain("practical");
 });
 
@@ -92,7 +92,7 @@ test("the pane shows the cards, says which ideas matched, compares side by side,
   await render(<LayoutsPane />);
   await act(() => jest.runAllTimersAsync());
   expect(screen.getAllByText(traditionName("arabian")).length).toBeGreaterThan(0);
-  expect(screen.getByText(t("layoutsSameAs", traditionName("vastu"), traditionName("practical")))).toBeTruthy();
+  expect(screen.getByText(t("layoutsFollows", traditionName("vastu"), traditionName("practical")))).toBeTruthy(); // the practical plan already passes every Vastu rule here
   expect(screen.getByText(t("layoutsNote"))).toBeTruthy();
   await fireEvent.press(screen.getByRole("button", { name: t("layoutsCompare") }));
   expect(screen.getByText(t("layoutsCurrent"))).toBeTruthy();
